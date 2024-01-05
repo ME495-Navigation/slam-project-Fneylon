@@ -14,6 +14,8 @@
 
 <!-- Exec Depends for the launchfiles -->
   <exec_depend>ros2launch</exec_depend>
+  <exec_depend>load_one.launch.py</exec_depend>
+  <!-- <exec_depend>basic_purple.rviz</exec_depend> -->
 
   <export>
     <build_type>ament_cmake</build_type>
