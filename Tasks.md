@@ -1,5 +1,6 @@
 # Completed Tasks
-#### Tasks 0: Preliminaries
+## Homework 1:
+#### Task 0: Preliminaries
 - [x] Task 0.1: Reading the Guidelines
 - [x] Task 0.2: Making a Git Repository
 - [x] Task 0.3: Making a GitHub README
