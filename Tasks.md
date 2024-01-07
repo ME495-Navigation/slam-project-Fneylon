@@ -7,9 +7,18 @@
 - [x] Task 0.4: Making a Tasks.md
 #### Task A: Robot Description
 - [x] Task A.1: nuturtle_desciption package
-- [ ] Task A.2: visualization
+- [x] Task A.2: visualization
 - [ ] Task A.3: yaml File 
+     - [ ] Need to complete the collision radius conditionals 
 - [ ] Task A.4: prefix
 - [ ] Task A.5: multi robot
 - [ ] Task A.6: README
+#### Task B: C++ and 2D Transforms
+- [ ] Task B.1 geometry primiatives
+- [ ] Task B.2 unit testing geometry 
+- [ ] Task B.3 SE(2) geometry 
+- [ ] Task B.4 unit testing SE(2)
+- [ ] Task B.5 visualization
+- [ ] Task B.6 executable implementation 
+- [ ] Task B.7 conceptual questions
 
