@@ -14,7 +14,7 @@
 <xacro:property name="wheel_radius" value="${props['wheel_radius']}"/>
 <xacro:property name="wheel_track" value="${props['track_width']}"/>
 <xacro:property name="collision_radius" value="${props['collision_radius']}"/>
-<xacro:property name="color" value="purple" />
+<xacro:property name="color" value="$(arg color)" />
 
 
   <!-- Init colour -->
@@ -28,7 +28,7 @@
 
   <material name="dark">
     <color rgba="0.3 0.3 0.3 1.0"/>
-  </material>
+  </material> 
 
   <material name="light_black">
     <color rgba="0.4 0.4 0.4 1.0"/>

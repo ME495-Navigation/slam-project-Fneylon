@@ -18,9 +18,9 @@ def generate_launch_description():
                               default_value="true",
                               description="setting the jsp condition"),
 
-        # DeclareLaunchArgument("color",
-        #                       default_value="purple",
-        #                       description="setting the color of the base_link of the robot"),
+        DeclareLaunchArgument("color",
+                              default_value="purple",
+                              description="setting the color of the base_link of the robot"),
 
         Node(
             package="joint_state_publisher",
@@ -36,7 +36,7 @@ def generate_launch_description():
                 {"robot_description":
                  Command([TextSubstitution(text="xacro "),
                           PathJoinSubstitution(
-                              [FindPackageShare("nuturtle_description"), "urdf/turtlebot3_burger.urdf.xacro"])])}
+                              [FindPackageShare("nuturtle_description"), "urdf/turtlebot3_burger.urdf.xacro"]), ' color:=', LaunchConfiguration('color')])}
 
             ]
         ),
