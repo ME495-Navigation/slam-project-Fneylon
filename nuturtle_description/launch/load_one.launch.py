@@ -3,7 +3,7 @@ from launch_ros.actions import Node
 from launch.actions import DeclareLaunchArgument, Shutdown
 from launch.conditions import IfCondition
 from launch_ros.substitutions import FindPackageShare, ExecutableInPackage
-from launch.substitutions import LaunchConfiguration, PythonExpression
+from launch.substitutions import LaunchConfiguration, PythonExpression, TextSubstitution
 from launch.substitutions import Command, PathJoinSubstitution
 import launch_ros.actions
 
@@ -30,8 +30,10 @@ def generate_launch_description():
             executable="robot_state_publisher",
             parameters=[
                 {"robot_description":
-                 PathJoinSubstitution(
-                     [FindPackageShare("nuturtle_description"), "urdf/turtlebot3_burger.urdf"])}
+                 Command([TextSubstitution(text="xacro "),
+                          PathJoinSubstitution(
+                              [FindPackageShare("nuturtle_description"), "urdf/turtlebot3_burger.urdf.xacro"])])}
+
             ]
         ),
 
