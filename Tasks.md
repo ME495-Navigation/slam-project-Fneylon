@@ -11,7 +11,8 @@
 - [ ] Task A.3: yaml File 
      - [ ] Need to complete the collision radius conditionals 
 - [ ] Task A.4: prefix
-- [ ] Task A.5: multi robot
+     - [ ] Need to fix frame_prefix issues
+- [x] Task A.5: multi robot
 - [ ] Task A.6: README
 #### Task B: C++ and 2D Transforms
 - [ ] Task B.1 geometry primiatives

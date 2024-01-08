@@ -79,12 +79,23 @@
       <material name="${color}"/>
     </visual>
 
-    <collision>
-      <origin xyz="-0.032 0 0.070" rpy="0 0 0"/>
-      <geometry>
-        <box size="0.140 0.140 0.143"/>
-      </geometry>
-    </collision>
+  <xacro:if value="${collision_radius &lt; 0}">
+      <collision>
+        <origin xyz="-0.032 0 0.070" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.140 0.140 0.143"/>
+        </geometry>
+      </collision>
+    </xacro:if>
+
+    <xacro:unless value="${collision_radius &lt; 0}">
+      <collision>
+        <origin xyz="-0.032 0 0.070" rpy="0 0 0"/>
+        <geometry>
+          <cylinder length="0.143" radius="${collision_radius}"/>
+        </geometry>
+      </collision>
+    </xacro:unless>
 
     <inertial>
       <origin xyz="0 0 0" rpy="0 0 0"/>
