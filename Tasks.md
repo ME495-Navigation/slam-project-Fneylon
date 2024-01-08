@@ -8,8 +8,7 @@
 #### Task A: Robot Description
 - [x] Task A.1: nuturtle_desciption package
 - [x] Task A.2: visualization
-- [ ] Task A.3: yaml File 
-     - [ ] Need to complete the collision radius conditionals 
+- [x] Task A.3: yaml File 
 - [ ] Task A.4: prefix
      - [ ] Need to fix frame_prefix issues
 - [x] Task A.5: multi robot

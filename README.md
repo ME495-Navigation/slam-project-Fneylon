@@ -3,4 +3,4 @@
 * Winter 2024
 # Package List
 This repository consists of several ROS packages
-- <PACKAGE1> - <one sentence description>
+- nuturtle_description - package that vizualizes the 4 turtlebot3 burgers based on the turtlebot3 burger model from the turtlebot3 repo. 
