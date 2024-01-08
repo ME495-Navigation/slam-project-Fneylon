@@ -13,6 +13,7 @@
      - [ ] Need to fix frame_prefix issues
 - [x] Task A.5: multi robot
 - [ ] Task A.6: README
+     - [ ] Need to add images to README
 #### Task B: C++ and 2D Transforms
 - [ ] Task B.1 geometry primiatives
 - [ ] Task B.2 unit testing geometry 
