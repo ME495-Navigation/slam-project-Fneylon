@@ -105,7 +105,7 @@ Visualization Manager:
         Inertia: false
         Mass: false
       Name: RobotModel
-      TF Prefix: ""
+      TF Prefix: blue
       Update Interval: 0
       Value: true
       Visual Enabled: true
@@ -114,19 +114,19 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: true
-        base_footprint:
+        blue/base_footprint:
           Value: true
-        base_link:
+        blue/base_link:
           Value: true
-        base_scan:
+        blue/base_scan:
           Value: true
-        caster_back_link:
+        blue/caster_back_link:
           Value: true
-        imu_link:
+        blue/imu_link:
           Value: true
-        wheel_left_link:
+        blue/wheel_left_link:
           Value: true
-        wheel_right_link:
+        blue/wheel_right_link:
           Value: true
       Marker Scale: 1
       Name: TF
@@ -134,24 +134,24 @@ Visualization Manager:
       Show Axes: true
       Show Names: false
       Tree:
-        base_footprint:
-          base_link:
-            base_scan:
+        blue/base_footprint:
+          blue/base_link:
+            blue/base_scan:
               {}
-            caster_back_link:
+            blue/caster_back_link:
               {}
-            imu_link:
+            blue/imu_link:
               {}
-            wheel_left_link:
+            blue/wheel_left_link:
               {}
-            wheel_right_link:
+            blue/wheel_right_link:
               {}
       Update Interval: 0
       Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Fixed Frame: base_link
+    Fixed Frame: blue/base_footprint
     Frame Rate: 30
   Name: root
   Tools:

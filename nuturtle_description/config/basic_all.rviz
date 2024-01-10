@@ -7,6 +7,10 @@ Panels:
         - /Global Options1
         - /Status1
         - /Grid1
+        - /PurpleRobot1
+        - /GreenRobot1
+        - /BlueRobot1
+        - /RedRobot1
       Splitter Ratio: 0.5
     Tree Height: 1083
   - Class: rviz_common/Selection
@@ -103,7 +107,7 @@ Visualization Manager:
         Inertia: false
         Mass: false
       Name: PurpleRobot
-      TF Prefix: ""
+      TF Prefix: purple
       Update Interval: 0
       Value: true
       Visual Enabled: true
@@ -162,7 +166,7 @@ Visualization Manager:
         Inertia: false
         Mass: false
       Name: GreenRobot
-      TF Prefix: ""
+      TF Prefix: green
       Update Interval: 0
       Value: true
       Visual Enabled: true
@@ -221,7 +225,7 @@ Visualization Manager:
         Inertia: false
         Mass: false
       Name: BlueRobot
-      TF Prefix: ""
+      TF Prefix: blue
       Update Interval: 0
       Value: true
       Visual Enabled: true
@@ -280,7 +284,7 @@ Visualization Manager:
         Inertia: false
         Mass: false
       Name: RedRobot
-      TF Prefix: ""
+      TF Prefix: red
       Update Interval: 0
       Value: true
       Visual Enabled: true
@@ -289,61 +293,71 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: true
+        blue/base_footprint:
+          Value: true
+        blue/base_link:
+          Value: true
+        blue/base_scan:
+          Value: true
+        blue/caster_back_link:
+          Value: true
+        blue/imu_link:
+          Value: true
+        blue/wheel_left_link:
+          Value: true
+        blue/wheel_right_link:
+          Value: true
         blue_base_footprint:
           Value: true
-        blue_base_link:
+        green/base_footprint:
           Value: true
-        blue_base_scan:
+        green/base_link:
           Value: true
-        blue_caster_back_link:
+        green/base_scan:
           Value: true
-        blue_imu_link:
+        green/caster_back_link:
           Value: true
-        blue_wheel_left_link:
+        green/imu_link:
           Value: true
-        blue_wheel_right_link:
+        green/wheel_left_link:
+          Value: true
+        green/wheel_right_link:
           Value: true
         green_base_footprint:
           Value: true
-        green_base_link:
+        nusim/world:
           Value: true
-        green_base_scan:
+        purple/base_footprint:
           Value: true
-        green_caster_back_link:
+        purple/base_link:
           Value: true
-        green_imu_link:
+        purple/base_scan:
           Value: true
-        green_wheel_left_link:
+        purple/caster_back_link:
           Value: true
-        green_wheel_right_link:
+        purple/imu_link:
+          Value: true
+        purple/wheel_left_link:
+          Value: true
+        purple/wheel_right_link:
           Value: true
         purple_base_footprint:
           Value: true
-        purple_base_link:
+        red/base_footprint:
           Value: true
-        purple_base_scan:
+        red/base_link:
           Value: true
-        purple_caster_back_link:
+        red/base_scan:
           Value: true
-        purple_imu_link:
+        red/caster_back_link:
           Value: true
-        purple_wheel_left_link:
+        red/imu_link:
           Value: true
-        purple_wheel_right_link:
+        red/wheel_left_link:
+          Value: true
+        red/wheel_right_link:
           Value: true
         red_base_footprint:
-          Value: true
-        red_base_link:
-          Value: true
-        red_base_scan:
-          Value: true
-        red_caster_back_link:
-          Value: true
-        red_imu_link:
-          Value: true
-        red_wheel_left_link:
-          Value: true
-        red_wheel_right_link:
           Value: true
       Marker Scale: 1
       Name: TF
@@ -351,7 +365,27 @@ Visualization Manager:
       Show Axes: true
       Show Names: false
       Tree:
-        {}
+        blue/base_footprint:
+          blue/base_link:
+            blue/base_scan:
+              {}
+            blue/caster_back_link:
+              {}
+            blue/imu_link:
+              {}
+            blue/wheel_left_link:
+              {}
+            blue/wheel_right_link:
+              {}
+        nusim/world:
+          blue_base_footprint:
+            {}
+          green_base_footprint:
+            {}
+          purple_base_footprint:
+            {}
+          red_base_footprint:
+            {}
       Update Interval: 0
       Value: true
   Enabled: true
@@ -400,25 +434,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 5.8500471115112305
+      Distance: 2.9398276805877686
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.005343206692487001
-        Y: -0.5563668012619019
-        Z: 1.3885326385498047
+        X: -0.04210531711578369
+        Y: -0.7100923657417297
+        Z: 0.6273244619369507
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.19479689002037048
+      Pitch: 0.2847968339920044
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 4.833611011505127
+      Yaw: 4.708609104156494
     Saved: ~
 Window Geometry:
   Displays:
@@ -436,5 +470,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 2051
-  X: 1500
-  Y: 99
+  X: 1013
+  Y: 158

@@ -39,33 +39,12 @@ def generate_launch_description():
             executable="robot_state_publisher",
             # namespace="blue",
             namespace=LaunchConfiguration('color'),
-
-            remappings=[
-
-                ('base_footprint', [PythonExpression(
-                    ['"', LaunchConfiguration('color'), '" + "_base_footprint"'])]),
-
-                ('base_link', [PythonExpression(
-                    ['"', LaunchConfiguration('color'), '" + "_base_link"'])]),
-
-                ('base_caster_wheel', [PythonExpression(
-                    ['"', LaunchConfiguration('color'), '" + "_base_caster_wheel"'])]),
-
-                ('imu_link', [PythonExpression(
-                    ['"', LaunchConfiguration('color'), '" + "_imu_link"'])]),
-
-                ('wheel_left_link', [PythonExpression(
-                    ['"', LaunchConfiguration('color'), '" + "_wheel_left_link"'])]),
-
-                ('wheel_right_link', [PythonExpression(
-                    ['"', LaunchConfiguration('color'), '" + "_wheel_right_link"'])]),
-            ],
             parameters=[
                 {"robot_description":
                  Command([TextSubstitution(text="xacro "),
                           PathJoinSubstitution(
                               [FindPackageShare("nuturtle_description"), "urdf/turtlebot3_burger.urdf.xacro"]), ' color:=', LaunchConfiguration('color')]),
-                 "frame_prefix": [LaunchConfiguration('color'), "_"],
+                 "frame_prefix": [LaunchConfiguration('color'), "/"],
                  }  # [1]: Used in reference for syntax
             ],
 
@@ -82,7 +61,7 @@ def generate_launch_description():
                 ["'", LaunchConfiguration('use_rviz'), "' == \'true\' "])),
             arguments=["-d", PathJoinSubstitution(
                 [FindPackageShare("nuturtle_description"), LaunchConfiguration('rviz_filename')]),
-                " -f ", LaunchConfiguration('color'), "_base_link"],
+                " -f ", LaunchConfiguration('color'), "/base_footprint"],
             on_exit=Shutdown())
 
 
