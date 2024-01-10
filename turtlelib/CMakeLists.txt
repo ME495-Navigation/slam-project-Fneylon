@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.22)
 # project_name sets the name of the project and causes cmake to
 # find the c and c++ compilers
 project(geometry)
-
+include(CTest)
 # Find your dependencies.
 # Many libraries ship with files that allow CMake to find them
 # Then general behavior is to call "find_package" but the options
@@ -14,12 +14,15 @@ project(geometry)
 # here: we find the eigen library as per the instruction
 # https://eigen.tuxfamily.org/dox/TopicCMakeGuide.html
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
+# find_package(Catch2 REQUIRED)
+find_package(Catch2 3 REQUIRED)
 
 # Create a library.  Can specify if it is shared or static but usually
 # you don't need or want to.
 # name is the name of the library without the extension or lib prefix
 # name creates a cmake "target"
-add_library(turtlelib src/geometry.cpp)
+add_library(turtlelib src/test_geometry2.cpp)
+
 
 # Use target_include_directories so that #include"mylibrary/header.hpp" works
 # The use of the <BUILD_INTERFACE> and <INSTALL_INTERFACE> is because when
@@ -44,15 +47,25 @@ target_compile_features(turtlelib PUBLIC cxx_std_17)
 
 # Create an executable from the following source code files
 # The Name of the executable creates a cmake "target"
-add_executable(${PROJECT_NAME} src/geometry.cpp)
-
+# add_executable(${PROJECT_NAME} src/test_geometry2.cpp)
+add_executable(tests tests.cpp)
+add_executable(custom-main-tests test.cpp test-main.cpp)
+# add_executable(custom-main-tests test.cpp test-main.cpp)
 # Use target_link_libraries to add dependencies to a "target"
 # (e.g., a library or executable)
 # This will automatically add all required library files
 # that need to be linked
 # and paths to th locations of header files
+# add_subdirectory(/home/fionaneylon/code/ME_495_SLAM/SLAM_ws/src/turtlelib/Catch2)
 target_link_libraries(${PROJECT_NAME} Eigen3::Eigen turtlelib)
+target_link_libraries(tests PRIVATE Catch2::Catch2WithMain)
+target_link_libraries(custom-main-tests PRIVATE Catch2::Catch2)
 
+# target_link_libraries(${PROJECT_NAME} Catch2::Catch2)
+
+
+# target_link_libraries(tests PRIVATE Catch2::Catch2WithMain)
+# target_link_libraries(custom-main-tests PRIVATE Catch2::Catch2)
 # install the include files by copying the whole include directory
 install(DIRECTORY include/turtlelib DESTINATION include)
 
@@ -90,3 +103,9 @@ if(${DOXYGEN_FOUND} AND ${BUILD_DOCS})
     # The documentation will be in the build/html directory
     # The main page is build/html/index.html
 endif()
+
+if (BUILD_TESTING)
+    find_package(Catch2 3 REQUIRED)
+
+    add_executable(turtlelib tests/test_geometry2.cpp)
+    target_link_libraries(turtlelib )
