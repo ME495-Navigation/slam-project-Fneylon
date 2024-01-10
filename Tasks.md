@@ -9,8 +9,7 @@
 - [x] Task A.1: nuturtle_desciption package
 - [x] Task A.2: visualization
 - [x] Task A.3: yaml File 
-- [ ] Task A.4: prefix
-     - [ ] Need to fix frame_prefix issues
+- [x] Task A.4: prefix
 - [x] Task A.5: multi robot
 - [ ] Task A.6: README
      - [ ] Need to add images to README

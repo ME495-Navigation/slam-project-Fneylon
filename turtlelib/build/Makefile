@@ -162,38 +162,38 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named libname
+# Target rules for targets named turtlelib
 
 # Build rule for target.
-libname: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 libname
-.PHONY : libname
+turtlelib: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 turtlelib
+.PHONY : turtlelib
 
 # fast build rule for target.
-libname/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/libname.dir/build.make CMakeFiles/libname.dir/build
-.PHONY : libname/fast
+turtlelib/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/turtlelib.dir/build.make CMakeFiles/turtlelib.dir/build
+.PHONY : turtlelib/fast
 
 #=============================================================================
-# Target rules for targets named Name
+# Target rules for targets named geometry
 
 # Build rule for target.
-Name: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 Name
-.PHONY : Name
+geometry: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 geometry
+.PHONY : geometry
 
 # fast build rule for target.
-Name/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Name.dir/build.make CMakeFiles/Name.dir/build
-.PHONY : Name/fast
+geometry/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/geometry.dir/build.make CMakeFiles/geometry.dir/build
+.PHONY : geometry/fast
 
 src/geometry.o: src/geometry.cpp.o
 .PHONY : src/geometry.o
 
 # target to build an object file
 src/geometry.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/libname.dir/build.make CMakeFiles/libname.dir/src/geometry.cpp.o
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Name.dir/build.make CMakeFiles/Name.dir/src/geometry.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/turtlelib.dir/build.make CMakeFiles/turtlelib.dir/src/geometry.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/geometry.dir/build.make CMakeFiles/geometry.dir/src/geometry.cpp.o
 .PHONY : src/geometry.cpp.o
 
 src/geometry.i: src/geometry.cpp.i
@@ -201,8 +201,8 @@ src/geometry.i: src/geometry.cpp.i
 
 # target to preprocess a source file
 src/geometry.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/libname.dir/build.make CMakeFiles/libname.dir/src/geometry.cpp.i
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Name.dir/build.make CMakeFiles/Name.dir/src/geometry.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/turtlelib.dir/build.make CMakeFiles/turtlelib.dir/src/geometry.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/geometry.dir/build.make CMakeFiles/geometry.dir/src/geometry.cpp.i
 .PHONY : src/geometry.cpp.i
 
 src/geometry.s: src/geometry.cpp.s
@@ -210,8 +210,8 @@ src/geometry.s: src/geometry.cpp.s
 
 # target to generate assembly for a file
 src/geometry.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/libname.dir/build.make CMakeFiles/libname.dir/src/geometry.cpp.s
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Name.dir/build.make CMakeFiles/Name.dir/src/geometry.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/turtlelib.dir/build.make CMakeFiles/turtlelib.dir/src/geometry.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/geometry.dir/build.make CMakeFiles/geometry.dir/src/geometry.cpp.s
 .PHONY : src/geometry.cpp.s
 
 # Help Target
@@ -226,8 +226,8 @@ help:
 	@echo "... install/strip"
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
-	@echo "... Name"
-	@echo "... libname"
+	@echo "... geometry"
+	@echo "... turtlelib"
 	@echo "... src/geometry.o"
 	@echo "... src/geometry.i"
 	@echo "... src/geometry.s"

@@ -49,6 +49,6 @@ set(CMAKE_MAKEFILE_PRODUCTS
 
 # Dependency information for all targets:
 set(CMAKE_DEPEND_INFO_FILES
-  "CMakeFiles/libname.dir/DependInfo.cmake"
-  "CMakeFiles/Name.dir/DependInfo.cmake"
+  "CMakeFiles/turtlelib.dir/DependInfo.cmake"
+  "CMakeFiles/geometry.dir/DependInfo.cmake"
   )

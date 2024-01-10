@@ -47,41 +47,41 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/Name" AND
-     NOT IS_SYMLINK "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/Name")
+  if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/geometry" AND
+     NOT IS_SYMLINK "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/geometry")
     file(RPATH_CHECK
-         FILE "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/Name"
+         FILE "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/geometry"
          RPATH "")
   endif()
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE EXECUTABLE FILES "/home/fionaneylon/code/ME_495_SLAM/SLAM_ws/src/turtlelib/build/Name")
-  if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/Name" AND
-     NOT IS_SYMLINK "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/Name")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE EXECUTABLE FILES "/home/fionaneylon/code/ME_495_SLAM/SLAM_ws/src/turtlelib/build/geometry")
+  if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/geometry" AND
+     NOT IS_SYMLINK "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/geometry")
     if(CMAKE_INSTALL_DO_STRIP)
-      execute_process(COMMAND "/usr/bin/strip" "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/Name")
+      execute_process(COMMAND "/usr/bin/strip" "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/geometry")
     endif()
   endif()
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE STATIC_LIBRARY FILES "/home/fionaneylon/code/ME_495_SLAM/SLAM_ws/src/turtlelib/build/liblibname.a")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE STATIC_LIBRARY FILES "/home/fionaneylon/code/ME_495_SLAM/SLAM_ws/src/turtlelib/build/libturtlelib.a")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/cmake/project_name/project_name-config.cmake")
+  if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/cmake/geometry/project_name-config.cmake")
     file(DIFFERENT EXPORT_FILE_CHANGED FILES
-         "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/cmake/project_name/project_name-config.cmake"
-         "/home/fionaneylon/code/ME_495_SLAM/SLAM_ws/src/turtlelib/build/CMakeFiles/Export/lib/cmake/project_name/project_name-config.cmake")
+         "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/cmake/geometry/project_name-config.cmake"
+         "/home/fionaneylon/code/ME_495_SLAM/SLAM_ws/src/turtlelib/build/CMakeFiles/Export/lib/cmake/geometry/project_name-config.cmake")
     if(EXPORT_FILE_CHANGED)
-      file(GLOB OLD_CONFIG_FILES "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/cmake/project_name/project_name-config-*.cmake")
+      file(GLOB OLD_CONFIG_FILES "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/cmake/geometry/project_name-config-*.cmake")
       if(OLD_CONFIG_FILES)
-        message(STATUS "Old export file \"$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/cmake/project_name/project_name-config.cmake\" will be replaced.  Removing files [${OLD_CONFIG_FILES}].")
+        message(STATUS "Old export file \"$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/cmake/geometry/project_name-config.cmake\" will be replaced.  Removing files [${OLD_CONFIG_FILES}].")
         file(REMOVE ${OLD_CONFIG_FILES})
       endif()
     endif()
   endif()
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake/project_name" TYPE FILE FILES "/home/fionaneylon/code/ME_495_SLAM/SLAM_ws/src/turtlelib/build/CMakeFiles/Export/lib/cmake/project_name/project_name-config.cmake")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake/geometry" TYPE FILE FILES "/home/fionaneylon/code/ME_495_SLAM/SLAM_ws/src/turtlelib/build/CMakeFiles/Export/lib/cmake/geometry/project_name-config.cmake")
   if("${CMAKE_INSTALL_CONFIG_NAME}" MATCHES "^()$")
-    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake/project_name" TYPE FILE FILES "/home/fionaneylon/code/ME_495_SLAM/SLAM_ws/src/turtlelib/build/CMakeFiles/Export/lib/cmake/project_name/project_name-config-noconfig.cmake")
+    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake/geometry" TYPE FILE FILES "/home/fionaneylon/code/ME_495_SLAM/SLAM_ws/src/turtlelib/build/CMakeFiles/Export/lib/cmake/geometry/project_name-config-noconfig.cmake")
   endif()
 endif()
 

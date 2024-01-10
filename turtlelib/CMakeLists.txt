@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.22)
 
 # project_name sets the name of the project and causes cmake to
 # find the c and c++ compilers
-project(project_name)
+project(geometry)
 
 # Find your dependencies.
 # Many libraries ship with files that allow CMake to find them
@@ -19,7 +19,7 @@ find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 # you don't need or want to.
 # name is the name of the library without the extension or lib prefix
 # name creates a cmake "target"
-add_library(libname src/geometry.cpp)
+add_library(turtlelib src/geometry.cpp)
 
 # Use target_include_directories so that #include"mylibrary/header.hpp" works
 # The use of the <BUILD_INTERFACE> and <INSTALL_INTERFACE> is because when
@@ -27,7 +27,7 @@ add_library(libname src/geometry.cpp)
 # During build, the headers are read from the source code directory
 # When used from the installed location, headers are in the
 # system include/ directory
-target_include_directories(libname
+target_include_directories(turtlelib
     PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>
     $<INSTALL_INTERFACE:include/>)
@@ -35,23 +35,23 @@ target_include_directories(libname
 # specify additional compilation flags for the library
 # Public causes the flags to propagate to anything
 # that links against this library
-target_compile_options(libname PUBLIC -Wall -Wextra -pedantic)
+target_compile_options(turtlelib PUBLIC -Wall -Wextra -pedantic)
 
 # Enable c++17 support.
 # Public causes the features to propagate to anything
 # that links against this library
-target_compile_features(libname PUBLIC cxx_std_17)
+target_compile_features(turtlelib PUBLIC cxx_std_17)
 
 # Create an executable from the following source code files
 # The Name of the executable creates a cmake "target"
-add_executable(Name src/geometry.cpp)
+add_executable(${PROJECT_NAME} src/geometry.cpp)
 
 # Use target_link_libraries to add dependencies to a "target"
 # (e.g., a library or executable)
 # This will automatically add all required library files
 # that need to be linked
 # and paths to th locations of header files
-target_link_libraries(Name Eigen3::Eigen libname)
+target_link_libraries(${PROJECT_NAME} Eigen3::Eigen turtlelib)
 
 # install the include files by copying the whole include directory
 install(DIRECTORY include/turtlelib DESTINATION include)
@@ -60,7 +60,7 @@ install(DIRECTORY include/turtlelib DESTINATION include)
 # Also create CMake Export called projet_name-targets
 # The CMake Export contains files that allow other CMake projects
 # to find this project. It must be installed separately.
-install(TARGETS Name libname EXPORT project_name-targets)
+install(TARGETS ${PROJECT_NAME} turtlelib EXPORT project_name-targets)
 
 # The project_name-targets created by install(TARGETS) needs to be installed.
 # install(EXPORT ...) will generate a file called project_name-config.cmake
