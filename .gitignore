@@ -1,6 +1,7 @@
 /build
 /install
 /log
+turtlelib/build/CMakeFiles/
 .vscode
 __pychache__
 .pyc
