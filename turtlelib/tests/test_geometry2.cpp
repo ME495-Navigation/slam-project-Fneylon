@@ -1,3 +1,4 @@
+// #define CATCH_CONFIG_MAIN
 #include "turtlelib/geometry2d.hpp"
 #include <catch2/catch_test_macros.hpp>
 
