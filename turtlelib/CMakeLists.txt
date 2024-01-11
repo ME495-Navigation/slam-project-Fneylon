@@ -106,7 +106,7 @@ if(BUILD_TESTING)
     find_package(Catch2 3 REQUIRED)
 
     # A test is just an executable that is linked against the unit testing library
-    add_executable(my_test_exe tests/test_geometry2.cpp)
+    add_executable (my_test_exe tests/test_geometry2.cpp)
     target_link_libraries(my_test_exe Catch2::Catch2WithMain turtlelib)
     target_include_directories(my_test_exe
     PUBLIC
@@ -114,5 +114,8 @@ if(BUILD_TESTING)
     $<INSTALL_INTERFACE:include/>)
 
     # register the test with CTest, telling it what executable to run
-    add_test(NAME the_test_name COMMAND my_test_exe)
+    add_test(NAME almost_equal COMMAND my_test_exe)
+    add_test(NAME deg2rad COMMAND my_test_exe)
+    add_test(NAME rad2deg COMMAND my_test_exe)
+    add_test(NAME normalize_angle COMMAND my_test_exe)
 endif()
