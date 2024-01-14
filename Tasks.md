@@ -14,8 +14,8 @@
 - [ ] Task A.6: README
      - [ ] Need to add images to README
 #### Task B: C++ and 2D Transforms
-- [ ] Task B.1 geometry primiatives
-- [ ] Task B.2 unit testing geometry 
+- [x] Task B.1 geometry primiatives
+- [x] Task B.2 unit testing geometry 
 - [ ] Task B.3 SE(2) geometry 
 - [ ] Task B.4 unit testing SE(2)
 - [ ] Task B.5 visualization
