@@ -19,6 +19,15 @@ TEST_CASE("Testing operator<<", "[operator_se2<<]")
     ss1 << tw;
     REQUIRE(ss1.str() == "[5 6 7]");
 
+    turtlelib::Vector2D v;
+    v.x = 3.0;
+    v.y = 4.0;
+    double theta = turtlelib::deg2rad(90.0);
+    turtlelib::Transform2D T = turtlelib::Transform2D(v, theta);
+    std::stringstream ss2;
+    ss2 << T;
+    REQUIRE(ss2.str() == "deg: 90 x: 3 y: 4");
+
 }
 
 TEST_CASE("Testing operator_se2>>", "[operator_se2>>]")
@@ -38,6 +47,17 @@ TEST_CASE("Testing operator_se2>>", "[operator_se2>>]")
     REQUIRE_THAT(tw2.omega, Catch::Matchers::WithinAbs(5.0, 1.0e-12));
     REQUIRE_THAT(tw2.x, Catch::Matchers::WithinAbs(6.0, 1.0e-12));
     REQUIRE_THAT(tw2.y, Catch::Matchers::WithinAbs(7.0, 1.0e-12));
+
+    std::stringstream ss3;
+    turtlelib::Transform2D T;
+    // double theta = 90.0;
+    ss3 << "deg: 90 x: 3 y: 4";
+    ss3 >> T;
+    // REQUIRE_THAT(turtlelib::rad2deg(T.rotatcd ..ion()), Catch::Matchers::WithinAbs(theta, 1.0e-12));
+    REQUIRE_THAT(T.translation().x, Catch::Matchers::WithinAbs(3.0, 1.0e-12));
+    REQUIRE_THAT(T.translation().y, Catch::Matchers::WithinAbs(4.0, 1.0e-12));
+
+
 }
 
 TEST_CASE("Testing Transform2D()", "[Transform2D]")
@@ -118,5 +138,59 @@ TEST_CASE("Testing Operator", "[operator]")
     REQUIRE_THAT(tw2.x, Catch::Matchers::WithinAbs(3.0, 1.0e-12));
     REQUIRE_THAT(tw2.y, Catch::Matchers::WithinAbs(1.0, 1.0e-12));
 
+
+}
+
+TEST_CASE("Testing inv", "[inv]"){
+
+    turtlelib::Vector2D v;
+    v.x = 0.0;
+    v.y = 0.0;
+
+    turtlelib::Transform2D T = turtlelib::Transform2D(v, 0.0);
+
+    turtlelib::Transform2D Tinv = T.inv();
+
+    REQUIRE_THAT(Tinv.matrix[0][0], Catch::Matchers::WithinAbs(1.0, 1.0e-12));
+    REQUIRE_THAT(Tinv.matrix[0][1], Catch::Matchers::WithinAbs(0.0, 1.0e-12));
+    REQUIRE_THAT(Tinv.matrix[0][2], Catch::Matchers::WithinAbs(0.0, 1.0e-12));
+    REQUIRE_THAT(Tinv.matrix[1][0], Catch::Matchers::WithinAbs(0.0, 1.0e-12));
+    REQUIRE_THAT(Tinv.matrix[1][1], Catch::Matchers::WithinAbs(1.0, 1.0e-12));
+    REQUIRE_THAT(Tinv.matrix[1][2], Catch::Matchers::WithinAbs(0.0, 1.0e-12));
+    REQUIRE_THAT(Tinv.matrix[2][0], Catch::Matchers::WithinAbs(0.0, 1.0e-12));
+    REQUIRE_THAT(Tinv.matrix[2][1], Catch::Matchers::WithinAbs(0.0, 1.0e-12));
+    REQUIRE_THAT(Tinv.matrix[2][2], Catch::Matchers::WithinAbs(1.0, 1.0e-12));
+
+}
+
+TEST_CASE("Testing translation", "[translation]")
+{
+    turtlelib::Vector2D v;
+    v.x = 1.0;
+    v.y = 2.0;
+
+    turtlelib::Transform2D T = turtlelib::Transform2D(v);
+
+    turtlelib::Vector2D v2 = T.translation();
+
+    REQUIRE_THAT(v2.x, Catch::Matchers::WithinAbs(1.0, 1.0e-12));
+    REQUIRE_THAT(v2.y, Catch::Matchers::WithinAbs(2.0, 1.0e-12));
+
+
+}
+
+TEST_CASE("Testing rotation","[rotation]")
+{
+    turtlelib::Vector2D v;
+    v.x = 1.0;
+    v.y = 2.0;
+
+    double theta = turtlelib::deg2rad(90.0);
+
+    turtlelib::Transform2D T = turtlelib::Transform2D(v, theta);
+
+    double gamma = turtlelib::rad2deg(T.rotation());
+
+    REQUIRE_THAT(gamma, Catch::Matchers::WithinAbs(90.0, 1.0e-12));
 
 }

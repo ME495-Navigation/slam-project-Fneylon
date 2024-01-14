@@ -13,13 +13,13 @@ project(turtlelib)
 # That is defined to reference the library
 # here: we find the eigen library as per the instruction
 # https://eigen.tuxfamily.org/dox/TopicCMakeGuide.html
-find_package(Eigen3 3.3 REQUIRED NO_MODULE)
+# find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 
 # Create a library.  Can specify if it is shared or static but usually
 # you don't need or want to.
 # name is the name of the library without the extension or lib prefix
 # name creates a cmake "target"
-add_library(turtlelib src/geometry.cpp)
+add_library(turtlelib src/geometry2d.cpp src/se2d.cpp)
 
 # Use target_include_directories so that #include"mylibrary/header.hpp" works
 # The use of the <BUILD_INTERFACE> and <INSTALL_INTERFACE> is because when
@@ -53,7 +53,7 @@ target_compile_features(turtlelib PUBLIC cxx_std_17)
 # This will automatically add all required library files
 # that need to be linked
 # and paths to th locations of header files
-target_link_libraries(${PROJECT_NAME} Eigen3::Eigen)
+# target_link_libraries(${PROJECT_NAME} Eigen3::Eigen)
 
 # install the include files by copying the whole include directory
 install(DIRECTORY include DESTINATION include)
@@ -106,8 +106,12 @@ if(BUILD_TESTING)
     find_package(Catch2 3 REQUIRED)
 
     # A test is just an executable that is linked against the unit testing library
-    add_executable (my_test_exe tests/test_geometry2.cpp)
+    add_executable (my_test_exe tests/test_geometry2d.cpp tests/test_se2d.cpp)
+    # add_executable (my_test_se2 tests/test_se2d.cpp)
+
     target_link_libraries(my_test_exe Catch2::Catch2WithMain turtlelib)
+    # target_link_libraries(my_test_se2 Catch2::Catch2WithMain turtlelib)
+
     target_include_directories(my_test_exe
     PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>
@@ -118,4 +122,16 @@ if(BUILD_TESTING)
     add_test(NAME deg2rad COMMAND my_test_exe)
     add_test(NAME rad2deg COMMAND my_test_exe)
     add_test(NAME normalize_angle COMMAND my_test_exe)
+    add_test(NAME operator<< COMMAND my_test_exe)
+    add_test(NAME operator>> COMMAND my_test_exe)
+    add_test(NAME operator- COMMAND my_test_exe)
+
+    add_test(NAME operator_se2<< COMMAND my_test_exe)
+    add_test(NAME operator_se2>> COMMAND my_test_exe)
+    add_test(NAME Transform2D COMMAND my_test_exe)
+    add_test(NAME operator COMMAND my_test_exe)
+    add_test(NAME inv COMMAND my_test_exe)
+    add_test(NAME translation COMMAND my_test_exe)
+    add_test(NAME rotation COMMAND my_test_exe)
+    # add_test(NAME Transform2D_trans COMMAND my_test_exe)
 endif()

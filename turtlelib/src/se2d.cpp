@@ -137,3 +137,58 @@ turtlelib::Twist2D turtlelib::Transform2D::operator()(turtlelib::Twist2D V) cons
 
 
 }
+
+turtlelib::Transform2D turtlelib::Transform2D::inv() const
+{
+    turtlelib::Transform2D Tinv;
+    Tinv.matrix[0][0] = matrix[0][0];
+    Tinv.matrix[1][0] = matrix[0][1];
+    Tinv.matrix[0][1] = matrix[1][0];
+    Tinv.matrix[1][1] = matrix[1][1];
+    Tinv.matrix[0][2] = -matrix[0][2]*Tinv.matrix[0][0] - matrix[1][2]*Tinv.matrix[0][1];
+    Tinv.matrix[1][2] = -matrix[0][2]*Tinv.matrix[1][0] - matrix[1][2]*Tinv.matrix[1][1];
+
+    return Tinv;
+
+}
+
+// turtlelib::Transform2D & turtlelib::Transform2D::operator*=(const turtlelib::Transform2D & rhs)
+// {
+
+
+
+// }
+
+turtlelib::Vector2D turtlelib::Transform2D::translation() const
+{
+    turtlelib::Vector2D v;
+    v.x = matrix[0][2];
+    v.y = matrix[1][2];
+
+    return v;
+}
+
+double turtlelib::Transform2D::rotation() const
+{
+    return acos(matrix[0][0]);
+
+}
+
+std::ostream & turtlelib::operator<<(std::ostream & os, const turtlelib::Transform2D & tf)
+{
+    os << "deg: " << turtlelib::rad2deg(tf.rotation()) << " x: " << tf.translation().x << " y: " << tf.translation().y;
+
+    return os;
+
+}
+
+// NOTE: ASK MATT ABOUT THIS
+std::istream & turtlelib::operator>>(std::istream & is, turtlelib::Transform2D & tf)
+{
+    // turtlelib::Vector2D v;
+    // double theta;
+    is >> tf.theta >> tf.trans.x >> tf.trans.y;
+    // tf = turtlelib::Transform2D(v, turtlelib::deg2rad(theta));
+
+    return is;
+}
