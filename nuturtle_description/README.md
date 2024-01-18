@@ -2,6 +2,7 @@
 URDF files for Nuturtle Polaris
 * `ros2 launch nuturtle_description load_one.launch.py` to see the robot in rviz.
 * `ros2 launch nuturtle_description load_all.launch.xml` to see four copies of the robot in rviz [red, green, blue, purple].
+![rviz](https://github.com/ME495-Navigation/slam-project-Fneylon/assets/117234679/288d620d-4ffb-4778-aac9-48358400e9b5)
 
 * The rqt_graph when all four robots are visualized (Nodes Only, Hide Debug) is:
 ![rqt_graph](https://github.com/ME495-Navigation/slam-project-Fneylon/assets/117234679/c1ebc02f-bd09-4d38-874b-a2a7699391a6)
