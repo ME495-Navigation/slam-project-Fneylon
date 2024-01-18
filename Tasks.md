@@ -11,8 +11,8 @@
 - [x] Task A.3: yaml File 
 - [x] Task A.4: prefix
 - [x] Task A.5: multi robot
-- [ ] Task A.6: README
-     - [ ] Need to add images to README
+- [x] Task A.6: README
+     - [x] Need to add images to README
 #### Task B: C++ and 2D Transforms
 - [x] Task B.1 geometry primiatives
 - [x] Task B.2 unit testing geometry 
