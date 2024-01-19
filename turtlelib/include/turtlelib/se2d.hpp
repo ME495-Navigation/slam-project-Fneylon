@@ -44,13 +44,10 @@ namespace turtlelib
     /// \brief a rigid body transformation in 2 dimensions
     class Transform2D
     {
+
     public:
         /// \brief Create an identity transformation
         Transform2D();
-        std::vector<std::vector<double>> matrix;
-
-        double theta = 0.0;
-        turtlelib::Vector2D trans;
 
         /// \brief create a transformation that is a pure translation
         /// \param trans - the vector by which to translate
@@ -85,11 +82,11 @@ namespace turtlelib
         /// \return the inverse transformation.
         Transform2D inv() const;
 
-        // /// \brief compose this transform with another and store the result
-        // /// in this object
-        // /// \param rhs - the first transform to apply
-        // /// \return a reference to the newly transformed operator
-        // Transform2D & operator*=(const Transform2D & rhs);
+        /// \brief compose this transform with another and store the result
+        /// in this object
+        /// \param rhs - the first transform to apply
+        /// \return a reference to the newly transformed operator
+        Transform2D & operator*=(const Transform2D & rhs);
 
         /// \brief the translational component of the transform
         /// \return the x,y translation
@@ -102,6 +99,12 @@ namespace turtlelib
         /// \brief \see operator<<(...) (declared outside this class)
         /// for a description
         friend std::ostream & operator<<(std::ostream & os, const Transform2D & tf);
+
+    private: 
+
+        // std::vector<std::vector<double>> matrix;
+        double theta = 0.0;
+        turtlelib::Vector2D vector;
 
     };
 
@@ -117,12 +120,12 @@ namespace turtlelib
     /// as 3 numbers (degrees, dx, dy) separated by spaces or newlines
     std::istream & operator>>(std::istream & is, Transform2D & tf);
 
-    // /// \brief multiply two transforms together, returning their composition
-    // /// \param lhs - the left hand operand
-    // /// \param rhs - the right hand operand
-    // /// \return the composition of the two transforms
-    // /// HINT: This function should be implemented in terms of *=
-    // Transform2D operator*(Transform2D lhs, const Transform2D & rhs);
+    /// \brief multiply two transforms together, returning their composition
+    /// \param lhs - the left hand operand
+    /// \param rhs - the right hand operand
+    /// \return the composition of the two transforms
+    /// HINT: This function should be implemented in terms of *=
+    Transform2D operator*(Transform2D lhs, const Transform2D & rhs);
 
 
 }

@@ -40,69 +40,34 @@ std::istream & turtlelib::operator>>(std::istream & is, turtlelib::Twist2D & tw)
 /// \brief Create an identity transformation
 turtlelib::Transform2D::Transform2D()
 {
-
-    // double theta = 0.0;
-    // turtlelib::Vector2D trans;
-
-
-    matrix = std::vector<std::vector<double>>(3, std::vector<double>(3, 0));
-    
-    matrix[0][0] = cos(theta);
-    matrix[1][0] = sin(theta);
-    matrix[0][1] = -sin(theta);
-    matrix[1][1] = cos(theta);
-    matrix[0][2] = trans.x;
-    matrix[1][2] = trans.y;
-    matrix[2][2] = 1.0;
-    matrix[2][0] = 0.0; 
-    matrix[2][1] = 0.0;
+    vector.x = 0.0;
+    vector.y = 0.0;
+    theta = 0.0;
 
 }
 
 turtlelib::Transform2D::Transform2D(turtlelib::Vector2D trans)
 {
+    vector.x = trans.x;
+    vector.y = trans.y;
+    theta = 0.0;
 
-    matrix = std::vector<std::vector<double>>(3, std::vector<double>(3, 0));
-    matrix[0][0] = cos(theta);
-    matrix[1][0] = sin(theta);
-    matrix[0][1] = -sin(theta);
-    matrix[1][1] = cos(theta);
-    matrix[0][2] = trans.x;
-    matrix[1][2] = trans.y;
-    matrix[2][2] = 1.0;
-    matrix[2][0] = 0.0; 
-    matrix[2][1] = 0.0;
     
 }
 
 turtlelib::Transform2D::Transform2D(double radians)
 {
-
-    matrix = std::vector<std::vector<double>>(3, std::vector<double>(3, 0));
-    matrix[0][0] = cos(radians);
-    matrix[1][0] = sin(radians);
-    matrix[0][1] = -sin(radians);
-    matrix[1][1] = cos(radians);
-    matrix[0][2] = trans.x;
-    matrix[1][2] = trans.y;
-    matrix[2][2] = 1.0;
-    matrix[2][0] = 0.0; 
-    matrix[2][1] = 0.0;
+    vector.x = 0.0;
+    vector.y = 0.0;
+    theta = radians;
     
 }
 
 turtlelib::Transform2D::Transform2D(Vector2D trans, double radians)
 {
-    matrix = std::vector<std::vector<double>>(3, std::vector<double>(3, 0));
-    matrix[0][0] = cos(radians);
-    matrix[1][0] = sin(radians);
-    matrix[0][1] = -sin(radians);
-    matrix[1][1] = cos(radians);
-    matrix[0][2] = trans.x;
-    matrix[1][2] = trans.y;
-    matrix[2][2] = 1.0;
-    matrix[2][0] = 0.0; 
-    matrix[2][1] = 0.0;
+    vector.x = trans.x;
+    vector.y = trans.y;
+    theta = radians;
 
 }
 
@@ -110,8 +75,9 @@ turtlelib::Point2D turtlelib::Transform2D::operator()(turtlelib::Point2D p) cons
 {
 
     turtlelib::Point2D p2;
-    p2.x = matrix[0][0] * p.x + matrix[0][1] * p.y + matrix[0][2];
-    p2.y = matrix[1][0] * p.x + matrix[1][1] * p.y + matrix[1][2];
+    p2.x = cos(theta) * p.x - p.y*sin(theta) + vector.x;
+    p2.y = p.x*sin(theta)+ p.y*cos(theta) + vector.y;
+
     return p2;
 
 }
@@ -120,8 +86,8 @@ turtlelib::Vector2D turtlelib::Transform2D::operator()(turtlelib::Vector2D v) co
 
 {
     turtlelib::Vector2D v2;
-    v2.x = matrix[0][0] * v.x + matrix[0][1] * v.y + matrix[0][2];
-    v2.y = matrix[1][0] * v.x + matrix[1][1] * v.y + matrix[1][2];
+    v2.x = cos(theta) * v.x + v.y*(-sin(theta));
+    v2.y = v.x*sin(theta)+ v.y*cos(theta);
     return v2;
 
 
@@ -131,46 +97,48 @@ turtlelib::Twist2D turtlelib::Transform2D::operator()(turtlelib::Twist2D V) cons
     turtlelib::Twist2D tw;
 
     tw.omega = V.omega; 
-    tw.x = V.omega*matrix[1][2] + matrix[0][0] * V.x + matrix[0][1] * V.y;
-    tw.y = -V.omega*matrix[0][2] + matrix[1][0] * V.x + matrix[1][1] * V.y;
+    tw.x = V.omega*vector.y + cos(theta)*V.x + (-sin(theta))*V.y;
+    tw.y = -V.omega*vector.x + sin(theta)*V.x + cos(theta)*V.y;
     return tw;
-
 
 }
 
 turtlelib::Transform2D turtlelib::Transform2D::inv() const
 {
     turtlelib::Transform2D Tinv;
-    Tinv.matrix[0][0] = matrix[0][0];
-    Tinv.matrix[1][0] = matrix[0][1];
-    Tinv.matrix[0][1] = matrix[1][0];
-    Tinv.matrix[1][1] = matrix[1][1];
-    Tinv.matrix[0][2] = -matrix[0][2]*Tinv.matrix[0][0] - matrix[1][2]*Tinv.matrix[0][1];
-    Tinv.matrix[1][2] = -matrix[0][2]*Tinv.matrix[1][0] - matrix[1][2]*Tinv.matrix[1][1];
+    Tinv.vector.x = -vector.x*cos(theta) - vector.y*sin(theta);
+    Tinv.vector.y = vector.x*sin(theta) - cos(theta)*vector.y;
+    Tinv.theta = -theta;
+    
 
     return Tinv;
 
 }
 
-// turtlelib::Transform2D & turtlelib::Transform2D::operator*=(const turtlelib::Transform2D & rhs)
-// {
+turtlelib::Transform2D & turtlelib::Transform2D::operator*=(const turtlelib::Transform2D & rhs)
+{
+    // turtlelib::Transform2D T;
+    vector.x = vector.x + cos(theta)*rhs.vector.x -sin(theta)*rhs.vector.y;
+    vector.y = vector.y + sin(theta)*rhs.vector.x + cos(theta)*rhs.vector.y;
+    // T.vector.x = vector.x + cos(theta)*rhs.vector.x -sin(theta)*rhs.vector.y;
+    // T.vector.y = vector.y + sin(theta)*rhs.vector.x + cos(theta)*rhs.vector.y;
+    theta = theta + rhs.theta;
+    return *this;
 
-
-
-// }
+}
 
 turtlelib::Vector2D turtlelib::Transform2D::translation() const
 {
     turtlelib::Vector2D v;
-    v.x = matrix[0][2];
-    v.y = matrix[1][2];
+    v.x = vector.x;
+    v.y =  vector.y;
 
     return v;
 }
 
 double turtlelib::Transform2D::rotation() const
 {
-    return acos(matrix[0][0]);
+    return theta;
 
 }
 
@@ -182,13 +150,22 @@ std::ostream & turtlelib::operator<<(std::ostream & os, const turtlelib::Transfo
 
 }
 
-// NOTE: ASK MATT ABOUT THIS
 std::istream & turtlelib::operator>>(std::istream & is, turtlelib::Transform2D & tf)
 {
-    // turtlelib::Vector2D v;
-    // double theta;
-    is >> tf.theta >> tf.trans.x >> tf.trans.y;
-    // tf = turtlelib::Transform2D(v, turtlelib::deg2rad(theta));
+    turtlelib::Vector2D v;
+    double gamma;
+    is >> gamma >> v.x >> v.y;
+    gamma = turtlelib::deg2rad(gamma);
+    tf = turtlelib::Transform2D(v, gamma);
 
     return is;
+}
+
+turtlelib::Transform2D turtlelib::operator*(turtlelib::Transform2D lhs, const turtlelib::Transform2D & rhs)
+{
+
+    lhs*=rhs;
+    return lhs;
+
+
 }
