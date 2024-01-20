@@ -16,10 +16,10 @@
 #### Task B: C++ and 2D Transforms
 - [x] Task B.1 geometry primiatives
 - [x] Task B.2 unit testing geometry 
-- [ ] Task B.3 SE(2) geometry 
-- [ ] Task B.4 unit testing SE(2)
-     - [ ] Need to add the final test and figure out what a friend is 
-- [ ] Task B.5 visualization
+- [x] Task B.3 SE(2) geometry 
+- [x] Task B.4 unit testing SE(2)
+     - [x] Need to add the final test and figure out what a friend is 
+- [x] Task B.5 visualization
 - [ ] Task B.6 executable implementation 
 - [ ] Task B.7 conceptual questions
 
