@@ -23,3 +23,13 @@
 - [ ] Task B.6 executable implementation 
 - [ ] Task B.7 conceptual questions
 
+#### Task C (The Simulator)
+- [ ] Task C.1: nusim package
+- [ ] Task C.2: simultion node
+- [ ] Task C.3: simulated turtle 
+- [ ] Task C.4: walls
+- [ ] Task C.5: cylindrical obstacles
+- [ ] Task C.6 nusim launch
+- [ ] Task C.7: README
+
+ 
