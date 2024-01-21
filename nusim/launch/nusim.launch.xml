@@ -1,7 +1,12 @@
 <launch>
 
+<arg name="config_file" default="$(find-pkg-share nusim)/config/basic_world.yaml"/>
 <node pkg="nusim" exec="nusim_node" name="nusim" output="screen">
-    <param name="rate" value="200.0"/>
+    <param from="$(var config_file)"/>
+    <!-- <arg name="rate" default= "200.0"/>
+    <arg name="x0" default= "0.0"/>
+    <arg name="y0" default= "0.0"/>
+    <arg name="theta0" default= "0.0"/> -->
 </node>
 
 <include file="$(find-pkg-share nuturtle_description)/launch/load_one.launch.py">

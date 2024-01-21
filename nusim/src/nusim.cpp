@@ -23,9 +23,19 @@ public:
   {
 
     RCLCPP_INFO(this->get_logger(), "Starting Nusim!");
-    this->declare_parameter("rate", 200.0);
 
+    // Declare parameters
+    this->declare_parameter("rate", 200.0);
     rate_ = this->get_parameter("rate").as_double();
+
+    this->declare_parameter("x0", 0.0);
+    x0_ = this->get_parameter("x0").as_double();
+
+    this->declare_parameter("y0", 0.0);
+    y0_ = this->get_parameter("y0").as_double();
+
+    this->declare_parameter("theta0", 0.0);
+    theta0_ = this->get_parameter("theta0").as_double();
     
     
     timer_ = this->create_wall_timer(
@@ -52,6 +62,15 @@ private:
     transformStamped_.header.stamp = this->get_clock()->now();
     transformStamped_.header.frame_id = "nusim/world";
     transformStamped_.child_frame_id = "red/base_footprint";
+    transformStamped_.transform.translation.x = x0_;
+    transformStamped_.transform.translation.y = y0_;
+    transformStamped_.transform.translation.z = 0.0;
+    tf2::Quaternion q;
+    q.setRPY(0, 0, theta0_);
+    transformStamped_.transform.rotation.x = q.x();
+    transformStamped_.transform.rotation.y = q.y();
+    transformStamped_.transform.rotation.z = q.z();
+    transformStamped_.transform.rotation.w = q.w();
     tf_broadcaster_->sendTransform(transformStamped_);
   }
 
@@ -66,18 +85,18 @@ private:
                             std::shared_ptr<nusim::srv::Teleport::Response> response)
   {
     RCLCPP_INFO(this->get_logger(), "Teleporting Red Robot!");
-    double x = request->x;
-    double y = request->y;
-    double theta = request->theta;
+    x0_ = request->x;
+    y0_ = request->y;
+    theta0_ = request->theta;
     // geometry_msgs::msg::TransformStamped transformStamped;
     transformStamped_.header.stamp = this->get_clock()->now();
     transformStamped_.header.frame_id = "nusim/world";
     transformStamped_.child_frame_id = "red/base_footprint";
-    transformStamped_.transform.translation.x = x;
-    transformStamped_.transform.translation.y = y;
+    transformStamped_.transform.translation.x = x0_;
+    transformStamped_.transform.translation.y = y0_;
     transformStamped_.transform.translation.z = 0.0;
     tf2::Quaternion q;
-    q.setRPY(0, 0, theta);
+    q.setRPY(0, 0, theta0_);
     transformStamped_.transform.rotation.x = q.x();
     transformStamped_.transform.rotation.y = q.y();
     transformStamped_.transform.rotation.z = q.z();
@@ -96,9 +115,11 @@ private:
   std_msgs::msg::UInt64 msg_;
   double time_ = 0.0;
   double rate_;
+  double x0_;
+  double y0_;
+  double theta0_;
 
 };
-
 
 
 int main(int argc, char ** argv)
