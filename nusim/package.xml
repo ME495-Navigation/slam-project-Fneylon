@@ -18,6 +18,7 @@
   <buildtool_depend>std_srvs</buildtool_depend>
   <buildtool_depend>nuturtle_description</buildtool_depend>
   <buildtool_depend>geometry_msgs</buildtool_depend>
+  <buildtool_depend>visualization_msgs</buildtool_depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
