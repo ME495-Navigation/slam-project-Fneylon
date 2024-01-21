@@ -79,6 +79,23 @@ private:
   {
     RCLCPP_INFO(this->get_logger(), "Resetting Nusim Time!");
     time_ = 0.0;
+    x0_ = 0.0;
+    y0_ = 0.0;
+    theta0_ = 0.0;
+    // geometry_msgs::msg::TransformStamped transformStamped;
+    transformStamped_.header.stamp = this->get_clock()->now();
+    transformStamped_.header.frame_id = "nusim/world";
+    transformStamped_.child_frame_id = "red/base_footprint";
+    transformStamped_.transform.translation.x = x0_;
+    transformStamped_.transform.translation.y = y0_;
+    transformStamped_.transform.translation.z = 0.0;
+    tf2::Quaternion q;
+    q.setRPY(0, 0, theta0_);
+    transformStamped_.transform.rotation.x = q.x();
+    transformStamped_.transform.rotation.y = q.y();
+    transformStamped_.transform.rotation.z = q.z();
+    transformStamped_.transform.rotation.w = q.w();
+    tf_broadcaster_->sendTransform(transformStamped_);
   }
 
   void teleport_callback(const std::shared_ptr<nusim::srv::Teleport::Request> request,
