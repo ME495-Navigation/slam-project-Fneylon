@@ -28,8 +28,8 @@
 - [x] Task C.2: simultion node
 - [x] Task C.3: simulated turtle 
 - [x] Task C.4: walls
-- [ ] Task C.5: cylindrical obstacles
-- [ ] Task C.6 nusim launch
+- [x] Task C.5: cylindrical obstacles
+- [x] Task C.6 nusim launch
 - [ ] Task C.7: README
 
  
