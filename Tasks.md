@@ -20,7 +20,7 @@
 - [x] Task B.4 unit testing SE(2)
      - [x] Need to add the final test and figure out what a friend is 
 - [x] Task B.5 visualization
-- [ ] Task B.6 executable implementation 
+- [x] Task B.6 executable implementation 
 - [ ] Task B.7 conceptual questions
 
 #### Task C (The Simulator)
