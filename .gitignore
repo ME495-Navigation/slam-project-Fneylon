@@ -1,8 +1,10 @@
 /build
 /install
 /log
+turtlelib/build/CMakeFiles/
 .vscode
 __pychache__
 .pyc
 /turtlebot3
-turtlelib/build
+/turtlelib/build/**
+/Testing

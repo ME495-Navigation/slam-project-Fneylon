@@ -2,10 +2,9 @@ from launch import LaunchDescription
 from launch_ros.actions import Node
 from launch.actions import DeclareLaunchArgument, Shutdown, SetLaunchConfiguration
 from launch.conditions import IfCondition
-from launch_ros.substitutions import FindPackageShare, ExecutableInPackage
+from launch_ros.substitutions import FindPackageShare
 from launch.substitutions import LaunchConfiguration, PythonExpression, TextSubstitution
 from launch.substitutions import Command, PathJoinSubstitution
-import launch_ros.actions
 
 
 def generate_launch_description():
@@ -43,7 +42,9 @@ def generate_launch_description():
                 {"robot_description":
                  Command([TextSubstitution(text="xacro "),
                           PathJoinSubstitution(
-                              [FindPackageShare("nuturtle_description"), "urdf/turtlebot3_burger.urdf.xacro"]), ' color:=', LaunchConfiguration('color')]),
+                              [FindPackageShare("nuturtle_description"),
+                               "urdf/turtlebot3_burger.urdf.xacro"]),
+                          ' color:=', LaunchConfiguration('color')]),
                  "frame_prefix": [LaunchConfiguration('color'), "/"],
                  }  # [1]: Used in reference for syntax
             ],
@@ -60,7 +61,8 @@ def generate_launch_description():
             condition=IfCondition(PythonExpression(
                 ["'", LaunchConfiguration('use_rviz'), "' == \'true\' "])),
             arguments=["-d", PathJoinSubstitution(
-                [FindPackageShare("nuturtle_description"), LaunchConfiguration('rviz_filename')]),
+                [FindPackageShare("nuturtle_description"),
+                 LaunchConfiguration('rviz_filename')]),
                 " -f ", LaunchConfiguration('color'), "/base_footprint"],
             on_exit=Shutdown())
 

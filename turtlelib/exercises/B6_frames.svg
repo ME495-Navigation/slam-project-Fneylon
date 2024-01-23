@@ -1,0 +1,52 @@
+
+<svg width="8.500000in" height="11.000000in" viewBox="0 0 816.000000 1056.000000" xmlns="http://www.w3.org/2000/svg">
+
+<defs>
+	<marker
+		style="overflow:visible"
+		id="Arrow1Sstart"
+		refX="0.0"
+		refY="0.0"
+		orient="auto">
+			<path
+				transform="scale(0.2) translate(6,0)"
+				style="fill-rule:evenodd;fill:context-stroke;stroke:context-stroke;stroke-width:1.0pt"
+				d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+			/>
+	</marker>
+</defs>
+<g>
+<line x1="504.000000" y1="528.000000" x2="408.000000" y2="528.000000" stroke="blue" stroke-width="5.0" marker-start="url(#Arrow1Sstart)"/>
+<line x1="408.000000" y1="432.000000" x2="408.000000" y2="528.000000" stroke="red" stroke-width="5.0" marker-start="url(#Arrow1Sstart)"/><text x="408.000000" y="528.000000" font-size="12.0" fill="black">{a}</text>
+</g>
+<g>
+<line x1="312.000000" y1="432.000000" x2="408.000000" y2="432.000000" stroke="blue" stroke-width="5.0" marker-start="url(#Arrow1Sstart)"/>
+<line x1="408.000000" y1="528.000000" x2="408.000000" y2="432.000000" stroke="red" stroke-width="5.0" marker-start="url(#Arrow1Sstart)"/><text x="408.000000" y="432.000000" font-size="12.0" fill="black">T_{a,b}</text>
+</g>
+<g>
+<line x1="312.000000" y1="432.000000" x2="408.000000" y2="432.000000" stroke="blue" stroke-width="5.0" marker-start="url(#Arrow1Sstart)"/>
+<line x1="408.000000" y1="528.000000" x2="408.000000" y2="432.000000" stroke="red" stroke-width="5.0" marker-start="url(#Arrow1Sstart)"/><text x="408.000000" y="432.000000" font-size="12.0" fill="black">T_{b,a}</text>
+</g>
+<g>
+<line x1="696.000000" y1="528.000000" x2="600.000000" y2="528.000000" stroke="blue" stroke-width="5.0" marker-start="url(#Arrow1Sstart)"/>
+<line x1="600.000000" y1="432.000000" x2="600.000000" y2="528.000000" stroke="red" stroke-width="5.0" marker-start="url(#Arrow1Sstart)"/><text x="600.000000" y="528.000000" font-size="12.0" fill="black">T_{b,c}</text>
+</g>
+<g>
+<line x1="312.000000" y1="528.000000" x2="216.000000" y2="528.000000" stroke="blue" stroke-width="5.0" marker-start="url(#Arrow1Sstart)"/>
+<line x1="216.000000" y1="432.000000" x2="216.000000" y2="528.000000" stroke="red" stroke-width="5.0" marker-start="url(#Arrow1Sstart)"/><text x="216.000000" y="528.000000" font-size="12.0" fill="black">T_{c,b}</text>
+</g>
+<g>
+<line x1="120.000000" y1="432.000000" x2="216.000000" y2="432.000000" stroke="blue" stroke-width="5.0" marker-start="url(#Arrow1Sstart)"/>
+<line x1="216.000000" y1="528.000000" x2="216.000000" y2="432.000000" stroke="red" stroke-width="5.0" marker-start="url(#Arrow1Sstart)"/><text x="216.000000" y="432.000000" font-size="12.0" fill="black">T_{a,c}</text>
+</g>
+<g>
+<line x1="120.000000" y1="432.000000" x2="216.000000" y2="432.000000" stroke="blue" stroke-width="5.0" marker-start="url(#Arrow1Sstart)"/>
+<line x1="216.000000" y1="528.000000" x2="216.000000" y2="432.000000" stroke="red" stroke-width="5.0" marker-start="url(#Arrow1Sstart)"/><text x="216.000000" y="432.000000" font-size="12.0" fill="black">T_{c,a}</text>
+</g>
+<circle cx="600.000000" cy="240.000000" r="3.0" fill="purple" stroke="purple" stroke-width="1.0"/>
+<circle cx="216.000000" cy="720.000000" r="3.0" fill="brown" stroke="brown" stroke-width="1.0"/>
+<circle cx="24.000000" cy="720.000000" r="3.0" fill="orange" stroke="orange" stroke-width="1.0"/>
+<line x1="450.932505" y1="442.134990" x2="408.000000" y2="528.000000" stroke="brown" stroke-width="5.0" marker-start="url(#Arrow1Sstart)"/>
+<line x1="312.000000" y1="720.000000" x2="408.000000" y2="528.000000" stroke="purple" stroke-width="5.0" marker-start="url(#Arrow1Sstart)"/>
+<line x1="504.000000" y1="336.000000" x2="408.000000" y2="528.000000" stroke="orange" stroke-width="5.0" marker-start="url(#Arrow1Sstart)"/>
+</svg>

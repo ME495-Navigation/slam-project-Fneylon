@@ -11,14 +11,25 @@
 - [x] Task A.3: yaml File 
 - [x] Task A.4: prefix
 - [x] Task A.5: multi robot
-- [ ] Task A.6: README
-     - [ ] Need to add images to README
+- [x] Task A.6: README
+     - [x] Need to add images to README
 #### Task B: C++ and 2D Transforms
-- [ ] Task B.1 geometry primiatives
-- [ ] Task B.2 unit testing geometry 
-- [ ] Task B.3 SE(2) geometry 
-- [ ] Task B.4 unit testing SE(2)
-- [ ] Task B.5 visualization
-- [ ] Task B.6 executable implementation 
-- [ ] Task B.7 conceptual questions
+- [x] Task B.1 geometry primiatives
+- [x] Task B.2 unit testing geometry 
+- [x] Task B.3 SE(2) geometry 
+- [x] Task B.4 unit testing SE(2)
+     - [x] Need to add the final test and figure out what a friend is 
+- [x] Task B.5 visualization
+- [x] Task B.6 executable implementation 
+- [x] Task B.7 conceptual questions
 
+#### Task C (The Simulator)
+- [x] Task C.1: nusim package
+- [x] Task C.2: simultion node
+- [x] Task C.3: simulated turtle 
+- [x] Task C.4: walls
+- [x] Task C.5: cylindrical obstacles
+- [x] Task C.6 nusim launch
+- [x] Task C.7: README
+
+ 
