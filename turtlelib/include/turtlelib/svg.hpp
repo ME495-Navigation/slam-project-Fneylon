@@ -15,6 +15,7 @@
 
 namespace turtlelib
 {
+    /// \brief A class to build an SVG file
     class BuildSVG
     {
 
@@ -41,6 +42,7 @@ namespace turtlelib
         /// \brief draw an arrow
         /// \param head - the head of the arrow
         /// \param tail - the tail of the arrow
+        /// \param color - the color of the arrow
         void Draw(turtlelib::Point2D head, turtlelib::Point2D tail, std::string color);
 
         /// \brief draw a coordinate frame

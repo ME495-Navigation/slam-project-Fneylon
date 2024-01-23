@@ -93,13 +93,13 @@ turtlelib::Vector2D turtlelib::Transform2D::operator()(turtlelib::Vector2D v) co
 
 
 }
-turtlelib::Twist2D turtlelib::Transform2D::operator()(turtlelib::Twist2D V) const
+turtlelib::Twist2D turtlelib::Transform2D::operator()(turtlelib::Twist2D v) const
 {
     turtlelib::Twist2D tw;
 
-    tw.omega = V.omega; 
-    tw.x = V.omega*vector.y + cos(theta)*V.x + (-sin(theta))*V.y;
-    tw.y = -V.omega*vector.x + sin(theta)*V.x + cos(theta)*V.y;
+    tw.omega = v.omega; 
+    tw.x = v.omega*vector.y + cos(theta)*v.x + (-sin(theta))*v.y;
+    tw.y = -v.omega*vector.x + sin(theta)*v.x + cos(theta)*v.y;
     return tw;
 
 }

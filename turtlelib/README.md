@@ -1,4 +1,4 @@
-#Turtlelib Library
+# Turtlelib Library
 A library for handling transformations in SE(2) and other turtlebot-related math.
 Conceptual questions are answered using external sources cited in the citation.txt file, along with refernces to the C++ Core Guidelines found [here](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#main). 
 

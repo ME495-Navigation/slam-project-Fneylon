@@ -4,7 +4,7 @@
 #include <string>
 #include <sstream>
 #include "std_msgs/msg/u_int64.hpp"
-#include "std_srvs/srv/empty.hpp" 
+#include "std_srvs/srv/empty.hpp"
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include <rclcpp/rclcpp.hpp>
 #include "tf2/LinearMath/Quaternion.h"
@@ -53,36 +53,41 @@ public:
 
     this->declare_parameter("obstacles/r", 0.1);
     radius_ = this->get_parameter("obstacles/r").as_double();
-  
+
     rclcpp::QoS marker_qos(10);
     marker_qos.transient_local();
-    
+
     // Define Timers:
     timer_ = this->create_wall_timer(
       std::chrono::duration<double>(1.0 / rate_), std::bind(&Nusim::timer_callback, this));
-    
+
     // Define Publishers:
     publisher_ = this->create_publisher<std_msgs::msg::UInt64>("~/timestep", 10);
-    marker_pub_ = this->create_publisher<visualization_msgs::msg::MarkerArray>("~/walls", marker_qos);
-    marker_obs_pub_ = this->create_publisher<visualization_msgs::msg::MarkerArray>("~/obstacles", marker_qos);
-    
+    marker_pub_ =
+      this->create_publisher<visualization_msgs::msg::MarkerArray>("~/walls", marker_qos);
+    marker_obs_pub_ = this->create_publisher<visualization_msgs::msg::MarkerArray>(
+      "~/obstacles",
+      marker_qos);
+
     // Define Services:
-    reset_srv_ = this->create_service<std_srvs::srv::Empty>("~/reset", std::bind(&Nusim::reset_callback, this, std::placeholders::_1, std::placeholders::_2));
-    teleport_srv_ = this->create_service<nusim::srv::Teleport>("~/teleport", std::bind(&Nusim::teleport_callback, this, std::placeholders::_1, std::placeholders::_2));
+    reset_srv_ = this->create_service<std_srvs::srv::Empty>(
+      "~/reset",
+      std::bind(&Nusim::reset_callback, this, std::placeholders::_1, std::placeholders::_2));
+    teleport_srv_ = this->create_service<nusim::srv::Teleport>(
+      "~/teleport",
+      std::bind(&Nusim::teleport_callback, this, std::placeholders::_1, std::placeholders::_2));
 
     // Define Broadcasters:
-    tf_broadcaster_= std::make_unique<tf2_ros::TransformBroadcaster>(*this);
-  
+    tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
   }
 
 private:
-
   void timer_callback()
   {
     // RCLCPP_INFO(this->get_logger(), "Hello, world!");
     // time_ = this->get_clock()->now();
-    time_ += 1.0/rate_;
-    msg_.data = (time_)*1e3;
+    time_ += 1.0 / rate_;
+    msg_.data = (time_) * 1e3;
     publisher_->publish(msg_);
     // marker_pub_->publish(marker_walls_array_);
 
@@ -104,13 +109,65 @@ private:
 
     visualization_msgs::msg::MarkerArray marker_walls_array_;
 
-    for (int i = 0; i < 4; ++i)
-    {
+    for (int i = 0; i < 4; ++i) {
+      visualization_msgs::msg::Marker marker;
+      marker.header.frame_id = "nusim/world";
+      marker.ns = "wall" + std::to_string(i);
+      marker.id = i;
+      marker.type = visualization_msgs::msg::Marker::CUBE;
+      marker.action = visualization_msgs::msg::Marker::ADD;
+      marker.pose.orientation.x = 1.0;
+      marker.pose.orientation.y = 0.0;
+      marker.pose.orientation.z = 0.0;
+      marker.pose.orientation.w = 0.0;
+      marker.color.r = 1;
+      marker.color.g = 0;
+      marker.color.b = 0;
+      marker.color.a = 1.0;
+
+      if (i == 0 || i == 1) {
+        marker.scale.x = dh_;
+        marker.scale.y = arena_y_length_;
+        marker.scale.z = 0.25;
+        if (i == 0) {
+          marker.pose.position.y = 0.0;
+          marker.pose.position.x = -arena_x_length_ / 2 - dh_ / 2;
+        } else {
+          marker.pose.position.y = 0.0;
+          marker.pose.position.x = arena_x_length_ / 2 + dh_ / 2;
+        }
+      } else if (i == 2 || i == 3) {
+        marker.color.r = 1;
+        marker.color.g = 0;
+        marker.color.b = 0;
+        marker.color.a = 1.0;
+
+        marker.scale.x = arena_x_length_;
+        marker.scale.y = dh_;
+        marker.scale.z = 0.25;
+
+        if (i == 2) {
+          marker.pose.position.y = arena_y_length_ / 2 + dh_ / 2;
+          marker.pose.position.x = 0.0;
+        } else {
+          marker.pose.position.y = -arena_y_length_ / 2 - dh_ / 2;
+          marker.pose.position.x = 0.0;
+        }
+      }
+      marker_walls_array_.markers.push_back(marker);
+    }
+    marker_pub_->publish(marker_walls_array_);
+    int x_num_obstacles = int(x_obstacles_.size());
+    int y_num_obstacles = int(y_obstacles_.size());
+
+    if (x_num_obstacles == y_num_obstacles) {
+      visualization_msgs::msg::MarkerArray marker_obstacles_array_;
+      for (int i = 0; i < int(x_obstacles_.size()); ++i) {
         visualization_msgs::msg::Marker marker;
         marker.header.frame_id = "nusim/world";
-        marker.ns = "wall" + std::to_string(i);
+        marker.ns = "obstacle" + std::to_string(i);
         marker.id = i;
-        marker.type = visualization_msgs::msg::Marker::CUBE;
+        marker.type = visualization_msgs::msg::Marker::CYLINDER;
         marker.action = visualization_msgs::msg::Marker::ADD;
         marker.pose.orientation.x = 1.0;
         marker.pose.orientation.y = 0.0;
@@ -120,93 +177,25 @@ private:
         marker.color.g = 0;
         marker.color.b = 0;
         marker.color.a = 1.0;
-        
-
-        if (i == 0 || i == 1)
-        {
-            marker.scale.x = dh_;
-            marker.scale.y = arena_y_length_;
-            marker.scale.z = 0.25;
-            if (i == 0)
-            {
-                marker.pose.position.y = 0.0;
-                marker.pose.position.x = -arena_x_length_/2 - dh_/2;
-            }
-            else
-            {
-                marker.pose.position.y = 0.0;
-                marker.pose.position.x = arena_x_length_/2 + dh_/2;
-            }
-        }
-
-        else if (i == 2 || i == 3)
-        {
-            marker.color.r = 1;
-            marker.color.g = 0;
-            marker.color.b = 0;
-            marker.color.a = 1.0;
-
-            marker.scale.x = arena_x_length_;
-            marker.scale.y = dh_;
-            marker.scale.z = 0.25;
-
-            if (i == 2)
-            {
-                marker.pose.position.y = arena_y_length_/2 + dh_/2;
-                marker.pose.position.x = 0.0;
-            }
-            else
-            {
-                marker.pose.position.y = -arena_y_length_/2 - dh_/2;
-                marker.pose.position.x = 0.0;
-            }
-        }
-        marker_walls_array_.markers.push_back(marker);
-    }
-    marker_pub_->publish(marker_walls_array_);
-    int x_num_obstacles = int(x_obstacles_.size());
-    int y_num_obstacles = int(y_obstacles_.size());
-
-    
-    if (x_num_obstacles == y_num_obstacles)
-    {
-      visualization_msgs::msg::MarkerArray marker_obstacles_array_;
-      for (int i = 0; i < int(x_obstacles_.size()); ++i)
-      {
-          visualization_msgs::msg::Marker marker;
-          marker.header.frame_id = "nusim/world";
-          marker.ns = "obstacle" + std::to_string(i);
-          marker.id = i;
-          marker.type = visualization_msgs::msg::Marker::CYLINDER;
-          marker.action = visualization_msgs::msg::Marker::ADD;
-          marker.pose.orientation.x = 1.0;
-          marker.pose.orientation.y = 0.0;
-          marker.pose.orientation.z = 0.0;
-          marker.pose.orientation.w = 0.0;
-          marker.color.r = 1;
-          marker.color.g = 0;
-          marker.color.b = 0;
-          marker.color.a = 1.0;
-          marker.scale.x = radius_;
-          marker.scale.y = radius_;
-          marker.scale.z = 0.25;
-          marker.pose.position.x = x_obstacles_[i];
-          marker.pose.position.y = y_obstacles_[i];
-          marker.pose.position.z = 0.0;
-          marker_obstacles_array_.markers.push_back(marker);
+        marker.scale.x = radius_;
+        marker.scale.y = radius_;
+        marker.scale.z = 0.25;
+        marker.pose.position.x = x_obstacles_[i];
+        marker.pose.position.y = y_obstacles_[i];
+        marker.pose.position.z = 0.0;
+        marker_obstacles_array_.markers.push_back(marker);
       }
       marker_obs_pub_->publish(marker_obstacles_array_);
 
-    }
-    else
-    {
-        RCLCPP_INFO(this->get_logger(), "Obstacle x and y vectors are not the same size!");
-        rclcpp::shutdown();
+    } else {
+      RCLCPP_INFO(this->get_logger(), "Obstacle x and y vectors are not the same size!");
+      rclcpp::shutdown();
     }
   }
 
-  void reset_callback(const std::shared_ptr<std_srvs::srv::Empty::Request>,
-                            std::shared_ptr<std_srvs::srv::Empty::Response>)
+  void reset_callback(
+    const std::shared_ptr<std_srvs::srv::Empty::Request>,
+    std::shared_ptr<std_srvs::srv::Empty::Response>)
   {
     RCLCPP_INFO(this->get_logger(), "Resetting Nusim!");
     time_ = 0.0;
@@ -215,8 +204,9 @@ private:
     theta0_ = 0.0;
   }
 
-  void teleport_callback(const std::shared_ptr<nusim::srv::Teleport::Request> request,
-                            std::shared_ptr<nusim::srv::Teleport::Response>)
+  void teleport_callback(
+    const std::shared_ptr<nusim::srv::Teleport::Request> request,
+    std::shared_ptr<nusim::srv::Teleport::Response>)
   {
     RCLCPP_INFO(this->get_logger(), "Teleporting Red Robot!");
     x0_ = request->x;
@@ -224,7 +214,7 @@ private:
     theta0_ = request->theta;
   }
 
-  // Initalize Publishers: 
+  // Initalize Publishers:
   rclcpp::Publisher<std_msgs::msg::UInt64>::SharedPtr publisher_;
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr marker_pub_;
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr marker_obs_pub_;
@@ -233,8 +223,8 @@ private:
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr reset_srv_; // Use the correct service type
   rclcpp::Service<nusim::srv::Teleport>::SharedPtr teleport_srv_;
 
-  // Initalize Broadcasters: 
-  std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_; 
+  // Initalize Broadcasters:
+  std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
 
   // Initialize Timers:
   rclcpp::TimerBase::SharedPtr timer_;
