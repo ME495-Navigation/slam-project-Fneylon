@@ -4,8 +4,7 @@
 #include <string>
 #include <sstream>
 #include "std_msgs/msg/u_int64.hpp"
-// #include "std_msgs/msg/empty.hpp"
-#include "std_srvs/srv/empty.hpp" // Include the correct header file
+#include "std_srvs/srv/empty.hpp" 
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include <rclcpp/rclcpp.hpp>
 #include "tf2/LinearMath/Quaternion.h"
@@ -54,24 +53,25 @@ public:
 
     this->declare_parameter("obstacles/r", 0.1);
     radius_ = this->get_parameter("obstacles/r").as_double();
-    
-    // this->get_parameter("obstacles", obstacles);
-
+  
     rclcpp::QoS marker_qos(10);
     marker_qos.transient_local();
     
-    
+    // Define Timers:
     timer_ = this->create_wall_timer(
-      std::chrono::duration<double>(1.0/rate_), std::bind(&Nusim::timer_callback, this));
+      std::chrono::duration<double>(1.0 / rate_), std::bind(&Nusim::timer_callback, this));
     
+    // Define Publishers:
     publisher_ = this->create_publisher<std_msgs::msg::UInt64>("~/timestep", 10);
-    marker_pub_ = this->create_publisher<visualization_msgs::msg::MarkerArray>("~/walls", marker_qos); // Need to create the proper QoS profile
-    marker_obs_pub_ = this->create_publisher<visualization_msgs::msg::MarkerArray>("~/obstacles", marker_qos); // Need to create the proper QoS profile
+    marker_pub_ = this->create_publisher<visualization_msgs::msg::MarkerArray>("~/walls", marker_qos);
+    marker_obs_pub_ = this->create_publisher<visualization_msgs::msg::MarkerArray>("~/obstacles", marker_qos);
     
-    reset_srv_ = this->create_service<std_srvs::srv::Empty>("~/reset", std::bind(&Nusim::reset_callback, this, std::placeholders::_1, std::placeholders::_2)); // Use the correct service type
-    tf_broadcaster_= std::make_unique<tf2_ros::TransformBroadcaster>(*this);
+    // Define Services:
+    reset_srv_ = this->create_service<std_srvs::srv::Empty>("~/reset", std::bind(&Nusim::reset_callback, this, std::placeholders::_1, std::placeholders::_2));
     teleport_srv_ = this->create_service<nusim::srv::Teleport>("~/teleport", std::bind(&Nusim::teleport_callback, this, std::placeholders::_1, std::placeholders::_2));
 
+    // Define Broadcasters:
+    tf_broadcaster_= std::make_unique<tf2_ros::TransformBroadcaster>(*this);
   
   }
 
@@ -161,10 +161,6 @@ private:
                 marker.pose.position.x = 0.0;
             }
         }
-
-
-        
-        
         marker_walls_array_.markers.push_back(marker);
     }
     marker_pub_->publish(marker_walls_array_);
@@ -207,8 +203,6 @@ private:
         RCLCPP_INFO(this->get_logger(), "Obstacle x and y vectors are not the same size!");
         rclcpp::shutdown();
     }
-
-
   }
 
   void reset_callback(const std::shared_ptr<std_srvs::srv::Empty::Request>,
@@ -219,20 +213,6 @@ private:
     x0_ = 0.0;
     y0_ = 0.0;
     theta0_ = 0.0;
-    // geometry_msgs::msg::TransformStamped transformStamped;
-    // transformStamped_.header.stamp = this->get_clock()->now();
-    // transformStamped_.header.frame_id = "nusim/world";
-    // transformStamped_.child_frame_id = "red/base_footprint";
-    // transformStamped_.transform.translation.x = x0_;
-    // transformStamped_.transform.translation.y = y0_;
-    // transformStamped_.transform.translation.z = 0.0;
-    // tf2::Quaternion q;
-    // q.setRPY(0, 0, theta0_);
-    // transformStamped_.transform.rotation.x = q.x();
-    // transformStamped_.transform.rotation.y = q.y();
-    // transformStamped_.transform.rotation.z = q.z();
-    // transformStamped_.transform.rotation.w = q.w();
-    // tf_broadcaster_->sendTransform(transformStamped_);
   }
 
   void teleport_callback(const std::shared_ptr<nusim::srv::Teleport::Request> request,

@@ -11,20 +11,11 @@ TEST_CASE ("Testing ExportingSVG", "[ExportingSVG]")
 
 
     turtlelib::BuildSVG svg;
-    // std::string svg_file = svg.ExportSVG();
     turtlelib::Point2D point;
     point.x = 0.0;
     point.y = 0.0;
     std::string color = "black";
     svg.Draw(point, color);
-
-    // turtlelib::Point2D point1;
-    // point1.x = 1.0;
-    // point1.y = 1.0;
-    // turtlelib::Point2D point2;
-    // point2.x = 2.0;
-    // point2.y = 2.0;
-    // svg.Draw(point1, point2, "red");
 
     turtlelib::Transform2D T;
     turtlelib::Vector2D v;
@@ -34,7 +25,6 @@ TEST_CASE ("Testing ExportingSVG", "[ExportingSVG]")
     T = turtlelib::Transform2D(v, theta);
     std::string label = "{a}";
     svg.Draw(T, label);
-    // svg.ExportSVG("test.svg");
 
     std::string svg_string;
     svg_string = "\n<svg width=\"8.500000in\" height=\"11.000000in\" viewBox=\"0 0 816.000000 1056.000000\" xmlns=\"http://www.w3.org/2000/svg\">\n";
@@ -67,13 +57,5 @@ TEST_CASE ("Testing ExportingSVG", "[ExportingSVG]")
     svg_string += "\n<line x1=\"628.117749\" y1=\"76.117749\" x2=\"696.000000\" y2=\"144.000000\" stroke=\"red\" stroke-width=\"5.0\" marker-start=\"url(#Arrow1Sstart)\"/><text x=\"696.000000\" y=\"144.000000\" font-size=\"12.0\" fill=\"black\">{a}</text>";
     svg_string += "\n</g>";
     svg_string += "\n</svg>";
-// <line x1="763.882251" y1="76.117749" x2="696.000000" y2="144.000000" stroke="blue" stroke-width="5.0" marker-start="url(#Arrow1Sstart)"/>
-// <line x1="628.117749" y1="76.117749" x2="696.000000" y2="144.000000" stroke="red" stroke-width="5.0" marker-start="url(#Arrow1Sstart)"/><text x="696.000000" y="144.000000" font-size="12.0" fill="black">{a}</text> </g>
-// </svg>
-
-
-
-
-
     REQUIRE(svg.ExportSVG() == svg_string);
 }

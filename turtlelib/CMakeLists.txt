@@ -44,6 +44,7 @@ target_compile_features(turtlelib PUBLIC cxx_std_17)
 
 # Create an executable from the following source code files
 # The Name of the executable creates a cmake "target"
+add_executable(frame_main src/frame_main.cpp)
 
 #TODO: uncomment the following line and replace Name with the name of your executable
 # add_executable(Name src/geometry.cpp)
@@ -54,6 +55,7 @@ target_compile_features(turtlelib PUBLIC cxx_std_17)
 # that need to be linked
 # and paths to th locations of header files
 # target_link_libraries(${PROJECT_NAME} Eigen3::Eigen)
+target_link_libraries(frame_main turtlelib)
 
 # install the include files by copying the whole include directory
 install(DIRECTORY include DESTINATION include)

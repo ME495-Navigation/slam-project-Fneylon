@@ -36,12 +36,9 @@ endif()
 add_executable(nusim_node src/nusim.cpp)
 ament_target_dependencies(nusim_node rclcpp std_msgs std_srvs nuturtle_description geometry_msgs tf2 tf2_ros visualization_msgs)
 
-set(srv_files
-"srv/Teleport.srv"
-)
-rosidl_generate_interfaces(${PROJECT_NAME}
-  "srv/Teleport.srv"
- )
+set(srv_files "srv/Teleport.srv")
+
+rosidl_generate_interfaces(${PROJECT_NAME} "srv/Teleport.srv")
 
 rosidl_get_typesupport_target(cpp_typesupport_target
 ${PROJECT_NAME} rosidl_typesupport_cpp)

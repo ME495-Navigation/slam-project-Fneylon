@@ -47,18 +47,16 @@
         is >> c;
 
         // If the character is not '['
-        if (c != '[')
+        if (c == '[')
         {
-            // 
-            is.putback(c);
-
             // Read the Point
             is >> p.x >> p.y >> c;
         }
         else
         {
             // Read the Point
-            is >> p.x >> p.y >> c;
+            is.putback(c);
+            is >> p.x >> p.y;
         }
 
         return is;
@@ -104,10 +102,10 @@
         is >> c;
 
         // If the character is not '['
-        if (c != '[')
+        if (c == '[')
         {
             // 
-            is.putback(c);
+           
 
             // Read the Point
             is >> v.x >> v.y >> c;
@@ -115,7 +113,8 @@
         else
         {
             // Read the Point
-            is >> v.x >> v.y >> c;
+             is.putback(c);
+            is >> v.x >> v.y;
         }
 
         return is;

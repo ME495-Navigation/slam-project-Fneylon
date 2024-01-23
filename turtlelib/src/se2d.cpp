@@ -19,10 +19,10 @@ std::istream & turtlelib::operator>>(std::istream & is, turtlelib::Twist2D & tw)
         is >> c;
 
         // If the character is not '['
-        if (c != '[')
+        if (c == '[')
         {
             // 
-            is.putback(c);
+            
 
             // Read the Point
             is >> tw.omega >> tw.x >> tw.y >> c;
@@ -30,7 +30,8 @@ std::istream & turtlelib::operator>>(std::istream & is, turtlelib::Twist2D & tw)
         else
         {
             // Read the Point
-            is >> tw.omega >> tw.x >> tw.y >> c;
+            is.putback(c);
+            is >> tw.omega >> tw.x >> tw.y;
         }
 
         return is;
