@@ -21,7 +21,7 @@
      - [x] Need to add the final test and figure out what a friend is 
 - [x] Task B.5 visualization
 - [x] Task B.6 executable implementation 
-- [ ] Task B.7 conceptual questions
+- [x] Task B.7 conceptual questions
 
 #### Task C (The Simulator)
 - [x] Task C.1: nusim package
@@ -30,6 +30,6 @@
 - [x] Task C.4: walls
 - [x] Task C.5: cylindrical obstacles
 - [x] Task C.6 nusim launch
-- [ ] Task C.7: README
+- [x] Task C.7: README
 
  

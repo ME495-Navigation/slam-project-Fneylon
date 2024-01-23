@@ -1,3 +1,7 @@
 People worked with: Demiana Barsoum, Megan Black
 
 [1] https://robotics.stackexchange.com/questions/98540/ros2-launch-file-arguments-subsititutions-xacro-and-node-parameters 
+
+[2] https://isocpp.org/wiki/faq/operator-overloading#:~:text=It%20allows%20you%20to%20provide,%2Ddefined%20types%20(classes).
+
+[3] https://learn.microsoft.com/en-us/cpp/cpp/classes-and-structs-cpp?view=msvc-170 

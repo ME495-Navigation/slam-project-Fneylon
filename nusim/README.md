@@ -14,3 +14,7 @@ Also loads in the walls and cylindriacl obstacles of the arena.
     - obstacles/x (default [-0.5, 0.8, 0.4]): x position of the obstacles.
     - obstacles/y (default [-0.7, -0.8, 0.8]): y position of the obstacles.
     - obstacles/r (default 0.038): radius of the obstacles.
+
+## Nusim1 Screenshot of groundtruth robot configuration:
+![](images/nusim1.png)
+
