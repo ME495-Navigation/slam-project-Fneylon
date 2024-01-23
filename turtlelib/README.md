@@ -25,7 +25,7 @@ Conceptual questions are answered using external sources cited in the citation.t
 
 2. What is the difference between a class and a struct in C++? 
 <!-- Begin Citation [3] -->
-   - The main difference between a class and a struct in C++ is that a class defaults to private while a struct defaults to public.
+      - The main difference between a class and a struct in C++ is that a class defaults to private while a struct defaults to public.
 <!-- End Citation [3] -->
 
 3. Why is Vector2D a struct and Transform2D a Class (refer to at least 2 specific C++ core guidelines in your answer)?
