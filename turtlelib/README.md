@@ -23,9 +23,9 @@ Conceptual questions are answered using external sources cited in the citation.t
    - Which of the methods would you implement and why?
          - I would pick the second method of overloading an opperator because it functionally takes up less space than creating a new function. Additionally, it makes me looker smarter and I like overloading operators.
 
-2. What is the difference between a class and a struct in C++? 
-<!-- Begin Citation [3] -->
-      - The main difference between a class and a struct in C++ is that a class defaults to private while a struct defaults to public.
+2. What is the difference between a class and a struct in C++?:   <!-- Begin Citation [3] -->  
+    - The main difference between a class and a struct in C++ is that a class defaults to private while a struct defaults to public.
+
 <!-- End Citation [3] -->
 
 3. Why is Vector2D a struct and Transform2D a Class (refer to at least 2 specific C++ core guidelines in your answer)?
