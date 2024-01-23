@@ -144,6 +144,14 @@ namespace turtlelib
     /// peek looks at the next unprocessed character in the buffer without removing it
     /// get removes the next unprocessed character from the buffer.
     std::istream & operator>>(std::istream & is, Vector2D & v);
+
+    /// \brief compute the magnitude of a vector
+    /// \param v - the vector
+    /// \param mag - the magnitude of the vector
+    /// \return the magnitude of v
+    Vector2D operator*(const Vector2D & v, double mag);
+    Vector2D normalize(const Vector2D & v);
+
 }
 
 #endif

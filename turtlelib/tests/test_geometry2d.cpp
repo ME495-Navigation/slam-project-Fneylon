@@ -114,3 +114,14 @@ TEST_CASE("Testing operator+", "[operator+]")
     REQUIRE_THAT(p2.x, Catch::Matchers::WithinAbs(4.0, 1e-12));
     REQUIRE_THAT(p2.y, Catch::Matchers::WithinAbs(6.0, 1e-12));
 }
+
+TEST_CASE("Testing normalize", "[normalize]")
+{
+    turtlelib::Vector2D v;
+    v.x = 3.0;
+    v.y = 4.0;
+    turtlelib::Vector2D v2;
+    v2 = turtlelib::normalize(v);
+    REQUIRE_THAT(v2.x, Catch::Matchers::WithinAbs(0.6, 1e-12));
+    REQUIRE_THAT(v2.y, Catch::Matchers::WithinAbs(0.8, 1e-12));
+}

@@ -104,3 +104,23 @@
         return is;
 
     }
+
+    turtlelib::Vector2D turtlelib::operator*(const turtlelib::Vector2D & v, double mag)
+    {
+        turtlelib::Vector2D v1;
+        v1.x = v.x * mag;
+        v1.y = v.y * mag;
+        return v1;
+
+    }
+
+    turtlelib::Vector2D turtlelib::normalize(const turtlelib::Vector2D & v)
+    {
+        double mag = std::sqrt(v.x * v.x + v.y * v.y);
+        turtlelib::Vector2D v1;
+        v1.x = v.x * (1.0 / mag);
+        v1.y = v.y * (1.0 / mag);
+        return v1;
+
+    }
+
