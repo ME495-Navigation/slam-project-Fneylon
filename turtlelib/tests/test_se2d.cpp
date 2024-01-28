@@ -199,3 +199,37 @@ TEST_CASE("Testing operator*", "[operator*]")
     REQUIRE_THAT(T2.translation().y, Catch::Matchers::WithinAbs(5.0, 1.0e-12));
 
 }
+
+TEST_CASE("Testing integrate_twist", "[integrate_twist]")
+{
+
+    // Translation only: 
+    turtlelib::Twist2D tw;
+    tw.omega = 0.0;
+    tw.x = 1.0;
+    tw.y = 2.0;
+    turtlelib::Transform2D T = turtlelib::integrate_twist(tw);
+    REQUIRE_THAT(T.translation().x, Catch::Matchers::WithinAbs(1.0, 1.0e-12));
+    REQUIRE_THAT(T.translation().y, Catch::Matchers::WithinAbs(2.0, 1.0e-12));
+
+    // Rotation only:
+    turtlelib::Twist2D tw2;
+    tw2.omega = turtlelib::deg2rad(90.0);
+    tw2.x = 0.0;
+    tw2.y = 0.0;
+    turtlelib::Transform2D T2 = turtlelib::integrate_twist(tw2);
+    double gamma = turtlelib::rad2deg(T2.rotation());
+    REQUIRE_THAT(gamma, Catch::Matchers::WithinAbs(90.0, 1.0e-12));
+
+    // Translation and Rotation:
+    turtlelib::Twist2D tw3;
+    tw3.omega = turtlelib::deg2rad(90.0);
+    tw3.x = 1.0;
+    tw3.y = 2.0;
+    turtlelib::Transform2D T3 = turtlelib::integrate_twist(tw3);
+    double gamma2 = turtlelib::rad2deg(T3.rotation());
+    REQUIRE_THAT(gamma2, Catch::Matchers::WithinAbs(90.0, 1.0e-12));
+    REQUIRE_THAT(T3.translation().x, Catch::Matchers::WithinAbs(-2.0/turtlelib::PI, 1.0e-12));
+    REQUIRE_THAT(T3.translation().y, Catch::Matchers::WithinAbs(6.0/turtlelib::PI, 1.0e-12));
+
+}

@@ -170,3 +170,36 @@ turtlelib::Transform2D turtlelib::operator*(turtlelib::Transform2D lhs, const tu
 
 
 }
+
+turtlelib::Transform2D turtlelib::integrate_twist(const turtlelib::Twist2D & tw){
+
+    turtlelib::Transform2D T;
+
+    if (turtlelib::almost_equal(tw.omega, 0.0, 1.0e-12))
+    {
+        turtlelib::Vector2D v;
+        v.x = tw.x;
+        v.y = tw.y;
+        T = turtlelib::Transform2D(v);
+        
+    }
+    else if (turtlelib::almost_equal(tw.x, 0.0, 1.0e-12) && turtlelib::almost_equal(tw.y, 0.0, 1.0e-12))
+    {
+        T = turtlelib::Transform2D(tw.omega);
+    }
+    else
+    {
+        turtlelib::Transform2D Tsb;
+        turtlelib::Vector2D v;
+        v.x = tw.y/tw.omega;
+        v.y = -tw.x/tw.omega;
+        Tsb = turtlelib::Transform2D(v);
+
+        turtlelib::Transform2D Tssp;
+        Tssp = turtlelib::Transform2D(tw.omega);
+
+        T = Tsb.inv()*Tssp*Tsb;
+    }
+
+    return T;
+}

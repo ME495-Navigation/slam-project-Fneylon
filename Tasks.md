@@ -32,7 +32,7 @@
 - [x] Task C.5: cylindrical obstacles
 - [x] Task C.6 nusim launch
 - [x] Task C.7: README
-- [ ] Task C.8 Turtle Drive
+- [x] Task C.8 Turtle Drive
 
 
  #### Task D: Kinematics
