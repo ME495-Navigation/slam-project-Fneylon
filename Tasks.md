@@ -21,7 +21,7 @@
 - [x] Task B.5 visualization
 - [x] Task B.6 executable implementation 
 - [x] Task B.7 conceptual questions
-- [ ] Task B.8 Vector Operations
+- [x] Task B.8 Vector Operations
 - [ ] Task B.9 Integrate a Twist 
 
 #### Task C: (The Simulator)

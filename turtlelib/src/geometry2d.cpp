@@ -105,22 +105,92 @@
 
     }
 
-    turtlelib::Vector2D turtlelib::operator*(const turtlelib::Vector2D & v, double mag)
+    turtlelib::Vector2D turtlelib::operator+=(turtlelib::Vector2D & v1, const turtlelib::Vector2D & v2)
     {
-        turtlelib::Vector2D v1;
-        v1.x = v.x * mag;
-        v1.y = v.y * mag;
+        // turtlelib::Vector2D v;
+        v1.x = v1.x + v2.x;
+        v1.y = v1.y + v2.y;
         return v1;
 
     }
 
-    turtlelib::Vector2D turtlelib::normalize(const turtlelib::Vector2D & v)
+    turtlelib::Vector2D & turtlelib::operator+(turtlelib::Vector2D & v1, const turtlelib::Vector2D & v2)
+    {
+        v1+=v2;
+
+        return v1;
+    }
+
+    turtlelib::Vector2D turtlelib::operator-=(turtlelib::Vector2D & v1, const turtlelib::Vector2D & v2)
+    {
+        // turtlelib::Vector2D v;
+        v1.x = v1.x - v2.x;
+        v1.y = v1.y - v2.y;
+        return v1;
+
+    }
+
+    turtlelib::Vector2D & turtlelib::operator-(turtlelib::Vector2D & v1, const turtlelib::Vector2D & v2)
+    {
+        v1-=v2;
+        return v1;
+
+    }
+
+    turtlelib::Vector2D & turtlelib::operator*(turtlelib::Vector2D & v, double mag)
+    {
+        v*=mag;
+        return v;
+
+    }
+
+    turtlelib::Vector2D turtlelib::operator*=(turtlelib::Vector2D & v, double mag)
+    {
+
+        v.x = v.x * mag;
+        v.y = v.y * mag;
+        return v;
+    }
+
+    double turtlelib::dot(const turtlelib::Vector2D & v1, const turtlelib::Vector2D & v2)
+    {
+        double dot = v1.x * v2.x + v1.y * v2.y;
+        return dot;
+
+    }
+
+    double turtlelib::magnitude(const turtlelib::Vector2D & v)
     {
         double mag = std::sqrt(v.x * v.x + v.y * v.y);
-        turtlelib::Vector2D v1;
-        v1.x = v.x * (1.0 / mag);
-        v1.y = v.y * (1.0 / mag);
-        return v1;
+        return mag;
 
     }
+
+    double turtlelib::angle(const turtlelib::Vector2D & v1, const turtlelib::Vector2D & v2)
+    {
+        // Begin citation [4]
+        double angle = std::acos(turtlelib::dot(v1, v2) / (turtlelib::magnitude(v1) * turtlelib::magnitude(v2)));
+        //end citation [4]
+        return angle;
+
+    }
+
+    // turtlelib::Vector2D turtlelib::operator*(const turtlelib::Vector2D & v, double mag)
+    // {
+    //     turtlelib::Vector2D v1;
+    //     v1.x = v.x * mag;
+    //     v1.y = v.y * mag;
+    //     return v1;
+
+    // }
+
+    // turtlelib::Vector2D turtlelib::normalize(const turtlelib::Vector2D & v)
+    // {
+    //     double mag = std::sqrt(v.x * v.x + v.y * v.y);
+    //     turtlelib::Vector2D v1;
+    //     v1.x = v.x * (1.0 / mag);
+    //     v1.y = v.y * (1.0 / mag);
+    //     return v1;
+
+    // }
 

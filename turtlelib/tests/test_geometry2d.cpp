@@ -100,6 +100,18 @@ TEST_CASE("Testing operator-", "[operator-]")
     turtlelib::Vector2D v = p1 - p2;
     REQUIRE_THAT(v.x, Catch::Matchers::WithinAbs(-2.0, 1e-12));
     REQUIRE_THAT(v.y, Catch::Matchers::WithinAbs(-2.0, 1e-12));
+
+    turtlelib::Vector2D v1;
+    v1.x = 1.0;
+    v1.y = 2.0;
+    turtlelib::Vector2D v2;
+    v2.x = 3.0;
+    v2.y = 4.0;
+
+    v1 -=v2;
+    REQUIRE_THAT(v1.x, Catch::Matchers::WithinAbs(-2.0, 1e-12));
+    REQUIRE_THAT(v1.y, Catch::Matchers::WithinAbs(-2.0, 1e-12));
+
 }
 
 TEST_CASE("Testing operator+", "[operator+]")
@@ -113,15 +125,82 @@ TEST_CASE("Testing operator+", "[operator+]")
     turtlelib::Point2D p2 = p1 + v;
     REQUIRE_THAT(p2.x, Catch::Matchers::WithinAbs(4.0, 1e-12));
     REQUIRE_THAT(p2.y, Catch::Matchers::WithinAbs(6.0, 1e-12));
+
+    turtlelib::Vector2D v1;
+    v1.x = 1.0;
+    v1.y = 2.0;
+    turtlelib::Vector2D v2;
+    v2.x = 3.0;
+    v2.y = 4.0;
+
+    v1 +=v2;
+
+    REQUIRE_THAT(v1.x, Catch::Matchers::WithinAbs(4.0, 1e-12));
+    REQUIRE_THAT(v1.y, Catch::Matchers::WithinAbs(6.0, 1e-12));
+
 }
 
-TEST_CASE("Testing normalize", "[normalize]")
+TEST_CASE("Testing vec_operator*", "[vec_operator*]")
+{
+    turtlelib::Vector2D v;
+    v.x = 1.0;
+    v.y = 2.0;
+    turtlelib::Vector2D v1 = v * 3.0;
+    REQUIRE_THAT(v1.x, Catch::Matchers::WithinAbs(3.0, 1e-12));
+    REQUIRE_THAT(v1.y, Catch::Matchers::WithinAbs(6.0, 1e-12));
+
+    turtlelib::Vector2D v2;
+    v2.x = 1.0;
+    v2.y = 2.0;
+    v2 *= 3.0;
+    REQUIRE_THAT(v2.x, Catch::Matchers::WithinAbs(3.0, 1e-12));
+    REQUIRE_THAT(v2.y, Catch::Matchers::WithinAbs(6.0, 1e-12));
+
+}
+
+TEST_CASE("Testing dot", "[dot]")
+{
+    turtlelib::Vector2D v1;
+    v1.x = 1.0;
+    v1.y = 2.0;
+    turtlelib::Vector2D v2;
+    v2.x = 3.0;
+    v2.y = 4.0;
+    double dot = turtlelib::dot(v1, v2);
+    REQUIRE_THAT(dot, Catch::Matchers::WithinAbs(11.0, 1e-12));
+
+}
+
+TEST_CASE("Testing magnitude", "[magnitude]")
 {
     turtlelib::Vector2D v;
     v.x = 3.0;
     v.y = 4.0;
-    turtlelib::Vector2D v2;
-    v2 = turtlelib::normalize(v);
-    REQUIRE_THAT(v2.x, Catch::Matchers::WithinAbs(0.6, 1e-12));
-    REQUIRE_THAT(v2.y, Catch::Matchers::WithinAbs(0.8, 1e-12));
+    double mag = turtlelib::magnitude(v);
+    REQUIRE_THAT(mag, Catch::Matchers::WithinAbs(5.0, 1e-12));
+
 }
+
+TEST_CASE("Testing angle", "[angle]")
+{
+    turtlelib::Vector2D v1;
+    v1.x = 1.0;
+    v1.y = 0.0;
+    turtlelib::Vector2D v2;
+    v2.x = 0.0;
+    v2.y = 1.0;
+    double angle = turtlelib::angle(v1, v2);
+    REQUIRE_THAT(angle, Catch::Matchers::WithinAbs(turtlelib::PI / 2, 1e-12));
+
+}
+
+// TEST_CASE("Testing normalize", "[normalize]")
+// {
+//     turtlelib::Vector2D v;
+//     v.x = 3.0;
+//     v.y = 4.0;
+//     turtlelib::Vector2D v2;
+//     v2 = turtlelib::normalize(v);
+//     REQUIRE_THAT(v2.x, Catch::Matchers::WithinAbs(0.6, 1e-12));
+//     REQUIRE_THAT(v2.y, Catch::Matchers::WithinAbs(0.8, 1e-12));
+// }

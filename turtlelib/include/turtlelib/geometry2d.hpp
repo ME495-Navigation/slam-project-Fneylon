@@ -113,12 +113,65 @@ namespace turtlelib
     /// NOTE: this is not implemented in terms of -= because subtracting two Point2D yields a Vector2D
     Vector2D operator-(const Point2D & head, const Point2D & tail);
 
+    /// \brief Vector addition of two different vectors
+    /// \param v1 - the first vector
+    /// \param v2 - the second vector
+    /// \return the vector sum v1 + v2
+    Vector2D operator+=(Vector2D & v1, const Vector2D & v2);
+
+    /// \brief Vector addition
+    /// \param v1 - the first vector
+    /// \return the vector sum of v1 + v1
+    Vector2D & operator+(Vector2D & v1, const Vector2D & v2);
+
+    /// \brief Vector subtraction of two different vectors 
+    /// \param v1 - the first vector
+    /// \param v2 - the second vector
+    /// \return the vector difference v1 - v2
+    Vector2D operator-=(Vector2D & v1, const Vector2D & v2);
+
+    /// \brief Vector subtraction
+    /// \param v1 - the first vector
+    /// \return the vector difference v1 - v1
+    Vector2D & operator-(Vector2D & v1, const Vector2D & v2);
+
+    /// \brief Vector multiplication by a scalar
+    /// \param v - the vector
+    /// \param mag - the scalar
+    /// \return the vector v scaled by mag
+    Vector2D & operator*(Vector2D & v, double mag);
+
+    /// \brief Vector multiplication by a scalar
+    /// \param mag - the scalar
+    /// \param v - the vector
+    /// \return the vector v scaled by mag
+    Vector2D operator*= (Vector2D & v, double mag);
+
+
     /// \brief Adding a vector to a point yields a new point displaced by the vector
     /// \param tail The origin of the vector's tail
     /// \param disp The displacement vector
     /// \return the point reached by displacing by disp from tail
     /// NOTE: this is not implemented in terms of += because of the different types
     Point2D operator+(const Point2D & tail, const Vector2D & disp);
+
+
+    /// \brief compute the dot product of two vectors
+    /// \param v1 - the first vector
+    /// \param v2 - the second vector
+    /// \return the dot product v1 * v2
+    double dot(const Vector2D & v1, const Vector2D & v2);
+
+    /// \brief compute the magnitude of a vector
+    /// \param v - the vector
+    /// \return the magnitude of v
+    double magnitude(const Vector2D & v);
+
+    /// \brief compute the angle between two vectors
+    /// \param v1 - the first vector
+    /// \param v2 - the second vector
+    /// \return the angle between v1 and v2
+    double angle(const Vector2D & v1, const Vector2D & v2);
 
     /// \brief output a 2 dimensional vector as [xcomponent ycomponent]
     /// \param os - stream to output to
@@ -145,12 +198,12 @@ namespace turtlelib
     /// get removes the next unprocessed character from the buffer.
     std::istream & operator>>(std::istream & is, Vector2D & v);
 
-    /// \brief compute the magnitude of a vector
-    /// \param v - the vector
-    /// \param mag - the magnitude of the vector
-    /// \return the magnitude of v
-    Vector2D operator*(const Vector2D & v, double mag);
-    Vector2D normalize(const Vector2D & v);
+    // /// \brief compute the magnitude of a vector
+    // /// \param v - the vector
+    // /// \param mag - the magnitude of the vector
+    // /// \return the magnitude of v
+    // Vector2D operator*(const Vector2D & v, double mag);
+    // Vector2D normalize(const Vector2D & v);
 
 }
 
