@@ -36,8 +36,9 @@
 
 
  #### Task D: Kinematics
- - [ ] D.1 DiffDrive Class 
- - [ ] D.2 DiffDrive Test 
+ - [x] D.1 DiffDrive Class 
+ - [ ] D.2 DiffDrive Test
+     - [ ] Need to add the final test for invalid Twist case
  - [ ] D.3 Documentation
 
  #### Task E: Robot Control
