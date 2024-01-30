@@ -42,7 +42,7 @@
  - [ ] D.3 Documentation
 
  #### Task E: Robot Control
- - [ ] E.1 Turtle Interface 
+ - [x] E.1 Turtle Interface 
  - [ ] E.2 Odometry Node 
  - [ ] E.3 Circle
  - [ ] E.4 ROS API Testing 
@@ -52,4 +52,4 @@
  #### Task F: The Real Robot 
  - [ ] F.1: Turtlebot Setup 
  - [ ] F.2 Cross-compliation 
- - [ ] F.3 Physical Testing
+ - [ ] F.3 Physical Testing   

@@ -7,11 +7,17 @@
 #include "std_srvs/srv/empty.hpp"
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include "geometry_msgs/msg/twist.hpp" 
+#include "turtlelib/diff_drive.hpp"
+#include "turtlelib/se2d.hpp"
+#include "turtlelib/geometry2d.hpp"
 #include <rclcpp/rclcpp.hpp>
 #include "tf2/LinearMath/Quaternion.h"
 #include "tf2_ros/transform_broadcaster.h"
 #include <visualization_msgs/msg/marker.hpp>
 #include <visualization_msgs/msg/marker_array.hpp>
+#include <nuturtlebot_msgs/msg/wheel_commands.hpp>
+#include <nuturtlebot_msgs/msg/sensor_data.hpp>
+#include <sensor_msgs/msg/joint_state.hpp>
 
 
 using namespace std::chrono_literals;
@@ -69,12 +75,23 @@ public:
     }
 
     // Define Timers:
+    timer_ = this->create_wall_timer(
+      std::chrono::duration<double>(1.0 / rate_), std::bind(&TurtleControl::timer_callback, this));
     
 
     // Define Publishers:
+    wheel_cmd_pub_ = this->create_publisher<nuturtlebot_msgs::msg::WheelCommands>("~/wheel_cmd", 10);
+    joint_state_pub_ = this->create_publisher<sensor_msgs::msg::JointState>("~/joint_states", 10);
+
+    // Define Subscribers:
+    cmd_vel_sub_ = this->create_subscription<geometry_msgs::msg::Twist>(
+      "~/cmd_vel", 10, std::bind(&TurtleControl::cmd_vel_callback, this, std::placeholders::_1));
+
+    sensor_sub_ = this->create_subscription<nuturtlebot_msgs::msg::SensorData>(
+      "~/sensor_data", 10, std::bind(&TurtleControl::sensor_callback, this, std::placeholders::_1));
     
 
-    // Define Services:s
+    // Define Services:
     
 
     // Define Broadcasters:
@@ -82,8 +99,82 @@ public:
   }
 
 private:
+    void timer_callback()
+    {
+        // RCLCPP_INFO(this->get_logger(), "timer_callback!");
+        
+    }
+
+    void sensor_callback(const nuturtlebot_msgs::msg::SensorData::SharedPtr msg)
+    {
+        RCLCPP_INFO(this->get_logger(), "sensor_callback!");
+
+        turtlelib::WheelConfiguration wc;
+        wc.theta_l = msg->left_encoder / encorder_ticks_per_rad_;
+        wc.theta_r = msg->right_encoder / encorder_ticks_per_rad_;
+
+        sensor_msgs::msg::JointState joint_state_msg;
+        joint_state_msg.header.stamp = this->now();
+        joint_state_msg.name = {"left_wheel_joint", "right_wheel_joint"};
+        joint_state_msg.position = {wc.theta_l, wc.theta_r};
+
+        joint_state_pub_->publish(joint_state_msg);
+
+
+    }
+
+    void cmd_vel_callback(const geometry_msgs::msg::Twist::SharedPtr msg)
+    {
+        
+        // Assign the variables from the message to the Twist2D object
+        diff_drive_ = turtlelib::DiffDrive(wheel_radius_, track_width_);
+        turtlelib::Twist2D tw;
+        tw.x = msg->linear.x;
+        tw.y = msg->linear.y;
+        tw.omega = msg->angular.z;
+
+        // Compute the Wheel Commands from the Twist2D object
+        turtlelib::WheelConfiguration wc = diff_drive_.inverse_kinematics(tw);
+
+        // Convert to match unit of time of publishing rate
+        // wc.theta_l = wc.theta_l * 1/rate_;
+        // wc.theta_r = wc.theta_r * 1/rate_;
+
+        // Saturate Control Signal
+        if (wc.theta_l > motor_cmd_max_)
+        {
+            wc.theta_l = motor_cmd_max_;
+        }
+        else if (wc.theta_l < -motor_cmd_max_)
+        {
+            wc.theta_l = -motor_cmd_max_;
+        }
+
+        if (wc.theta_r > motor_cmd_max_)
+        {
+            wc.theta_r = motor_cmd_max_;
+        }
+        else if (wc.theta_r < -motor_cmd_max_)
+        {
+            wc.theta_r = -motor_cmd_max_;
+        }
+
+        // Publish the Wheel Commands
+        nuturtlebot_msgs::msg::WheelCommands wc_msg;
+        wc_msg.left_velocity = wc.theta_l;
+        wc_msg.right_velocity = wc.theta_r;
+        wheel_cmd_pub_->publish(wc_msg);
+
+
+    }
   
   // Initalize Publishers:
+  rclcpp::Publisher<nuturtlebot_msgs::msg::WheelCommands>::SharedPtr wheel_cmd_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr joint_state_pub_;
+
+  // Initialize Subscribers:
+  rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_sub_; 
+  rclcpp::Subscription<nuturtlebot_msgs::msg::SensorData>::SharedPtr sensor_sub_;
   
 
   // Initialize Services:
@@ -93,10 +184,12 @@ private:
  
 
   // Initialize Timers:
+  rclcpp::TimerBase::SharedPtr timer_;
   
 
 
   // Initlaize Messages:
+
 
 
   // Initialize Variables:
@@ -106,8 +199,9 @@ private:
     double motor_cmd_per_rad_sec_;
     double encorder_ticks_per_rad_;
     double collision_radius_;
+    double rate_ = 250;
 
-
+    turtlelib::DiffDrive diff_drive_;
 };
 
 

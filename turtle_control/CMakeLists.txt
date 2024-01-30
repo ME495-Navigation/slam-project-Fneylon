@@ -17,10 +17,49 @@ find_package(tf2)
 find_package(rosidl_default_generators REQUIRED)
 find_package(visualization_msgs)
 find_package(nuturtlebot_msgs)
+find_package(turtlelib)
 # find_package(nusim)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
+
+
+
+add_executable(turtle_control_node src/turtle_control.cpp)
+ament_target_dependencies(turtle_control_node 
+rclcpp 
+std_msgs 
+std_srvs 
+nuturtle_description 
+geometry_msgs 
+tf2 
+tf2_ros 
+visualization_msgs 
+nuturtlebot_msgs 
+turtlelib)
+
+# set(srv_files "srv/Teleport.srv")
+
+# rosidl_generate_interfaces(${PROJECT_NAME} "srv/Teleport.srv")
+
+# rosidl_get_typesupport_target(cpp_typesupport_target
+# ${PROJECT_NAME} rosidl_typesupport_cpp)
+
+target_link_libraries(turtle_control_node "${cpp_typesupport_target}")
+target_link_libraries(turtle_control_node turtlelib::turtlelib "${cpp_typesupport_target}")
+
+install(TARGETS
+        turtle_control_node
+        DESTINATION lib/${PROJECT_NAME}
+)
+
+install(DIRECTORY
+        launch
+        config
+        srv
+        DESTINATION share/${PROJECT_NAME}/
+    
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -34,27 +73,6 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
-add_executable(turtle_control_node src/turtle_control.cpp)
-ament_target_dependencies(turtle_control_node rclcpp std_msgs std_srvs nuturtle_description geometry_msgs tf2 tf2_ros visualization_msgs turtlebot_msgs)
-
-# set(srv_files "srv/Teleport.srv")
-
-# rosidl_generate_interfaces(${PROJECT_NAME} "srv/Teleport.srv")
-
-# rosidl_get_typesupport_target(cpp_typesupport_target
-# ${PROJECT_NAME} rosidl_typesupport_cpp)
-
-target_link_libraries(turtle_control_node "${cpp_typesupport_target}")
-install(TARGETS
-        turtle_control_node
-        DESTINATION lib/${PROJECT_NAME}
-)
-
-install(DIRECTORY
-        launch
-        config
-        srv
-        DESTINATION share/${PROJECT_NAME}/
-)
+ament_export_dependencies(rosidl_default_runtime)
 
 ament_package()
