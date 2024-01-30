@@ -54,27 +54,48 @@ void DiffDrive::forward_kinematics(WheelConfiguration wheels)
     twist.x = wheel_radius_*(delta_theta_l/2 + delta_theta_r/2);
     twist.y = 0.0;
 
-    if (twist.omega == 0.0)
-    {
-        qb.theta = 0.0;
-        qb.x = twist.x;
-        qb.y = twist.y;
-    }
-    else if (twist.omega != 0.0)
-    {
+    // if (twist.omega == 0.0)
+    // {
+    //     qb.theta = 0.0;
+    //     qb.x = twist.x;
+    //     qb.y = twist.y;
+    // }
+    // else if (twist.omega != 0.0)
+    // {
 
-        qb.theta = twist.omega;
-        qb.x = (twist.x*sin(twist.omega) + twist.y*(cos(twist.omega) - 1)) / twist.omega;
-        qb.y = (twist.y*sin(twist.omega) + twist.x*(1 - cos(twist.omega))) / twist.omega;
-    }
+    //     qb.theta = twist.omega;
+    //     qb.x = (twist.x*sin(twist.omega) + twist.y*(cos(twist.omega) - 1)) / twist.omega;
+    //     qb.y = (twist.y*sin(twist.omega) + twist.x*(1 - cos(twist.omega))) / twist.omega;
+    // }
 
-    dq.theta = qb.theta;
-    dq.x = cos(config_.theta)*qb.x - sin(config_.theta)*qb.y;
-    dq.y = sin(config_.theta)*qb.x + cos(config_.theta)*qb.y;
+    // dq.theta = qb.theta;
+    // dq.x = cos(config_.theta)*qb.x - sin(config_.theta)*qb.y;
+    // dq.y = sin(config_.theta)*qb.x + cos(config_.theta)*qb.y;
 
-    config_.theta += dq.theta;
-    config_.x += dq.x;
-    config_.y += dq.y;
+    // Get Tbbp 
+    Transform2D Tbbp;
+    Tbbp = integrate_twist(twist);
+
+    // Get Twb
+    Transform2D Twb;
+    Vector2D v;
+    v.x = config_.x;
+    v.y = config_.y;
+    Twb = Transform2D(v, config_.theta);
+
+    // Get Twbp
+    Transform2D Twbp;
+    Twbp = Twb*Tbbp;
+
+    // Get changes in configuration
+    double dtheta = Twbp.rotation();
+    Vector2D v2;
+    v2 = Twbp.translation();
+
+
+    config_.theta += dtheta;
+    config_.x += v2.x;
+    config_.y += v2.y;
 
     wheel_config_.theta_l = wheels.theta_l;
     wheel_config_.theta_r = wheels.theta_r;
