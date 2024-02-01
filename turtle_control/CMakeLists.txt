@@ -18,14 +18,14 @@ find_package(rosidl_default_generators REQUIRED)
 find_package(visualization_msgs)
 find_package(nuturtlebot_msgs)
 find_package(turtlelib)
+find_package(nav_msgs)
 # find_package(nusim)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
-
-
-
 add_executable(turtle_control_node src/turtle_control.cpp)
+add_executable(turtle_odometry_node src/odometry.cpp)
+add_executable(turtle_circle_node src/circle.cpp)
 ament_target_dependencies(turtle_control_node 
 rclcpp 
 std_msgs 
@@ -36,20 +36,55 @@ tf2
 tf2_ros 
 visualization_msgs 
 nuturtlebot_msgs 
-turtlelib)
+turtlelib
+nav_msgs)
 
-# set(srv_files "srv/Teleport.srv")
+ament_target_dependencies(turtle_odometry_node 
+rclcpp 
+std_msgs 
+std_srvs 
+nuturtle_description 
+geometry_msgs 
+tf2 
+tf2_ros 
+visualization_msgs 
+nuturtlebot_msgs 
+turtlelib
+nav_msgs)
 
-# rosidl_generate_interfaces(${PROJECT_NAME} "srv/Teleport.srv")
+ament_target_dependencies(turtle_circle_node 
+rclcpp 
+std_msgs 
+std_srvs 
+nuturtle_description 
+geometry_msgs 
+tf2 
+tf2_ros 
+visualization_msgs 
+nuturtlebot_msgs 
+turtlelib
+nav_msgs)
 
-# rosidl_get_typesupport_target(cpp_typesupport_target
-# ${PROJECT_NAME} rosidl_typesupport_cpp)
+set(srv_files "srv/InitialPose.srv")
+
+rosidl_generate_interfaces(${PROJECT_NAME} "srv/InitialPose.srv")
+
+rosidl_get_typesupport_target(cpp_typesupport_target
+${PROJECT_NAME} rosidl_typesupport_cpp)
 
 target_link_libraries(turtle_control_node "${cpp_typesupport_target}")
 target_link_libraries(turtle_control_node turtlelib::turtlelib "${cpp_typesupport_target}")
 
+target_link_libraries(turtle_odometry_node "${cpp_typesupport_target}")
+target_link_libraries(turtle_odometry_node turtlelib::turtlelib "${cpp_typesupport_target}")
+
+target_link_libraries(turtle_circle_node "${cpp_typesupport_target}")
+target_link_libraries(turtle_circle_node turtlelib::turtlelib "${cpp_typesupport_target}")
+
 install(TARGETS
         turtle_control_node
+        turtle_odometry_node
+        turtle_circle_node
         DESTINATION lib/${PROJECT_NAME}
 )
 

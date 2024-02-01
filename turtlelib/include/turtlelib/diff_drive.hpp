@@ -56,6 +56,8 @@ namespace turtlelib
 
             Configuration2D get_configuration();
 
+            void set_configuration(double x, double y, double theta);
+
 
 
         private:

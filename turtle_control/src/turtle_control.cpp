@@ -37,6 +37,7 @@ public:
     if (wheel_radius_ <= 0.0)
     {
         RCLCPP_ERROR(this->get_logger(), "wheel_radius must be greater than 0.0");
+        rclcpp::shutdown();
     }
 
     this->declare_parameter("track_width", -1.0);
@@ -44,6 +45,7 @@ public:
     if (track_width_ <= 0.0)
     {
         RCLCPP_ERROR(this->get_logger(), "track_width must be greater than 0.0");
+        rclcpp::shutdown();
     }
 
     this->declare_parameter("motor_cmd_max", -1.0);
@@ -51,6 +53,7 @@ public:
     if (motor_cmd_max_ <= 0.0)
     {
         RCLCPP_ERROR(this->get_logger(), "motor_cmd_max must be greater than 0.0");
+        rclcpp::shutdown();
     }
 
     this->declare_parameter("motor_cmd_per_rad_sec", -1.0);
@@ -58,6 +61,7 @@ public:
     if (motor_cmd_per_rad_sec_ <= 0.0)
     {
         RCLCPP_ERROR(this->get_logger(), "motor_cmd_per_rad_sec must be greater than 0.0");
+        rclcpp::shutdown();
     }
 
     this->declare_parameter("encorder_ticks_per_rad", -1.0);
@@ -65,6 +69,7 @@ public:
     if (encorder_ticks_per_rad_ <= 0.0)
     {
         RCLCPP_ERROR(this->get_logger(), "encorder_ticks_per_rad must be greater than 0.0");
+        rclcpp::shutdown();
     }
 
     this->declare_parameter("collision_radius", -1.0);
@@ -72,6 +77,7 @@ public:
     if (collision_radius_ <= 0.0)
     {
         RCLCPP_ERROR(this->get_logger(), "collision_radius must be greater than 0.0");
+        rclcpp::shutdown();
     }
 
     // Define Timers:
@@ -136,33 +142,37 @@ private:
         // Compute the Wheel Commands from the Twist2D object
         turtlelib::WheelConfiguration wc = diff_drive_.inverse_kinematics(tw);
 
+        double mcu_l = motor_cmd_per_rad_sec_ * wc.theta_l;
+        double mcu_r = motor_cmd_per_rad_sec_ * wc.theta_r;
+
         // Convert to match unit of time of publishing rate
         // wc.theta_l = wc.theta_l * 1/rate_;
         // wc.theta_r = wc.theta_r * 1/rate_;
 
         // Saturate Control Signal
-        if (wc.theta_l > motor_cmd_max_)
+        if (mcu_l > motor_cmd_max_)
         {
-            wc.theta_l = motor_cmd_max_;
+            mcu_l = motor_cmd_max_;
         }
-        else if (wc.theta_l < -motor_cmd_max_)
+        else if (mcu_l < -motor_cmd_max_)
         {
-            wc.theta_l = -motor_cmd_max_;
+            mcu_l = -motor_cmd_max_;
         }
 
-        if (wc.theta_r > motor_cmd_max_)
+        if (mcu_r > motor_cmd_max_)
         {
-            wc.theta_r = motor_cmd_max_;
+            mcu_r = motor_cmd_max_;
         }
-        else if (wc.theta_r < -motor_cmd_max_)
+        else if (mcu_r < -motor_cmd_max_)
         {
-            wc.theta_r = -motor_cmd_max_;
+            mcu_r = -motor_cmd_max_;
         }
+
 
         // Publish the Wheel Commands
         nuturtlebot_msgs::msg::WheelCommands wc_msg;
-        wc_msg.left_velocity = wc.theta_l;
-        wc_msg.right_velocity = wc.theta_r;
+        wc_msg.left_velocity = mcu_l / motor_cmd_per_rad_sec_;
+        wc_msg.right_velocity = mcu_r / motor_cmd_per_rad_sec_;
         wheel_cmd_pub_->publish(wc_msg);
 
 

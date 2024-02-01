@@ -43,6 +43,7 @@
 
  #### Task E: Robot Control
  - [x] E.1 Turtle Interface 
+     - [ ] Fix Repo Stuff--ask Matt on Thursday
  - [ ] E.2 Odometry Node 
  - [ ] E.3 Circle
  - [ ] E.4 ROS API Testing 

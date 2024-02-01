@@ -38,6 +38,14 @@ Configuration2D DiffDrive::get_configuration()
     return config_;
 }
 
+
+void DiffDrive::set_configuration(double x, double y, double theta)
+{
+    config_.x = x;
+    config_.y = y;
+    config_.theta = theta;
+}
+
 void DiffDrive::forward_kinematics(WheelConfiguration wheels)
 {
 
