@@ -1,0 +1,35 @@
+<launch>
+
+<catch2_launch_file description='Launch file for testing the turtle_control node'/>
+
+    <!-- Specific launch arguments can also be included at the user's discretion -->
+    <!-- <arg 
+        name=''
+        default='2.0'
+        description='Max length of test in seconds.'
+    /> -->
+
+    <!-- Auxiliary nodes can be run like normal to test integration between nodes -->
+    <!-- <arg name="config_file" default="$(find-pkg-share nuturtle_description)/config/diff_params.yaml"/> -->
+    <node pkg='turtle_control' exec='turtle_control_node'>
+
+        <param from="$(find-pkg-share nuturtle_description)/config/diff_params.yaml"/>
+        
+    </node>
+
+    <!--
+    catch2_integration_test_node
+    a wrapper around node which passes the "result_file" argument to Catch2.
+    There should only be one integration test node. This node will shutdown
+    the entire launch file when it exits.
+    Specific parameters and other arguments can also be passed, like the
+    "test_duration" example below.
+    -->
+    <catch2_integration_test_node
+        pkg='turtle_control'
+        exec='turtle_control_test_node'
+    >
+        <!-- <param name='test_duration' value='$(var test_duration)'/> -->
+    </catch2_integration_test_node>
+
+</launch>

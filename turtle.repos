@@ -1,5 +1,9 @@
 repositories:
-  src:
+  nuturtlebot_msgs:
+    type: git
+    url: git@github.com:ME495-Navigation/nuturtlebot_msgs.git
+    version: humble
+  slam-project-fneylon:
     type: git
     url: git@github.com:ME495-Navigation/slam-project-Fneylon.git
     version: main

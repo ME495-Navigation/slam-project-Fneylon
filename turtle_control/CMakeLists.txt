@@ -36,7 +36,7 @@ geometry_msgs
 tf2 
 tf2_ros 
 visualization_msgs 
-nuturtlebot_msgs 
+nuturtlebot_msgs  
 turtlelib
 nav_msgs)
 
@@ -115,6 +115,58 @@ if(BUILD_TESTING)
   set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
+
+
+if(BUILD_TESTING)
+  include(CTest)
+
+  ###########################
+  ## INTEGRATION TEST NODE ##
+  ###########################
+  # This is the node in which integration tests occur
+  add_executable(turtle_control_test_node
+    test/turtle_control_test.cpp
+  )
+  # The link libraries call links this node with catch_ros2::catch_ros2_with_node_main
+  # to get the default integration test node main function
+  target_link_libraries(turtle_control_test_node
+    catch_ros2::catch_ros2_with_node_main
+  )
+  ament_target_dependencies(turtle_control_test_node
+    rclcpp std_srvs
+  )
+  install(TARGETS
+    turtle_control_test_node
+    DESTINATION lib/${PROJECT_NAME}
+  )
+
+  #################
+  ## LAUNCH FILE ##
+  #################
+  # This is the launch file that will be used to run the integration test
+  install(FILES
+    test/turtle_control_test.launch.xml  # example in XML
+    DESTINATION share/${PROJECT_NAME}
+  )
+
+  ######################
+  ## INTEGRATION TEST ##
+  ######################
+  # This CMake function allows the integration test to be run
+  # when running "colcon test".
+  catch_ros2_add_integration_test(TurtleControl_TestXML
+    LAUNCH_FILE turtle_control_test.launch.xml  # example in XML
+  )
+
+endif()
+
+
+
+
+
+
+
+
 
 ament_export_dependencies(rosidl_default_runtime)
 
