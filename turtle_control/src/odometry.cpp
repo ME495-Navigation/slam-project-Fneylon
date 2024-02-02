@@ -63,6 +63,23 @@ public:
         rclcpp::shutdown();
     }
 
+    this->declare_parameter("wheel_radius", -1.0);
+    wheel_radius_ = this->get_parameter("wheel_radius").as_double();
+    if (wheel_radius_ <= 0.0)
+    {
+        RCLCPP_ERROR(this->get_logger(), "wheel_radius must be greater than 0.0");
+        rclcpp::shutdown();
+    }
+
+    this->declare_parameter("track_width", -1.0);
+    track_width_ = this->get_parameter("track_width").as_double();
+    if (track_width_ <= 0.0)
+    {
+        RCLCPP_ERROR(this->get_logger(), "track_width must be greater than 0.0");
+        rclcpp::shutdown();
+    }
+    diff_drive_ = turtlelib::DiffDrive(wheel_radius_, track_width_);
+
     // Define Timers:
     // timer_ = this->create_wall_timer(
     //   std::chrono::duration<double>(1.0 / rate_), std::bind(&Odometry::timer_callback, this));
@@ -98,6 +115,40 @@ private:
       // Send back the current configuration
         RCLCPP_INFO(this->get_logger(), "initial_pose_callback!");
         diff_drive_.set_configuration(request->x, request->y, request->theta);
+
+        turtlelib::Configuration2D config = diff_drive_.get_configuration();
+
+        nav_msgs::msg::Odometry odom_msg;
+        odom_msg.header.stamp = this->now();
+        odom_msg.header.frame_id = body_id_;
+        odom_msg.child_frame_id = odom_id_;
+        odom_msg.pose.pose.position.x = config.x;
+        odom_msg.pose.pose.position.y = config.y;
+        odom_msg.pose.pose.position.z = 0.0;
+        tf2::Quaternion q;
+        q.setRPY(0, 0, config.theta);
+        odom_msg.pose.pose.orientation.x = q.x();
+        odom_msg.pose.pose.orientation.y = q.y();
+        odom_msg.pose.pose.orientation.z = q.z();
+        odom_msg.pose.pose.orientation.w = q.w();
+
+
+        // Publish the Odometry Message:
+        odom_pub_->publish(odom_msg);
+
+
+        // Send the Transform: 
+        transformStamped_.header.stamp = this->get_clock()->now();
+        transformStamped_.header.frame_id = body_id_;
+        transformStamped_.child_frame_id = odom_id_;
+        transformStamped_.transform.translation.x = config.x;
+        transformStamped_.transform.translation.y = config.y;
+        transformStamped_.transform.translation.z = 0.0;
+        transformStamped_.transform.rotation.x = q.x();
+        transformStamped_.transform.rotation.y = q.y();
+        transformStamped_.transform.rotation.z = q.z();
+        transformStamped_.transform.rotation.w = q.w();
+        odom_broadcaster_->sendTransform(transformStamped_);
     }
 
     void joint_state_callback(const sensor_msgs::msg::JointState::SharedPtr msg)
@@ -187,6 +238,9 @@ private:
    std::string odom_id_;
    std::string wheel_left_;
    std::string wheel_right_;
+
+   double track_width_;
+   double wheel_radius_;
 
 };
 

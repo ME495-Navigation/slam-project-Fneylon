@@ -19,15 +19,9 @@
 #include <nav_msgs/msg/odometry.hpp>
 #include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
 #include <geometry_msgs/msg/pose_stamped.hpp>
+#include "turtle_control/srv/control.hpp"
 
 using namespace std::chrono_literals;
-
-enum class State
-{
-    STOPPED,
-    REVERSING,
-    DRIVING
-};
 
 
 class Circle : public rclcpp::Node
@@ -37,19 +31,7 @@ public:
   : Node("circle")
   {
 
-    // Declare parameters:
-    this->declare_parameter("velocity", 0);
-    velocity_ = this->get_parameter("velocity").as_double();
-
-
-    this->declare_parameter("radius", 0);
-    radius_ = this->get_parameter("radius").as_double();
-    if (radius_ == 0)
-    {
-        RCLCPP_ERROR(this->get_logger(), "radius not defined");
-        rclcpp::shutdown();
-    }
-
+  
     // Define Publishers:
     cmd_vel_pub_ = this->create_publisher<geometry_msgs::msg::Twist>("~/cmd_vel", 10);
 
@@ -57,6 +39,14 @@ public:
     // Define Services:
     // initial_pose_srv_ = this->create_service<turtle_control::srv::InitialPose>(
     //   "~/initial_pose", std::bind(&Odometry::initial_pose_callback, this, std::placeholders::_1, std::placeholders::_2));
+    control_srv_ = this->create_service<turtle_control::srv::Control>(
+      "~/control", std::bind(&Circle::control_callback, this, std::placeholders::_1, std::placeholders::_2));
+
+    reverse_srv_ = this->create_service<std_srvs::srv::Empty>(
+      "~/reverse", std::bind(&Circle::reverse_callback, this, std::placeholders::_1, std::placeholders::_2));
+
+    stop_srv_ = this->create_service<std_srvs::srv::Empty>(
+      "~/stop", std::bind(&Circle::stop_callback, this, std::placeholders::_1, std::placeholders::_2));
     
 
     // Define the timer: 
@@ -66,20 +56,42 @@ public:
 
 private:
 
+    void stop_callback(const std::shared_ptr<std_srvs::srv::Empty::Request>, const std::shared_ptr<std_srvs::srv::Empty::Response>)
+    {
+      velocity_ = 0.0;
+      geometry_msgs::msg::Twist msg;
+      msg.linear.x = velocity_;
+      msg.angular.z = velocity_ / radius_;
+      cmd_vel_pub_->publish(msg);
+    }
+
+    void reverse_callback(const std::shared_ptr<std_srvs::srv::Empty::Request>, const std::shared_ptr<std_srvs::srv::Empty::Response>)
+    {
+      velocity_ = -velocity_;
+    }
+
+    void control_callback(const std::shared_ptr<turtle_control::srv::Control::Request> request, const std::shared_ptr<turtle_control::srv::Control::Response>)
+    {
+
+      velocity_ = request->velocity;
+      radius_ = request->radius;
+
+    }
+
     void time_callback()
     {
-        if (state_ == State::STOPPED)
-        {
-            // Want to Publish a zero twist
-        }
-        else if (state_ == State::REVERSING)
-        {
-            // This is going to reverse the robot in a circle
-        }
-        else if (state_ == State::DRIVING)
-        {
-            // This is going to drive the robot in a circle.
-        }
+      if (turtlelib::almost_equal(velocity_, 0.0))
+      {
+        ;
+      }
+      else{
+
+        geometry_msgs::msg::Twist msg;
+        msg.linear.x = velocity_;
+        msg.angular.z = velocity_ / radius_;
+        cmd_vel_pub_->publish(msg);
+      }
+
 
     }
 
@@ -89,7 +101,9 @@ private:
 
 
   // Initialize Services:
-//   rclcpp::Service<turtle_control::srv::InitialPose>::SharedPtr initial_pose_srv_;
+  rclcpp::Service<turtle_control::srv::Control>::SharedPtr control_srv_;
+  rclcpp::Service<std_srvs::srv::Empty>::SharedPtr reverse_srv_;
+  rclcpp::Service<std_srvs::srv::Empty>::SharedPtr stop_srv_;
   
 
   // Initialize Timers:
@@ -101,9 +115,6 @@ private:
    double rate_ = 100.0;
    double velocity_;
    double radius_;
-
-   // Initialize the state:
-    State state_ = State::STOPPED;
 
 };
 

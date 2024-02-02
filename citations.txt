@@ -9,3 +9,5 @@ People worked with: Demiana Barsoum, Megan Black
 [4] https://www.cuemath.com/geometry/angle-between-vectors/ 
 
 [5] Modern Robotics, Lynch.K et. al, Chapter 13.5 Mobile Manipulation
+
+[6] https://www.aleksandrhovhannisyan.com/blog/implementing-a-finite-state-machine-in-cpp/ 

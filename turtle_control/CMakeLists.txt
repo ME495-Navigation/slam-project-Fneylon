@@ -65,9 +65,13 @@ nuturtlebot_msgs
 turtlelib
 nav_msgs)
 
-set(srv_files "srv/InitialPose.srv")
+set(srv_files 
+"srv/InitialPose.srv"
+"srv/Control.srv")
 
-rosidl_generate_interfaces(${PROJECT_NAME} "srv/InitialPose.srv")
+rosidl_generate_interfaces(${PROJECT_NAME} 
+"srv/InitialPose.srv" 
+"srv/Control.srv")
 
 rosidl_get_typesupport_target(cpp_typesupport_target
 ${PROJECT_NAME} rosidl_typesupport_cpp)
