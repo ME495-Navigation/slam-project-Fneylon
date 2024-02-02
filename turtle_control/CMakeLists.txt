@@ -19,6 +19,7 @@ find_package(visualization_msgs)
 find_package(nuturtlebot_msgs)
 find_package(turtlelib)
 find_package(nav_msgs)
+find_package(catch_ros2)
 # find_package(nusim)
 # uncomment the following section in order to fill in
 # further dependencies manually.
@@ -76,12 +77,15 @@ rosidl_generate_interfaces(${PROJECT_NAME}
 rosidl_get_typesupport_target(cpp_typesupport_target
 ${PROJECT_NAME} rosidl_typesupport_cpp)
 
+
 target_link_libraries(turtle_control_node "${cpp_typesupport_target}")
 target_link_libraries(turtle_control_node turtlelib::turtlelib "${cpp_typesupport_target}")
 
+rosidl_target_interfaces(turtle_odometry_node ${PROJECT_NAME} "rosidl_typesupport_cpp")
 target_link_libraries(turtle_odometry_node "${cpp_typesupport_target}")
 target_link_libraries(turtle_odometry_node turtlelib::turtlelib "${cpp_typesupport_target}")
 
+rosidl_target_interfaces(turtle_circle_node ${PROJECT_NAME} "rosidl_typesupport_cpp")
 target_link_libraries(turtle_circle_node "${cpp_typesupport_target}")
 target_link_libraries(turtle_circle_node turtlelib::turtlelib "${cpp_typesupport_target}")
 
