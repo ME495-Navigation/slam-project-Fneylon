@@ -20,13 +20,11 @@ find_package(nuturtlebot_msgs)
 find_package(turtlelib)
 find_package(nav_msgs)
 find_package(catch_ros2)
-# find_package(nusim)
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
 add_executable(turtle_control_node src/turtle_control.cpp)
 add_executable(turtle_odometry_node src/odometry.cpp)
 add_executable(turtle_circle_node src/circle.cpp)
+
+
 ament_target_dependencies(turtle_control_node 
 rclcpp 
 std_msgs 
@@ -132,8 +130,19 @@ if(BUILD_TESTING)
   target_link_libraries(turtle_control_test_node
     catch_ros2::catch_ros2_with_node_main
   )
+  target_link_libraries(turtle_control_test_node turtlelib::turtlelib "${cpp_typesupport_target}")
   ament_target_dependencies(turtle_control_test_node
-    rclcpp std_srvs
+    rclcpp 
+    std_msgs 
+    std_srvs 
+    nuturtle_description 
+    geometry_msgs 
+    tf2 
+    tf2_ros 
+    visualization_msgs 
+    nuturtlebot_msgs 
+    turtlelib
+    nav_msgs
   )
   install(TARGETS
     turtle_control_test_node

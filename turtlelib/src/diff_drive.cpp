@@ -113,18 +113,17 @@ WheelConfiguration DiffDrive::inverse_kinematics(Twist2D twist)
 {
     // Begin Citation [5]
 
-    if (twist.y != 0.0)
-    {
-        std::cout << "Invalid Twist, y comp. non-zero" << std::endl;
-    }
-    else
-    {
 
+    if (almost_equal(twist.y, 0.0, 1.0e-12))
+    {
         WheelConfiguration wheels;
-        wheels.theta_l = 1/wheel_radius_*(twist.x - twist.omega*wheel_track_/2);
-        wheels.theta_r = 1/wheel_radius_*(twist.x + twist.omega*wheel_track_/2);
+        wheels.theta_l = 1.0/wheel_radius_*(twist.x - twist.omega*wheel_track_/2.0);
+        wheels.theta_r = 1.0/wheel_radius_*(twist.x + twist.omega*wheel_track_/2.0);
 
         return wheels;
     }
-
+    else
+    {
+        std::cout << "Invalid Twist, y comp. non-zero" << std::endl;
+    }
 }
