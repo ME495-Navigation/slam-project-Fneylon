@@ -107,7 +107,6 @@ public:
   }
 
 private:
-
     void initial_pose_callback(
       const std::shared_ptr<turtle_control::srv::InitialPose::Request> request,
       std::shared_ptr<turtle_control::srv::InitialPose::Response>)
@@ -197,9 +196,6 @@ private:
         
     }
 
-    
-    
-  
   // Initalize Publishers:
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub_;
 

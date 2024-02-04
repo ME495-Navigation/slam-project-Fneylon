@@ -87,7 +87,7 @@ public:
 
     // Define Publishers:
     wheel_cmd_pub_ = this->create_publisher<nuturtlebot_msgs::msg::WheelCommands>("~/wheel_cmd", 10);
-    joint_state_pub_ = this->create_publisher<sensor_msgs::msg::JointState>("~/joint_states", 10);
+    joint_state_pub_ = this->create_publisher<sensor_msgs::msg::JointState>("joint_states", 10);
 
     // Define Subscribers:
     cmd_vel_sub_ = this->create_subscription<geometry_msgs::msg::Twist>(

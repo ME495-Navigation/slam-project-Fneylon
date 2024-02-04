@@ -21,10 +21,13 @@
 
 // using namespace turtle_control::TurtleControl;
 nuturtlebot_msgs::msg::WheelCommands wheel_commands;
+sensor_msgs::msg::JointState js_msg;
+
 TEST_CASE("TurtleControl", "[turtle_control]")
 {
   // This starts the node for the tests
   auto node = rclcpp::Node::make_shared("turtle_control");
+  double encorder_ticks_per_rad = 651.898646904;
   // node->declare_parameter("motor_cmd_per_rad_sec");
   // node->get_parameter("motor_cmd_per_rad_sec").get_parameter_value().get<double>();
   
@@ -36,10 +39,10 @@ TEST_CASE("TurtleControl", "[turtle_control]")
     10
   );
 
-  // auto sensor_test_pub = node->create_publisher<nuturtlebot_msgs::msg::SensorData>(
-  //   "~/sensor",
-  //   10
-  // );
+  auto sensor_test_pub = node->create_publisher<nuturtlebot_msgs::msg::SensorData>(
+    "~/sensor",
+    10
+  );
 
   // // Create Subscribers for the Publishers
   auto wheel_cmd_test_pub = node->create_subscription<nuturtlebot_msgs::msg::WheelCommands>(
@@ -50,10 +53,12 @@ TEST_CASE("TurtleControl", "[turtle_control]")
       wheel_commands = *msg;
     });
 
-  // auto joint_state_test_pub = node->create_publisher<sensor_msgs::msg::JointState>(
-  //   "~/joint_states",
-  //   10
-  // );
+  auto joint_state_test_pub = node->create_subscription<sensor_msgs::msg::JointState>(
+    "joint_states",
+    10, [](const sensor_msgs::msg::JointState::SharedPtr msg) 
+    {
+      js_msg = *msg;
+    });
 
   rclcpp::Time start_time = rclcpp::Clock().now();
 
@@ -95,14 +100,18 @@ TEST_CASE("TurtleControl", "[turtle_control]")
     rot_twist.linear.x = 0.0;
     rot_twist.linear.y = 0.0;
     rot_twist.angular.z = 1.0;
+
+    nuturtlebot_msgs::msg::SensorData sensor_data;
+    sensor_data.left_encoder = 100;
+    sensor_data.right_encoder = 100;
     
   while (
     rclcpp::ok() &&
     ((rclcpp::Clock().now() - start_time2) < rclcpp::Duration::from_seconds(2))
   )
   {
-    // cmd_vel_test_pub->publish(trans_twist);
     cmd_vel_test_pub->publish(rot_twist);
+    sensor_test_pub->publish(sensor_data);
     rclcpp::spin_some(node);
     
   }
@@ -117,6 +126,26 @@ TEST_CASE("TurtleControl", "[turtle_control]")
   REQUIRE_THAT(wheel_commands.left_velocity, Catch::Matchers::WithinAbs(int(wheel_vel2.theta_l), 1.0e-12));
   REQUIRE_THAT(wheel_commands.right_velocity, Catch::Matchers::WithinAbs(int(wheel_vel2.theta_r), 1.0e-12));
 
+  // Test Case for verifying the encorder data on sensors is converted to joint states properly
+  // Get the joint states and convert that to the sensor data.
+  // nuturtlebot_msgs::msg::SensorData sensor_data2;
+  // sensor_data2.left_encoder = 10; //int(joint_states.position[0] * encorder_ticks_per_rad);
+  // sensor_data2.right_encoder = int(joint_states.position[1] * encorder_ticks_per_rad);
+  // REQUIRE_THAT(sensor_data2.left_encoder, Catch::Matchers::WithinAbs(sensor_data.left_encoder, 1.0e-12));
+  // REQUIRE_THAT(sensor_data2.right_encoder, Catch::Matchers::WithinAbs(sensor_data.right_encoder, 1.0e-12));
+
+  // REQUIRE_THAT(js_msg.position[0], Catch::Matchers::WithinAbs(int(sensor_data.left_encoder/encorder_ticks_per_rad), 1.0e-12));
+  // REQUIRE_THAT(js_msg.position[1], Catch::Matchers::WithinAbs(int(sensor_data.right_encoder/encorder_ticks_per_rad), 1.0e-12));
+
+  // REQUIRE(joint_states.position[0] == 0);
+
+  // RCLCPP_INFO(node->get_logger(), "joint_states: %f, %f", js_msg.position[0], js_msg.position[1]);
+
+
+
+
 
   // REQUIRE(0 == 1);
 }
+
+
