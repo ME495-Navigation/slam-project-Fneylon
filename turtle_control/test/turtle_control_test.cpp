@@ -44,7 +44,7 @@ TEST_CASE("TurtleControl", "[turtle_control]")
     10
   );
 
-  // // Create Subscribers for the Publishers
+  // Create Subscribers for the Publishers
   auto wheel_cmd_test_pub = node->create_subscription<nuturtlebot_msgs::msg::WheelCommands>(
     "~/wheel_cmd",
     10, [](const nuturtlebot_msgs::msg::WheelCommands::SharedPtr msg) 

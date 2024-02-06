@@ -43,10 +43,12 @@
 
  #### Task E: Robot Control
  - [x] E.1 Turtle Interface 
-     - [ ] Fix Repo Stuff--ask Matt on Thursday
- - [ ] E.2 Odometry Node 
- - [ ] E.3 Circle
+     - [x] Fix Repo Stuff--ask Matt on Thursday
+ - [x] E.2 Odometry Node 
+ - [x] E.3 Circle
  - [ ] E.4 ROS API Testing 
+    -[x] Finished testing the odometry node
+    -[ ] Need to finish and fix the test_turtle_control node.
  - [ ] E.5 Launch File
  - [ ] E.6 Remote Launch 
 

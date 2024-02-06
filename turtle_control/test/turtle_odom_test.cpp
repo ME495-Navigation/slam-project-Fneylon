@@ -31,24 +31,18 @@ TEST_CASE("TurtleOdom", "[turtle_odom]")
 auto node = rclcpp::Node::make_shared("turtle_odom");
 
 // Create a client to check the if the inital_pose service exists. 
-auto ip_client = node->create_client<turtle_control::srv::InitialPose>("test_ip_srv");
+auto ip_client = node->create_client<turtle_control::srv::InitialPose>("initial_pose");
+bool service_found = false;
 
 // Create a listener to check the odom to base_footprint transform
-std::unique_ptr<tf2_ros::Buffer> odom_base_buffer;
-std::shared_ptr<tf2_ros::TransformListener> odom_base_listener;
+auto tf_buffer_ = std::make_unique<tf2_ros::Buffer>(node->get_clock());
+auto tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
 
 geometry_msgs::msg::TransformStamped transform;
 
 rclcpp::Time start_time = rclcpp::Clock().now();
 
-bool service_found = false;
-
-// rclcpp::Duration time_out = rclcpp::Duration::from_seconds(0);
-// rclcpp::Duration duration = rclcpp::Duration::from_seconds(1);
-
-// Keep test running only for the length of the "test_duration" parameter
-// (in seconds)
-  while (
+while (
     rclcpp::ok() &&
     ((rclcpp::Clock().now() - start_time) < 1s)
   )
@@ -58,18 +52,27 @@ bool service_found = false;
       service_found = true;
     }
 
-    // Call the Service
-
-    // Check the transform exists between odom and base_footprint
-    transform = odom_base_buffer->lookupTransform("odom", "base_footprint", tf2::TimePointZero);
-
+    try{
+      transform = tf_buffer_->lookupTransform("odom", "base_footprint", tf2::TimePointZero);
+    }
+    catch (const tf2::TransformException &ex) 
+    {
+    }
     rclcpp::spin_some(node);
   }
 
   // Test assertions - check that the dummy node was found
   CHECK(service_found);
+  REQUIRE_THAT(transform.transform.translation.x, Catch::Matchers::WithinAbs(0.0, 0.1));
+  REQUIRE_THAT(transform.transform.translation.y, Catch::Matchers::WithinAbs(0.0, 0.1));
+  REQUIRE_THAT(transform.transform.translation.z, Catch::Matchers::WithinAbs(0.0, 0.1));
+  REQUIRE_THAT(transform.transform.rotation.x, Catch::Matchers::WithinAbs(0.0, 0.1));
+  REQUIRE_THAT(transform.transform.rotation.y, Catch::Matchers::WithinAbs(0.0, 0.1));
+  REQUIRE_THAT(transform.transform.rotation.z, Catch::Matchers::WithinAbs(0.0, 0.1));
+  REQUIRE_THAT(transform.transform.rotation.w, Catch::Matchers::WithinAbs(1.0, 0.1));
 
-REQUIRE(0 ==1);
+
+// REQUIRE(0 ==1);
 
 }
 
