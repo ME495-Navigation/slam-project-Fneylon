@@ -217,15 +217,6 @@ private:
     theta0_ = request->theta;
   }
 
-
-  // void red_wheel_cmd_callback(const nuturtlebot_msgs::msg::WheelCommands::SharedPtr msg)
-  // {
-  //   // TODO: Each received wheel_cmd command sets the wheel velocities of the robot until the next wheel_cmd is revceived. 
-
-
-  //   // RCLCPP_INFO(this->get_logger(), "Red Wheel Commands: %d, %d", msg->left_velocity, msg->right_velocity);
-
-  // }
   // Initalize Publishers:
   rclcpp::Publisher<std_msgs::msg::UInt64>::SharedPtr publisher_;
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr marker_pub_;
@@ -239,6 +230,7 @@ private:
   std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
 
   // Initialize Subscribers:
+  
   // rclcpp::Subscription<nuturtlebot_msgs::msg::WheelCommands>::SharedPtr red_wheel_cmd_sub_;
 
   // Initialize Timers:

@@ -53,8 +53,8 @@ public:
     stop_srv_ = this->create_service<std_srvs::srv::Empty>(
       "~/stop",
       std::bind(
-      &Circle::stop_callback, this, std::placeholders::_1,
-      std::placeholders::_2));
+        &Circle::stop_callback, this, std::placeholders::_1,
+        std::placeholders::_2));
     
     // Define the timer:
     timer_ = this->create_wall_timer(
@@ -68,6 +68,7 @@ private:
       const std::shared_ptr<std_srvs::srv::Empty::Response>)
     {
       velocity_ = 0.0;
+      
       geometry_msgs::msg::Twist msg;
       msg.linear.x = velocity_;
       msg.angular.z = velocity_ / radius_;

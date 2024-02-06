@@ -99,8 +99,8 @@ TEST_CASE("Testing turtle_control", "[turtle_control]")
   REQUIRE_THAT(wheel_commands.left_velocity, Catch::Matchers::WithinAbs(int(wheel_vel.theta_l), 1.0e-12));
   REQUIRE_THAT(wheel_commands.right_velocity, Catch::Matchers::WithinAbs(int(wheel_vel.theta_r), 1.0e-12));
 
-  REQUIRE_THAT(js_msg.position[0], Catch::Matchers::WithinAbs(sensor_data.left_encoder/encorder_ticks_per_rad, 1.0e-12));
-  REQUIRE_THAT(js_msg.position[1], Catch::Matchers::WithinAbs(sensor_data.right_encoder/encorder_ticks_per_rad, 1.0e-12));
+  REQUIRE_THAT(js_msg.position.at(0), Catch::Matchers::WithinAbs(sensor_data.left_encoder/encorder_ticks_per_rad, 1.0e-12));
+  REQUIRE_THAT(js_msg.position.at(1), Catch::Matchers::WithinAbs(sensor_data.right_encoder/encorder_ticks_per_rad, 1.0e-12));
 
 
   rclcpp::Time start_time2 = rclcpp::Clock().now();
