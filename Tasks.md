@@ -37,8 +37,8 @@
 
  #### Task D: Kinematics
  - [x] D.1 DiffDrive Class 
- - [ ] D.2 DiffDrive Test
-     - [ ] Need to add the final test for invalid Twist case
+ - [x] D.2 DiffDrive Test
+     - [x] Need to add the final test for invalid Twist case
  - [ ] D.3 Documentation
 
  #### Task E: Robot Control
@@ -46,9 +46,9 @@
      - [x] Fix Repo Stuff--ask Matt on Thursday
  - [x] E.2 Odometry Node 
  - [x] E.3 Circle
- - [ ] E.4 ROS API Testing 
+ - [x] E.4 ROS API Testing 
     -[x] Finished testing the odometry node
-    -[ ] Need to finish and fix the test_turtle_control node.
+    -[x] Need to finish and fix the test_turtle_control node.
  - [ ] E.5 Launch File
  - [ ] E.6 Remote Launch 
 
