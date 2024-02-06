@@ -69,7 +69,7 @@ public:
       "~/obstacles",
       marker_qos);
 
-    // Define the Subscribers: 
+    // Define the Subscribers:
     // red_wheel_cmd_sub_= this->create_subscription<nuturtlebot_msgs::msg::WheelCommands>("red/wheel_cmd", 10, std::bind(&Nusim::red_wheel_cmd_callback, this, std::placeholders::_1));
 
     // Define Services:
@@ -230,8 +230,6 @@ private:
   std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
 
   // Initialize Subscribers:
-  
-  // rclcpp::Subscription<nuturtlebot_msgs::msg::WheelCommands>::SharedPtr red_wheel_cmd_sub_;
 
   // Initialize Timers:
   rclcpp::TimerBase::SharedPtr timer_;

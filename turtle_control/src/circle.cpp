@@ -23,7 +23,6 @@
 
 using namespace std::chrono_literals;
 
-
 class Circle : public rclcpp::Node
 {
 public:
@@ -55,55 +54,52 @@ public:
       std::bind(
         &Circle::stop_callback, this, std::placeholders::_1,
         std::placeholders::_2));
-    
+
     // Define the timer:
     timer_ = this->create_wall_timer(
       std::chrono::duration<double>(1.0 / frequency_), std::bind(&Circle::time_callback, this));
   }
 
 private:
+  void stop_callback(
+    const std::shared_ptr<std_srvs::srv::Empty::Request>,
+    const std::shared_ptr<std_srvs::srv::Empty::Response>)
+  {
+    velocity_ = 0.0;
 
-    void stop_callback(
-      const std::shared_ptr<std_srvs::srv::Empty::Request>,
-      const std::shared_ptr<std_srvs::srv::Empty::Response>)
-    {
-      velocity_ = 0.0;
-      
+    geometry_msgs::msg::Twist msg;
+    msg.linear.x = velocity_;
+    msg.angular.z = velocity_ / radius_;
+    cmd_vel_pub_->publish(msg);
+  }
+
+  void reverse_callback(
+    const std::shared_ptr<std_srvs::srv::Empty::Request>,
+    const std::shared_ptr<std_srvs::srv::Empty::Response>)
+  {
+    velocity_ = -velocity_;
+  }
+
+  void control_callback(
+    const std::shared_ptr<turtle_control::srv::Control::Request> request,
+    const std::shared_ptr<turtle_control::srv::Control::Response>)
+  {
+
+    velocity_ = request->velocity;
+    radius_ = request->radius;
+
+  }
+
+  void time_callback()
+  {
+    if (turtlelib::almost_equal(velocity_, 0.0)) {
+    } else {
       geometry_msgs::msg::Twist msg;
       msg.linear.x = velocity_;
       msg.angular.z = velocity_ / radius_;
       cmd_vel_pub_->publish(msg);
     }
-
-    void reverse_callback(const std::shared_ptr<std_srvs::srv::Empty::Request>,
-    const std::shared_ptr<std_srvs::srv::Empty::Response>)
-    {
-      velocity_ = -velocity_;
-    }
-
-    void control_callback(const std::shared_ptr<turtle_control::srv::Control::Request> request,
-    const std::shared_ptr<turtle_control::srv::Control::Response>)
-    {
-
-      velocity_ = request->velocity;
-      radius_ = request->radius;
-
-    }
-
-    void time_callback()
-    {
-      if (turtlelib::almost_equal(velocity_, 0.0))
-      {
-        ;
-      }
-      else{
-
-        geometry_msgs::msg::Twist msg;
-        msg.linear.x = velocity_;
-        msg.angular.z = velocity_ / radius_;
-        cmd_vel_pub_->publish(msg);
-      }
-    }
+  }
   // Initalize Publishers:
   rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_pub_;
 
@@ -111,10 +107,10 @@ private:
   rclcpp::Service<turtle_control::srv::Control>::SharedPtr control_srv_;
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr reverse_srv_;
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr stop_srv_;
-  
+
   // Initialize Timers:
   rclcpp::TimerBase::SharedPtr timer_;
-  
+
   // Initialize Variables:
   double frequency_ = 100.0;
   double velocity_;
