@@ -31,6 +31,10 @@ public:
   : Node("circle")
   {
 
+    // Declare parameters:
+    this->declare_parameter("frequency", 100.0);
+    frequency_ = this->get_parameter("frequency").as_double();
+
     // Define Publishers:
     cmd_vel_pub_ = this->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10);
 
@@ -54,7 +58,7 @@ public:
     
     // Define the timer:
     timer_ = this->create_wall_timer(
-      std::chrono::duration<double>(1.0 / rate_), std::bind(&Circle::time_callback, this));
+      std::chrono::duration<double>(1.0 / frequency_), std::bind(&Circle::time_callback, this));
   }
 
 private:
@@ -111,7 +115,7 @@ private:
   rclcpp::TimerBase::SharedPtr timer_;
   
   // Initialize Variables:
-  double rate_ = 100.0;
+  double frequency_ = 100.0;
   double velocity_;
   double radius_;
 

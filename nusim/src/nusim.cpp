@@ -69,6 +69,9 @@ public:
       "~/obstacles",
       marker_qos);
 
+    // Define the Subscribers: 
+    // red_wheel_cmd_sub_= this->create_subscription<nuturtlebot_msgs::msg::WheelCommands>("red/wheel_cmd", 10, std::bind(&Nusim::red_wheel_cmd_callback, this, std::placeholders::_1));
+
     // Define Services:
     reset_srv_ = this->create_service<std_srvs::srv::Empty>(
       "~/reset",
@@ -214,6 +217,15 @@ private:
     theta0_ = request->theta;
   }
 
+
+  // void red_wheel_cmd_callback(const nuturtlebot_msgs::msg::WheelCommands::SharedPtr msg)
+  // {
+  //   // TODO: Each received wheel_cmd command sets the wheel velocities of the robot until the next wheel_cmd is revceived. 
+
+
+  //   // RCLCPP_INFO(this->get_logger(), "Red Wheel Commands: %d, %d", msg->left_velocity, msg->right_velocity);
+
+  // }
   // Initalize Publishers:
   rclcpp::Publisher<std_msgs::msg::UInt64>::SharedPtr publisher_;
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr marker_pub_;
@@ -225,6 +237,9 @@ private:
 
   // Initalize Broadcasters:
   std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
+
+  // Initialize Subscribers:
+  // rclcpp::Subscription<nuturtlebot_msgs::msg::WheelCommands>::SharedPtr red_wheel_cmd_sub_;
 
   // Initialize Timers:
   rclcpp::TimerBase::SharedPtr timer_;
