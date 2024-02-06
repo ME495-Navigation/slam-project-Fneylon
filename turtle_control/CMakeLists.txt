@@ -128,6 +128,10 @@ if(BUILD_TESTING)
   add_executable(turtle_odom_test_node
   test/turtle_odom_test.cpp
 )
+
+add_executable(turtle_circle_test_node
+test/turtle_circle_test.cpp
+)
   # The link libraries call links this node with catch_ros2::catch_ros2_with_node_main
   # to get the default integration test node main function
   target_link_libraries(turtle_control_test_node
@@ -136,8 +140,21 @@ if(BUILD_TESTING)
   target_link_libraries(turtle_odom_test_node
   catch_ros2::catch_ros2_with_node_main
 )
+
+target_link_libraries(turtle_circle_test_node
+catch_ros2::catch_ros2_with_node_main
+)
+
+# rosidl_target_interfaces(turtle_odom_test_node ${PROJECT_NAME} "rosidl_typesupport_cpp")
+# target_link_libraries(turtle_odom_test_node "${cpp_typesupport_target}")
+
+rosidl_target_interfaces(turtle_circle_test_node ${PROJECT_NAME} "rosidl_typesupport_cpp")
+target_link_libraries(turtle_circle_test_node "${cpp_typesupport_target}")
+
   target_link_libraries(turtle_control_test_node turtlelib::turtlelib "${cpp_typesupport_target}")
   target_link_libraries(turtle_odom_test_node turtlelib::turtlelib "${cpp_typesupport_target}")
+  target_link_libraries(turtle_circle_test_node turtlelib::turtlelib "${cpp_typesupport_target}")
+
   
   ament_target_dependencies(turtle_control_test_node
     rclcpp
@@ -166,9 +183,24 @@ if(BUILD_TESTING)
   turtlelib
   nav_msgs
 )
+
+  ament_target_dependencies(turtle_circle_test_node
+  rclcpp
+  std_msgs
+  std_srvs
+  nuturtle_description
+  geometry_msgs
+  tf2
+  tf2_ros
+  visualization_msgs
+  nuturtlebot_msgs
+  turtlelib
+  nav_msgs
+  )
   install(TARGETS
     turtle_control_test_node
     turtle_odom_test_node
+    turtle_circle_test_node
     DESTINATION lib/${PROJECT_NAME}
   )
 
@@ -179,6 +211,7 @@ if(BUILD_TESTING)
   install(FILES
     test/turtle_control_test.launch.xml  # example in XML
     test/turtle_odom_test.launch.xml
+    test/turtle_circle_test.launch.xml
     DESTINATION share/${PROJECT_NAME}
   )
 
@@ -195,15 +228,11 @@ if(BUILD_TESTING)
   LAUNCH_FILE turtle_odom_test.launch.xml  # example in XML
 )
 
+  catch_ros2_add_integration_test(CircleTest_TestXML
+  LAUNCH_FILE turtle_circle_test.launch.xml  # example in XML
+  )
+
 endif()
-
-
-
-
-
-
-
-
 
 ament_export_dependencies(rosidl_default_runtime)
 

@@ -1,8 +1,58 @@
 <launch>
 
-<arg name="config_file" default="$(find-pkg-share nuturtle_description)/config/diff_params.yaml"/>
-<node pkg="turtle_control" exec="turtle_control_node" name="turtle_control" output="screen">
-    <param from="$(var config_file)"/>
+<!-- <arg name="config_file" default="$(find-pkg-share nuturtle_description)/config/diff_params.yaml"/> -->
+<!-- Can be defaulted circle, teleop, or none -->
+<arg name="cmd_src" default="circle"/> 
+<arg name="robot" default="nusim"/>
+<arg name="use_rviz" default="true"/>
+
+
+<!-- If the cmd_src is set to a circle -->
+<node pkg="turtle_control" exec="turtle_circle_node" if="$(eval '\'$(var cmd_src)\' == \'circle\'')">
+    <param name="frequency" value="100.0"/>
 </node>
 
+<!-- If the cmd_src is set to teleop -->
+<node pkg="turtlebot3_teleop" exec="teleop_twist_keyboard" if="$(eval '\'$(var cmd_src)\' == \'teleop\'')">
+</node>
+
+<!-- argument robot can be used to run nusim, odometry, and the turtle_control node. -->
+<node pkg="turtle_control" exec="turtle_control_node" name="turtle_control_node" if="$(eval '\'$(var robot)\' == \'nusim\'')">
+    <param from="$(find-pkg-share nuturtle_description)/config/diff_params.yaml"/>
+</node>
+
+<node pkg="turtle_control" exec="turtle_odometry_node" name="turtle_odometry_node" if="$(eval '\'$(var robot)\' == \'nusim\'')">
+    <param name="body_id" value="blue/base_footprint"/>
+    <param name="odom_id" value="odom"/>
+    <param name="wheel_left" value="wheel_left"/>
+    <param name="wheel_right" value="wheel_right"/>
+    <param from="$(find-pkg-share nuturtle_description)/config/diff_params.yaml"/>
+    <!-- <param name="wheel_radius" value="0.033"/>
+    <param name="track_width" value="0.16"/> -->
+</node>
+
+<include file="$(find-pkg-share nusim)/launch/nusim.launch.xml" if="$(eval '\'$(var robot)\' == \'nusim\'')">
+    <!-- <arg name="config_file" default="$(find-pkg-share nusim)/config/basic_world.yaml"/> -->
+</include>
+
+<!-- If rviz == true then launch rviz -->
+<node pkg="rviz2" exec="rviz2" name="rviz2" args="-d $(find-pkg-share nusim)/config/nusim.rviz -f nusim/world" if="$(eval '\'$(var use_rviz)\' == \'true\'')"/>
+
+<!-- Launch the transform between the odom and the blue/base_footprint -->
+<node pkg="tf2_ros" exec="static_transform_publisher" name="nusim_world_to_odom" args="--frame-id nusim/world --child-frame-id odom" if="$(eval '\'$(var robot)\' == \'nusim\'')" />
+
+<!-- Display the Red robot if robot == nusim -->
+<include file="$(find-pkg-share nuturtle_description)/launch/load_one.launch.py" if="$(eval '\'$(var robot)\' == \'nusim\'')">
+    <arg name="color" value="red"/>
+    <arg name="use_rviz" value="false"/>
+</include>
+
+
+<!-- Always launch the blue robot -->
+<include file="$(find-pkg-share nuturtle_description)/launch/load_one.launch.py">
+    <arg name="color" value="blue"/>
+    <arg name="use_rviz" value="false"/>
+
+</include>
 </launch>
+

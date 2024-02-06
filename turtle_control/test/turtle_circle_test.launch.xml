@@ -11,23 +11,13 @@
 
     <!-- Auxiliary nodes can be run like normal to test integration between nodes -->
     <!-- <arg name="config_file" default="$(find-pkg-share nuturtle_description)/config/diff_params.yaml"/> -->
-    <node pkg='turtle_control' exec='turtle_odometry_node'> 
-        <param name="body_id" value="base_footprint"/>
-        <param name="odom_id" value="odom"/>   
-        <param name="wheel_left" value="wheel_left"/>
-        <param name="wheel_right" value="wheel_right"/>  
-        <param name="wheel_radius" value="0.033"/>
-        <param name="track_width" value="0.16"/>  
+    <node pkg='turtle_control' exec='turtle_circle_node'>
+        
     </node>
-
-    <node pkg='joint_state_publisher' exec='joint_state_publisher'>
-        <param name="use_gui" value="false"/>
-    </node>
-
 
     <catch2_integration_test_node
         pkg='turtle_control'
-        exec='turtle_odom_test_node'
+        exec='turtle_circle_test_node'
     >
         <!-- <param name='test_duration' value='$(var test_duration)'/> -->
     </catch2_integration_test_node>

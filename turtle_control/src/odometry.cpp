@@ -86,17 +86,17 @@ public:
     
 
     // Define Publishers:
-    odom_pub_ = this->create_publisher<nav_msgs::msg::Odometry>("~/odom", 10);
+    odom_pub_ = this->create_publisher<nav_msgs::msg::Odometry>("/odom", 10);
 
    
     // Define Subscribers:
     joint_state_sub_ = this->create_subscription<sensor_msgs::msg::JointState>(
-      "~/joint_states", 10, std::bind(&Odometry::joint_state_callback, this, std::placeholders::_1));
+      "/joint_states", 10, std::bind(&Odometry::joint_state_callback, this, std::placeholders::_1));
 
     
     // Define Services:
     initial_pose_srv_ = this->create_service<turtle_control::srv::InitialPose>(
-      "~/initial_pose", std::bind(&Odometry::initial_pose_callback, this, std::placeholders::_1, std::placeholders::_2));
+      "initial_pose", std::bind(&Odometry::initial_pose_callback, this, std::placeholders::_1, std::placeholders::_2));
     
 
     // Define Broadcasters:

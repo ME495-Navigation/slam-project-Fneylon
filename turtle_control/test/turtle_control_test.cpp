@@ -23,7 +23,7 @@
 nuturtlebot_msgs::msg::WheelCommands wheel_commands;
 sensor_msgs::msg::JointState js_msg;
 
-TEST_CASE("TurtleControl", "[turtle_control]")
+TEST_CASE("Testing turtle_control", "[turtle_control]")
 {
   // This starts the node for the tests
   auto node = rclcpp::Node::make_shared("turtle_control");
@@ -35,25 +35,25 @@ TEST_CASE("TurtleControl", "[turtle_control]")
 
   // Create Publishers for the Subscribers 
   auto cmd_vel_test_pub = node->create_publisher<geometry_msgs::msg::Twist>(
-    "~/cmd_vel",
+    "cmd_vel",
     10
   );
 
   auto sensor_test_pub = node->create_publisher<nuturtlebot_msgs::msg::SensorData>(
-    "~/sensor",
+    "sensor",
     10
   );
 
   // Create Subscribers for the Publishers
   auto wheel_cmd_test_pub = node->create_subscription<nuturtlebot_msgs::msg::WheelCommands>(
-    "~/wheel_cmd",
+    "wheel_cmd",
     10, [](const nuturtlebot_msgs::msg::WheelCommands::SharedPtr msg) 
     
     {
       wheel_commands = *msg;
     });
 
-  auto joint_state_test_pub = node->create_subscription<sensor_msgs::msg::JointState>(
+  auto joint_state_test_sub = node->create_subscription<sensor_msgs::msg::JointState>(
     "joint_states",
     10, [](const sensor_msgs::msg::JointState::SharedPtr msg) 
     {
@@ -136,6 +136,12 @@ TEST_CASE("TurtleControl", "[turtle_control]")
 
   // REQUIRE_THAT(js_msg.position[0], Catch::Matchers::WithinAbs(int(sensor_data.left_encoder/encorder_ticks_per_rad), 1.0e-12));
   // REQUIRE_THAT(js_msg.position[1], Catch::Matchers::WithinAbs(int(sensor_data.right_encoder/encorder_ticks_per_rad), 1.0e-12));
+  // RCLCPP_INFO_STREAM(node->get_logger(), "joint_states: "<<js_msg);
+  RCLCPP_INFO_STREAM(node->get_logger(), "joint_states: "<<js_msg.position[0]);
+  RCLCPP_INFO_STREAM(node->get_logger(), "joint_states: "<<js_msg.position[1]);
+
+  REQUIRE_THAT(js_msg.position.at(0), Catch::Matchers::WithinAbs(int(sensor_data.left_encoder/encorder_ticks_per_rad), 1.0e-12));
+  REQUIRE_THAT(js_msg.position.at(1), Catch::Matchers::WithinAbs(int(sensor_data.right_encoder/encorder_ticks_per_rad), 1.0e-12));
 
   // REQUIRE(joint_states.position[0] == 0);
 

@@ -86,15 +86,15 @@ public:
     
 
     // Define Publishers:
-    wheel_cmd_pub_ = this->create_publisher<nuturtlebot_msgs::msg::WheelCommands>("~/wheel_cmd", 10);
+    wheel_cmd_pub_ = this->create_publisher<nuturtlebot_msgs::msg::WheelCommands>("wheel_cmd", 10);
     joint_state_pub_ = this->create_publisher<sensor_msgs::msg::JointState>("joint_states", 10);
 
     // Define Subscribers:
     cmd_vel_sub_ = this->create_subscription<geometry_msgs::msg::Twist>(
-      "~/cmd_vel", 10, std::bind(&TurtleControl::cmd_vel_callback, this, std::placeholders::_1));
+      "cmd_vel", 10, std::bind(&TurtleControl::cmd_vel_callback, this, std::placeholders::_1));
 
     sensor_sub_ = this->create_subscription<nuturtlebot_msgs::msg::SensorData>(
-      "~/sensor_data", 10, std::bind(&TurtleControl::sensor_callback, this, std::placeholders::_1));
+      "sensor_data", 10, std::bind(&TurtleControl::sensor_callback, this, std::placeholders::_1));
     
   }
 
@@ -111,13 +111,17 @@ private:
         RCLCPP_INFO(this->get_logger(), "sensor_callback!");
 
         turtlelib::WheelConfiguration wc;
-        wc.theta_l = msg->left_encoder / encorder_ticks_per_rad_;
-        wc.theta_r = msg->right_encoder / encorder_ticks_per_rad_;
+        wc.theta_l = double(msg->left_encoder / encorder_ticks_per_rad_);
+        wc.theta_r = double(msg->right_encoder / encorder_ticks_per_rad_);
 
         sensor_msgs::msg::JointState joint_state_msg;
         joint_state_msg.header.stamp = this->now();
+        // joint_state_msg.name.re
         joint_state_msg.name = {"left_wheel_joint", "right_wheel_joint"};
-        joint_state_msg.position = {wc.theta_l, wc.theta_r};
+        joint_state_msg.position.resize(2);
+        // joint_state_msg.position = {wc.theta_l, wc.theta_r};
+        joint_state_msg.position[0] = wc.theta_l;
+        joint_state_msg.position[1] = wc.theta_r;
 
         joint_state_pub_->publish(joint_state_msg);
 

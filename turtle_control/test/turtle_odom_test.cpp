@@ -26,7 +26,7 @@
 
 using namespace std::chrono_literals;
 
-TEST_CASE("TurtleOdom", "[turtle_odom]")
+TEST_CASE("Test turtle_odom", "[turtle_odom]")
 {
 auto node = rclcpp::Node::make_shared("turtle_odom");
 
@@ -53,11 +53,14 @@ while (
     }
 
     try{
+
       transform = tf_buffer_->lookupTransform("odom", "base_footprint", tf2::TimePointZero);
     }
     catch (const tf2::TransformException &ex) 
     {
     }
+
+    // RCLCPP_INFO(node->get_logger(), "Bool Status %d", service_found);
     rclcpp::spin_some(node);
   }
 

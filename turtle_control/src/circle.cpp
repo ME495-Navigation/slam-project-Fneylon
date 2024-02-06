@@ -32,14 +32,14 @@ public:
   {
 
     // Define Publishers:
-    cmd_vel_pub_ = this->create_publisher<geometry_msgs::msg::Twist>("~/cmd_vel", 10);
+    cmd_vel_pub_ = this->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10);
 
 
     // Define Services:
     // initial_pose_srv_ = this->create_service<turtle_control::srv::InitialPose>(
     //   "~/initial_pose", std::bind(&Odometry::initial_pose_callback, this, std::placeholders::_1, std::placeholders::_2));
     control_srv_ = this->create_service<turtle_control::srv::Control>(
-      "~/control",
+      "control",
       std::bind(&Circle::control_callback, this, std::placeholders::_1, std::placeholders::_2));
 
     reverse_srv_ = this->create_service<std_srvs::srv::Empty>(
