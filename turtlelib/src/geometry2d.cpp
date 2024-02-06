@@ -3,15 +3,15 @@
  double turtlelib::normalize_angle(double rad)
     {
         // Find Number of Revolution Made by the Angle and the Remainder
-        double rev = std::fmod(rad, 2 * turtlelib::PI);
+        double rev = std::fmod(rad, 2 * turtlelib::PI); // const auto rev = ... 2.0 *
 
         if (rev > turtlelib::PI)
         {
-            rev -= 2 * turtlelib::PI;
+            rev -= 2 * turtlelib::PI; // 2.0
         }
         else if (rev < -turtlelib::PI)
         {
-            rev += 2 * turtlelib::PI;
+            rev += 2 * turtlelib::PI; //2.0
         }
         else if (rev == -turtlelib::PI)
         {
@@ -33,7 +33,7 @@
     std::istream & turtlelib::operator>>(std::istream & is, turtlelib::Point2D & p)
     {
         // Assign a character to IS in order to get user input for options about format
-        char c;
+        char c; // uninitiailzed
         is >> c;
 
         // If the character is not '['
@@ -57,7 +57,7 @@
         turtlelib::Vector2D v;
         v.x = head.x - tail.x;
         v.y = head.y - tail.y;
-        return v;
+        return v; // no need for v, can return {head.x -tail.x, head.y -tail.y}
 
     }
 
@@ -67,7 +67,7 @@
         turtlelib::Point2D p;
         p.x = tail.x + disp.x;
         p.y = tail.y + disp.y;
-        return p;
+        return p; // return {}
 
     }
 
@@ -82,7 +82,7 @@
     std::istream & turtlelib::operator>>(std::istream & is, turtlelib::Vector2D & v)
     {
         // Assign a character to IS in order to get user input for options about format
-        char c;
+        char c; // uninit
         is >> c;
 
         // If the character is not '['
@@ -110,15 +110,15 @@
         turtlelib::Vector2D v1;
         v1.x = v.x * mag;
         v1.y = v.y * mag;
-        return v1;
+        return v1; // return {v.x*mag, v.y*mag}
 
     }
 
     turtlelib::Vector2D turtlelib::normalize(const turtlelib::Vector2D & v)
     {
-        double mag = std::sqrt(v.x * v.x + v.y * v.y);
+        double mag = std::sqrt(v.x * v.x + v.y * v.y); // const auto &
         turtlelib::Vector2D v1;
-        v1.x = v.x * (1.0 / mag);
+        v1.x = v.x * (1.0 / mag); // do not do 1.0/mag, instead just / mag
         v1.y = v.y * (1.0 / mag);
         return v1;
 

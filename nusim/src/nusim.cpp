@@ -22,7 +22,7 @@ public:
   Nusim()
   : Node("nusim")
   {
-
+      // this-> is not needed anywhere it is used here
     RCLCPP_INFO(this->get_logger(), "Starting Nusim!");
 
     // Declare parameters
@@ -125,13 +125,13 @@ private:
       marker.color.b = 0;
       marker.color.a = 1.0;
 
-      if (i == 0 || i == 1) {
+      if (i == 0 || i == 1) { // why these if statements, you could just do each one separately
         marker.scale.x = dh_;
         marker.scale.y = arena_y_length_;
         marker.scale.z = 0.25;
         if (i == 0) {
           marker.pose.position.y = 0.0;
-          marker.pose.position.x = -arena_x_length_ / 2 - dh_ / 2;
+          marker.pose.position.x = -arena_x_length_ / 2 - dh_ / 2; // divide by 2.0 not 2
         } else {
           marker.pose.position.y = 0.0;
           marker.pose.position.x = arena_x_length_ / 2 + dh_ / 2;
@@ -157,12 +157,12 @@ private:
       marker_walls_array_.markers.push_back(marker);
     }
     marker_pub_->publish(marker_walls_array_);
-    int x_num_obstacles = int(x_obstacles_.size());
+    int x_num_obstacles = int(x_obstacles_.size()); // const auto. int is not hte correct type what if you have 2^34 obstacles!?
     int y_num_obstacles = int(y_obstacles_.size());
 
     if (x_num_obstacles == y_num_obstacles) {
       visualization_msgs::msg::MarkerArray marker_obstacles_array_;
-      for (int i = 0; i < int(x_obstacles_.size()); ++i) {
+      for (int i = 0; i < int(x_obstacles_.size()); ++i) { // size_t i
         visualization_msgs::msg::Marker marker;
         marker.header.frame_id = "nusim/world";
         marker.ns = "obstacle" + std::to_string(i);
@@ -180,8 +180,8 @@ private:
         marker.scale.x = radius_;
         marker.scale.y = radius_;
         marker.scale.z = 0.25;
-        marker.pose.position.x = x_obstacles_[i];
-        marker.pose.position.y = y_obstacles_[i];
+        marker.pose.position.x = x_obstacles_[i]; // .at()
+        marker.pose.position.y = y_obstacles_[i]; // .at()
         marker.pose.position.z = 0.0;
         marker_obstacles_array_.markers.push_back(marker);
       }
@@ -189,7 +189,7 @@ private:
 
     } else {
       RCLCPP_INFO(this->get_logger(), "Obstacle x and y vectors are not the same size!");
-      rclcpp::shutdown();
+      rclcpp::shutdown(); // throw an exception
     }
   }
 

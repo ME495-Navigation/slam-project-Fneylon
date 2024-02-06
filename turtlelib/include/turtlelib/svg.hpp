@@ -28,7 +28,7 @@ namespace turtlelib
 
         /// \brief print the svg string
         /// \returns the svg string
-        std::string ExportSVG();
+        std::string ExportSVG(); // does this function leave the object in a valid state
 
         /// \brief print the svg string to a file
         /// \param filename - the name of the file to write to
@@ -37,7 +37,7 @@ namespace turtlelib
         /// \brief draw a point
         /// \param point - the point to draw
         /// \param color - the color of the point
-        void Draw(turtlelib::Point2D point, std::string color);
+        void Draw(turtlelib::Point2D point, std::string color); // const std::string & color
 
         /// \brief draw an arrow
         /// \param head - the head of the arrow

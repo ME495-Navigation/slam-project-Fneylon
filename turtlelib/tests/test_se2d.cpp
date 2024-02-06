@@ -4,14 +4,13 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <sstream>
 #include <vector>
-
 // using namepace turtlelib;
 // using namespace Transfrom2D;
 
 
 TEST_CASE("Testing operator<<", "[operator_se2<<]")
 {
-    turtlelib::Twist2D tw;
+    turtlelib::Twist2D tw; // constructor
     tw.omega = 5.0;
     tw.x = 6.0;
     tw.y = 7.0;
@@ -19,10 +18,10 @@ TEST_CASE("Testing operator<<", "[operator_se2<<]")
     ss1 << tw;
     REQUIRE(ss1.str() == "[5 6 7]");
 
-    turtlelib::Vector2D v;
+    turtlelib::Vector2D v; // constructor
     v.x = 3.0;
     v.y = 4.0;
-    double theta = turtlelib::deg2rad(90.0);
+    double theta = turtlelib::deg2rad(90.0); // const auto
     turtlelib::Transform2D T = turtlelib::Transform2D(v, theta);
     std::stringstream ss2;
     ss2 << T;
@@ -121,7 +120,7 @@ TEST_CASE("Testing inv", "[inv]"){
 
 TEST_CASE("Testing translation", "[translation]")
 {
-    turtlelib::Vector2D v;
+    turtlelib::Vector2D v; // constructor
     v.x = 1.0;
     v.y = 2.0;
 
@@ -137,7 +136,7 @@ TEST_CASE("Testing translation", "[translation]")
 
 TEST_CASE("Testing rotation","[rotation]")
 {
-    turtlelib::Vector2D v;
+    turtlelib::Vector2D v; // constructor
     v.x = 1.0;
     v.y = 2.0;
 
@@ -153,14 +152,14 @@ TEST_CASE("Testing rotation","[rotation]")
 
 TEST_CASE("Testing operator*=", "[operator*=]")
 {
-    turtlelib::Vector2D v;
+    turtlelib::Vector2D v; // constructor
     v.x = 1.0;
     v.y = 2.0;
     double theta = turtlelib::deg2rad(90.0);
 
     turtlelib::Transform2D T = turtlelib::Transform2D(v, theta);
 
-    turtlelib::Vector2D v2;
+    turtlelib::Vector2D v2; // constructor
     v2.x = 3.0;
     v2.y = 4.0;
     double theta2 = turtlelib::deg2rad(180.0);
@@ -178,7 +177,7 @@ TEST_CASE("Testing operator*=", "[operator*=]")
 
 TEST_CASE("Testing operator*", "[operator*]")
 {
-    turtlelib::Vector2D v;
+    turtlelib::Vector2D v; // use the constructor
     v.x = 1.0;
     v.y = 2.0;
     double theta = turtlelib::deg2rad(90.0);

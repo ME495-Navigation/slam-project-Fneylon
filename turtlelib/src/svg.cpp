@@ -44,9 +44,9 @@ void turtlelib::BuildSVG::ExportSVG(std::string filename)
 
 void turtlelib::BuildSVG::Draw(turtlelib::Point2D point, std::string color)
 {
-    double cx;
+    double cx; // unitialized variables
     double cy;
-    cx = 96.0*point.x + 0.5*8.5*96.0;
+    cx = 96.0*point.x + 0.5*8.5*96.0; // magic numbers should be constexpr somewhere
     cy = -96.0*point.y + 0.5*11.0*96.0;
     svg_file += "\n<circle ";
     svg_file += "cx=\"" + std::to_string(cx) + "\"";
@@ -59,7 +59,7 @@ void turtlelib::BuildSVG::Draw(turtlelib::Point2D point, std::string color)
 void turtlelib::BuildSVG::Draw(turtlelib::Point2D head, turtlelib::Point2D tail, std::string color)
 {
 
-    double x1;
+    double x1;// unitialized varaibles
     double y1;
     double x2;
     double y2;
@@ -80,7 +80,7 @@ void turtlelib::BuildSVG::Draw(turtlelib::Point2D head, turtlelib::Point2D tail,
 
 void turtlelib::BuildSVG::Draw(turtlelib::Transform2D T, std::string label)
 {
-    double theta = T.rotation();
+    double theta = T.rotation(); // const auto
     double x0 = T.translation().x;
     double y0 = T.translation().y;
     double x1 = x0 + cos(theta);

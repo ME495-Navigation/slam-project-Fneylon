@@ -21,7 +21,7 @@ Conceptual questions are answered using external sources cited in the citation.t
          3. **Pro:** F.3: Keep functions short and simple, this function is basic and no more than a few lines. **Con:** this overwrite the pervious vector, which may be unfavorable in some cases.
 
    - Which of the methods would you implement and why?
-         - I would pick the second method of overloading an opperator because it functionally takes up less space than creating a new function. Additionally, it makes me looker smarter and I like overloading operators.
+         - I would pick the second method of overloading an opperator because it functionally takes up less space than creating a new function. Additionally, it makes me looker smarter and I like overloading operators. this would require the user to explicitly divide by the magnitude each time though, instead of just providing them a normalize vector. Hence your user needs to be smarter to (not only knowing what normalizing a vector means, but also what hte formula is)
 
 2. What is the difference between a class and a struct in C++?:   <!-- Begin Citation [3] -->  
     - The main difference between a class and a struct in C++ is that a class defaults to private while a struct defaults to public.
