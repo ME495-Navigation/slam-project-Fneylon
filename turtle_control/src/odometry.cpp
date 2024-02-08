@@ -121,8 +121,8 @@ private:
     // transformStamped_.transform.rotation.w = q.w();
     // odom_broadcaster_->sendTransform(transformStamped_);
 
-    set_odom_msg(config_.x, config_.y, config_.theta);
-    odom_pub_->publish(odom_msg_);
+    set_transform(config_.x, config_.y, config_.theta);
+    odom_broadcaster_->sendTransform(transformStamped_);
 
   }
     void initial_pose_callback(
@@ -156,9 +156,8 @@ private:
       // // Publish the Odometry Message:
       // odom_pub_->publish(odom_msg);
 
-set_odom_msg(config_.x, config_.y, config_.theta);
-      odom_pub_->publish(odom_msg_);
-
+    set_transform(config_.x, config_.y, config_.theta);
+    odom_broadcaster_->sendTransform(transformStamped_);
 
       // Send the Transform: 
       // transformStamped_.header.stamp = this->get_clock()->now();
