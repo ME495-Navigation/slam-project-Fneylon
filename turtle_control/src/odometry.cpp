@@ -254,8 +254,6 @@ private:
     odom_msg_.pose.pose.orientation.y = q.y();
     odom_msg_.pose.pose.orientation.z = q.z();
     odom_msg_.pose.pose.orientation.w = q.w();
-
-    // return odom_msg;
   }
 
   // Initalize Publishers:
@@ -294,10 +292,6 @@ private:
 
   double track_width_;
   double wheel_radius_;
-
-
-
-
 };
 
 

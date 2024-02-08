@@ -98,7 +98,7 @@ private:
 
     void sensor_callback(const nuturtlebot_msgs::msg::SensorData::SharedPtr msg)
     {
-        RCLCPP_INFO(this->get_logger(), "sensor_callback!");
+        // RCLCPP_INFO(this->get_logger(), "sensor_callback!");
 
         turtlelib::WheelConfiguration wc;
         wc.theta_l = double(msg->left_encoder / encorder_ticks_per_rad_);
@@ -106,7 +106,7 @@ private:
 
         sensor_msgs::msg::JointState joint_state_msg;
         joint_state_msg.header.stamp = this->now();
-        joint_state_msg.name = {"left_wheel_joint", "right_wheel_joint"};
+        joint_state_msg.name = {"wheel_left_joint", "wheel_right_joint"};
         joint_state_msg.position = {wc.theta_l, wc.theta_r};
         joint_state_pub_->publish(joint_state_msg);
 
@@ -125,44 +125,38 @@ private:
         // Compute the Wheel Commands from the Twist2D object
         turtlelib::WheelConfiguration wc = diff_drive_.inverse_kinematics(tw);
 
-        // double mcu_l = motor_cmd_per_rad_sec_ * wc.theta_l;
-        // double mcu_r = motor_cmd_per_rad_sec_ * wc.theta_r;
+        // Convert to match unit of time of publishing rate
+        // wc.theta_l = wc.theta_l * 1/rate_;
+        // wc.theta_r = wc.theta_r * 1/rate_;
 
-        // // Convert to match unit of time of publishing rate
-        // // wc.theta_l = wc.theta_l * 1/rate_;
-        // // wc.theta_r = wc.theta_r * 1/rate_;
+        double mcu_l = wc.theta_l/ motor_cmd_per_rad_sec_;
+        double mcu_r = wc.theta_r/ motor_cmd_per_rad_sec_;
 
-        // // Saturate Control Signal
-        // if (mcu_l > motor_cmd_max_)
-        // {
-        //     mcu_l = motor_cmd_max_;
-        // }
-        // else if (mcu_l < -motor_cmd_max_)
-        // {
-        //     mcu_l = -motor_cmd_max_;
-        // }
 
-        // if (mcu_r > motor_cmd_max_)
-        // {
-        //     mcu_r = motor_cmd_max_;
-        // }
-        // else if (mcu_r < -motor_cmd_max_)
-        // {
-        //     mcu_r = -motor_cmd_max_;
-        // }
+        // Saturate Control Signal
+        if (mcu_l > motor_cmd_max_)
+        {
+            mcu_l = motor_cmd_max_;
+        }
+        else if (mcu_l < -motor_cmd_max_)
+        {
+            mcu_l = -motor_cmd_max_;
+        }
 
+        if (mcu_r > motor_cmd_max_)
+        {
+            mcu_r = motor_cmd_max_;
+        }
+        else if (mcu_r < -motor_cmd_max_)
+        {
+            mcu_r = -motor_cmd_max_;
+        }
 
         // Publish the Wheel Commands
-        // nuturtlebot_msgs::msg::WheelCommands wc_msg;
-        // wc_msg.left_velocity = mcu_l / motor_cmd_per_rad_sec_;
-        // wc_msg.right_velocity = mcu_r / motor_cmd_per_rad_sec_;
-        // wheel_cmd_pub_->publish(wc_msg);
-
         nuturtlebot_msgs::msg::WheelCommands wc_msg;
-        wc_msg.left_velocity = wc.theta_l;
-        wc_msg.right_velocity = wc.theta_r;
+        wc_msg.left_velocity = mcu_l;
+        wc_msg.right_velocity = mcu_r;
         wheel_cmd_pub_->publish(wc_msg);
-
 
     }
   

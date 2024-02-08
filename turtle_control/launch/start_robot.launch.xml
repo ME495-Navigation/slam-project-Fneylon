@@ -15,6 +15,7 @@
     <arg name="config_file" default="$(find-pkg-share nusim)/config/basic_world.yaml"/>
     <node pkg="nusim" exec="nusim_node" name="nusim" output="screen">
         <param from="$(var config_file)"/>
+        <param from="$(find-pkg-share nuturtle_description)/config/diff_params.yaml"/>
         <remap from="wheel_cmd" to="red/wheel_cmd"/>
         <remap from="joint_states" to="red/joint_states"/>
     </node>
@@ -30,8 +31,8 @@
     <node pkg="turtle_control" exec="turtle_odometry_node" name="turtle_odometry_node">
         <param name="body_id" value="blue/base_footprint"/>
         <param name="odom_id" value="odom"/>
-        <param name="wheel_left" value="wheel_left"/>
-        <param name="wheel_right" value="wheel_right"/>
+        <param name="wheel_left" value="blue/wheel_left"/>
+        <param name="wheel_right" value="blue/wheel_right"/>
         <remap from="joint_states" to="blue/joint_states"/>
         <param from="$(find-pkg-share nuturtle_description)/config/diff_params.yaml"/>
     </node>
