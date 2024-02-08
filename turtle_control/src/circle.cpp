@@ -37,7 +37,6 @@ public:
     // Define Publishers:
     cmd_vel_pub_ = this->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10);
 
-
     // Define Services:
     // initial_pose_srv_ = this->create_service<turtle_control::srv::InitialPose>(
     //   "~/initial_pose", std::bind(&Odometry::initial_pose_callback, this, std::placeholders::_1, std::placeholders::_2));
@@ -46,11 +45,11 @@ public:
       std::bind(&Circle::control_callback, this, std::placeholders::_1, std::placeholders::_2));
 
     reverse_srv_ = this->create_service<std_srvs::srv::Empty>(
-      "~/reverse",
+      "reverse",
       std::bind(&Circle::reverse_callback, this, std::placeholders::_1, std::placeholders::_2));
 
     stop_srv_ = this->create_service<std_srvs::srv::Empty>(
-      "~/stop",
+      "stop",
       std::bind(
         &Circle::stop_callback, this, std::placeholders::_1,
         std::placeholders::_2));
@@ -92,7 +91,7 @@ private:
 
   void time_callback()
   {
-    if (turtlelib::almost_equal(velocity_, 0.0)) {
+    if (turtlelib::almost_equal(velocity_, 0.0, 1e-12)) {
     } else {
       geometry_msgs::msg::Twist msg;
       msg.linear.x = velocity_;

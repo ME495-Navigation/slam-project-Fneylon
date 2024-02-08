@@ -31,28 +31,28 @@ public:
   {
 
     // Declare parameters:
-    this->declare_parameter("body_id", " 1");
+    this->declare_parameter("body_id", " ");
     body_id_ = this->get_parameter("body_id").as_string();
     if (body_id_ == " ") {
       RCLCPP_ERROR(this->get_logger(), "body_id must be a string");
       rclcpp::shutdown();
     }
 
-    this->declare_parameter("odom_id", "2 ");
+    this->declare_parameter("odom_id", " ");
     odom_id_ = this->get_parameter("odom_id").as_string();
     if (odom_id_ == " ") {
       RCLCPP_ERROR(this->get_logger(), "odom_id must be a string");
       rclcpp::shutdown();
     }
 
-    this->declare_parameter("wheel_left", " 3");
+    this->declare_parameter("wheel_left", " ");
     wheel_left_ = this->get_parameter("wheel_left").as_string();
     if (wheel_left_ == " ") {
       RCLCPP_ERROR(this->get_logger(), "wheel_left must be a string");
       rclcpp::shutdown();
     }
 
-    this->declare_parameter("wheel_right", " 4");
+    this->declare_parameter("wheel_right", " ");
     wheel_right_ = this->get_parameter("wheel_right").as_string();
     if (wheel_right_ == " ") {
       RCLCPP_ERROR(this->get_logger(), "wheel_right must be a string");
@@ -74,10 +74,6 @@ public:
     }
     diff_drive_ = turtlelib::DiffDrive(wheel_radius_, track_width_);
 
-    // Define Timers:
-    // timer_ = this->create_wall_timer(
-    //   std::chrono::duration<double>(1.0 / rate_), std::bind(&Odometry::timer_callback, this));
-
 
     // Define Publishers:
     odom_pub_ = this->create_publisher<nav_msgs::msg::Odometry>("/odom", 10);
@@ -85,7 +81,7 @@ public:
 
     // Define Subscribers:
     joint_state_sub_ = this->create_subscription<sensor_msgs::msg::JointState>(
-      "/joint_states", 10, std::bind(&Odometry::joint_state_callback, this, std::placeholders::_1));
+      "joint_states", 10, std::bind(&Odometry::joint_state_callback, this, std::placeholders::_1));
 
 
     // Define Services:
@@ -97,9 +93,38 @@ public:
 
     // Define Broadcasters:
     odom_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
+
+    // Define the timer:
+    timer_ = this->create_wall_timer(
+      std::chrono::duration<double>(1.0 / 100.0), std::bind(&Odometry::time_callback, this));
   }
 
 private:
+
+  void time_callback()
+  {
+    config_ = diff_drive_.get_configuration();
+    set_odom_msg(config_.x, config_.y, config_.theta);
+    odom_pub_->publish(odom_msg_);
+    // Send the Transform: 
+    // tf2::Quaternion q;
+    // q.setRPY(0, 0, config.theta);
+    // transformStamped_.header.stamp = this->get_clock()->now();
+    // transformStamped_.header.frame_id = odom_id_;
+    // transformStamped_.child_frame_id = body_id_;
+    // transformStamped_.transform.translation.x = config.x;
+    // transformStamped_.transform.translation.y = config.y;
+    // transformStamped_.transform.translation.z = 0.0;
+    // transformStamped_.transform.rotation.x = q.x();
+    // transformStamped_.transform.rotation.y = q.y();
+    // transformStamped_.transform.rotation.z = q.z();
+    // transformStamped_.transform.rotation.w = q.w();
+    // odom_broadcaster_->sendTransform(transformStamped_);
+
+    set_odom_msg(config_.x, config_.y, config_.theta);
+    odom_pub_->publish(odom_msg_);
+
+  }
     void initial_pose_callback(
       const std::shared_ptr<turtle_control::srv::InitialPose::Request> request,
       std::shared_ptr<turtle_control::srv::InitialPose::Response>)
@@ -108,39 +133,45 @@ private:
       RCLCPP_INFO(this->get_logger(), "initial_pose_callback!");
       diff_drive_.set_configuration(request->x, request->y, request->theta);
 
-      turtlelib::Configuration2D config = diff_drive_.get_configuration();
+      config_ = diff_drive_.get_configuration();
 
-      nav_msgs::msg::Odometry odom_msg;
-      odom_msg.header.stamp = this->now();
-      odom_msg.header.frame_id = body_id_;
-      odom_msg.child_frame_id = odom_id_;
-      odom_msg.pose.pose.position.x = config.x;
-      odom_msg.pose.pose.position.y = config.y;
-      odom_msg.pose.pose.position.z = 0.0;
-      tf2::Quaternion q;
-      q.setRPY(0, 0, config.theta);
-      odom_msg.pose.pose.orientation.x = q.x();
-      odom_msg.pose.pose.orientation.y = q.y();
-      odom_msg.pose.pose.orientation.z = q.z();
-      odom_msg.pose.pose.orientation.w = q.w();
+      set_odom_msg(config_.x, config_.y, config_.theta);
+      odom_pub_->publish(odom_msg_);
+
+      // nav_msgs::msg::Odometry odom_msg;
+      // odom_msg.header.stamp = this->now();
+      // odom_msg.header.frame_id = odom_id_;
+      // odom_msg.child_frame_id = body_id_;
+      // odom_msg.pose.pose.position.x = config.x;
+      // odom_msg.pose.pose.position.y = config.y;
+      // odom_msg.pose.pose.position.z = 0.0;
+      // tf2::Quaternion q;
+      // q.setRPY(0, 0, config.theta);
+      // odom_msg.pose.pose.orientation.x = q.x();
+      // odom_msg.pose.pose.orientation.y = q.y();
+      // odom_msg.pose.pose.orientation.z = q.z();
+      // odom_msg.pose.pose.orientation.w = q.w();
 
 
-      // Publish the Odometry Message:
-      odom_pub_->publish(odom_msg);
+      // // Publish the Odometry Message:
+      // odom_pub_->publish(odom_msg);
+
+set_odom_msg(config_.x, config_.y, config_.theta);
+      odom_pub_->publish(odom_msg_);
 
 
       // Send the Transform: 
-      transformStamped_.header.stamp = this->get_clock()->now();
-      transformStamped_.header.frame_id = body_id_;
-      transformStamped_.child_frame_id = odom_id_;
-      transformStamped_.transform.translation.x = config.x;
-      transformStamped_.transform.translation.y = config.y;
-      transformStamped_.transform.translation.z = 0.0;
-      transformStamped_.transform.rotation.x = q.x();
-      transformStamped_.transform.rotation.y = q.y();
-      transformStamped_.transform.rotation.z = q.z();
-      transformStamped_.transform.rotation.w = q.w();
-      odom_broadcaster_->sendTransform(transformStamped_);
+      // transformStamped_.header.stamp = this->get_clock()->now();
+      // transformStamped_.header.frame_id = odom_id_;
+      // transformStamped_.child_frame_id = body_id_;
+      // transformStamped_.transform.translation.x = config.x;
+      // transformStamped_.transform.translation.y = config.y;
+      // transformStamped_.transform.translation.z = 0.0;
+      // transformStamped_.transform.rotation.x = q.x();
+      // transformStamped_.transform.rotation.y = q.y();
+      // transformStamped_.transform.rotation.z = q.z();
+      // transformStamped_.transform.rotation.w = q.w();
+      // odom_broadcaster_->sendTransform(transformStamped_);
   }
 
   void joint_state_callback(const sensor_msgs::msg::JointState::SharedPtr msg)
@@ -152,42 +183,81 @@ private:
       wheel_config.theta_r = msg->position[1];
       diff_drive_.forward_kinematics(wheel_config);
 
-      turtlelib::Configuration2D config = diff_drive_.get_configuration();
+      // turtlelib::Configuration2D config = diff_drive_.get_configuration();
+      config_ = diff_drive_.get_configuration();
 
-      nav_msgs::msg::Odometry odom_msg;
-      odom_msg.header.stamp = this->now();
-      odom_msg.header.frame_id = body_id_;
-      odom_msg.child_frame_id = odom_id_;
-      odom_msg.pose.pose.position.x = config.x;
-      odom_msg.pose.pose.position.y = config.y;
-      odom_msg.pose.pose.position.z = 0.0;
-      tf2::Quaternion q;
-      q.setRPY(0, 0, config.theta);
-      odom_msg.pose.pose.orientation.x = q.x();
-      odom_msg.pose.pose.orientation.y = q.y();
-      odom_msg.pose.pose.orientation.z = q.z();
-      odom_msg.pose.pose.orientation.w = q.w();
+      set_odom_msg(config_.x, config_.y, config_.theta);
+      odom_pub_->publish(odom_msg_);
+
+      // nav_msgs::msg::Odometry odom_msg_;
+      // odom_msg.header.stamp = this->now();
+      // odom_msg.pose.pose.position.x = config.x;
+      // odom_msg.pose.pose.position.y = config.y;
+      // odom_msg.pose.pose.position.z = 0.0;
+      // tf2::Quaternion q;
+      // q.setRPY(0, 0, config.theta);
+      // odom_msg.pose.pose.orientation.x = q.x();
+      // odom_msg.pose.pose.orientation.y = q.y();
+      // odom_msg.pose.pose.orientation.z = q.z();
+      // odom_msg.pose.pose.orientation.w = q.w();
 
 
       // Publish the Odometry Message:
-      odom_pub_->publish(odom_msg);
+      // odom_pub_->publish(odom_msg);
 
 
       // Send the Transform: 
-      transformStamped_.header.stamp = this->get_clock()->now();
-      transformStamped_.header.frame_id = body_id_;
-      transformStamped_.child_frame_id = odom_id_;
-      transformStamped_.transform.translation.x = config.x;
-      transformStamped_.transform.translation.y = config.y;
-      transformStamped_.transform.translation.z = 0.0;
-      transformStamped_.transform.rotation.x = q.x();
-      transformStamped_.transform.rotation.y = q.y();
-      transformStamped_.transform.rotation.z = q.z();
-      transformStamped_.transform.rotation.w = q.w();
+      set_transform(config_.x, config_.y, config_.theta);
       odom_broadcaster_->sendTransform(transformStamped_);
+      // transformStamped_.header.stamp = this->get_clock()->now();
+      // transformStamped_.header.frame_id = odom_id_;
+      // transformStamped_.child_frame_id = body_id_;
+      // transformStamped_.transform.translation.x = config.x;
+      // transformStamped_.transform.translation.y = config.y;
+      // transformStamped_.transform.translation.z = 0.0;
+      // transformStamped_.transform.rotation.x = q.x();
+      // transformStamped_.transform.rotation.y = q.y();
+      // transformStamped_.transform.rotation.z = q.z();
+      // transformStamped_.transform.rotation.w = q.w();
+      // odom_broadcaster_->sendTransform(transformStamped_);
 
-      
     }
+
+  void set_transform(double x, double y, double theta)
+  {
+    // geometry_msgs::msg::TransformStamped transformStamped;
+    transformStamped_.header.stamp = this->get_clock()->now();
+    transformStamped_.header.frame_id = odom_id_;
+    transformStamped_.child_frame_id = body_id_;
+    transformStamped_.transform.translation.x = x;
+    transformStamped_.transform.translation.y = y;
+    transformStamped_.transform.translation.z = 0.0;
+    tf2::Quaternion q;
+    q.setRPY(0, 0, theta);
+    transformStamped_.transform.rotation.x = q.x();
+    transformStamped_.transform.rotation.y = q.y();
+    transformStamped_.transform.rotation.z = q.z();
+    transformStamped_.transform.rotation.w = q.w();
+  }
+
+  void set_odom_msg(double x, double y, double theta)
+  {
+    // nav_msgs::msg::Odometry odom_msg;
+    odom_msg_.header.stamp = this->now();
+    odom_msg_.header.frame_id = odom_id_;
+    odom_msg_.child_frame_id = body_id_;
+    odom_msg_.pose.pose.position.x = x;
+    odom_msg_.pose.pose.position.y = y;
+    odom_msg_.pose.pose.position.z = 0.0;
+    tf2::Quaternion q;
+    q.setRPY(0, 0, theta);
+    odom_msg_.pose.pose.orientation.x = q.x();
+    odom_msg_.pose.pose.orientation.y = q.y();
+    odom_msg_.pose.pose.orientation.z = q.z();
+    odom_msg_.pose.pose.orientation.w = q.w();
+
+    // return odom_msg;
+  }
 
   // Initalize Publishers:
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub_;
@@ -206,27 +276,28 @@ private:
 
   // Initialize Timers:
   rclcpp::TimerBase::SharedPtr timer_;
-  
-
-
-  // Initlaize Messages:
-   nav_msgs::msg::Odometry odom_;
 
 
   // Initialize Variables:
-   double rate_ = 200.0;
+  double rate_ = 200.0;
   
 
-   turtlelib::DiffDrive diff_drive_;
-   geometry_msgs::msg::TransformStamped transformStamped_;
+  turtlelib::DiffDrive diff_drive_;
 
-   std::string body_id_;
-   std::string odom_id_;
-   std::string wheel_left_;
-   std::string wheel_right_;
+  geometry_msgs::msg::TransformStamped transformStamped_;
+  turtlelib::Configuration2D config_;
+  nav_msgs::msg::Odometry odom_msg_;
 
-   double track_width_;
-   double wheel_radius_;
+  std::string body_id_;
+  std::string odom_id_;
+  std::string wheel_left_;
+  std::string wheel_right_;
+
+  double track_width_;
+  double wheel_radius_;
+
+
+
 
 };
 

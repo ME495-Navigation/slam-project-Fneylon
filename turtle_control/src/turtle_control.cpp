@@ -80,11 +80,6 @@ public:
         rclcpp::shutdown();
     }
 
-    // Define Timers:
-    // timer_ = this->create_wall_timer(
-    //   std::chrono::duration<double>(1.0 / rate_), std::bind(&TurtleControl::timer_callback, this));
-    
-
     // Define Publishers:
     //  Need to send this a namespace?
     wheel_cmd_pub_ = this->create_publisher<nuturtlebot_msgs::msg::WheelCommands>("wheel_cmd", 10); 
@@ -100,12 +95,6 @@ public:
   }
 
 private:
-    // void timer_callback()
-    // {
-    //     // RCLCPP_INFO(this->get_logger(), "timer_callback!");
-    //     // RCLCPP_INFO(this->get_logger(), "turtle_control!");
-        
-    // }
 
     void sensor_callback(const nuturtlebot_msgs::msg::SensorData::SharedPtr msg)
     {
@@ -117,23 +106,9 @@ private:
 
         sensor_msgs::msg::JointState joint_state_msg;
         joint_state_msg.header.stamp = this->now();
-        // joint_state_msg.name.re
         joint_state_msg.name = {"left_wheel_joint", "right_wheel_joint"};
-        // joint_state_msg.position.resize(2);
         joint_state_msg.position = {wc.theta_l, wc.theta_r};
-        // joint_state_msg.position.at(0) = wc.theta_l;
-        // joint_state_msg.position.at(1) = wc.theta_r;
-
-        // RCLCPP_INFO(this->get_logger(), "IN SENSOR CALLBACK!");
-
-        // RCLCPP_INFO(this->get_logger(), "left_encoder: %f", wc.theta_l);
-        // RCLCPP_INFO(this->get_logger(), "right_encoder: %f", wc.theta_r);
-
-        // RCLCPP_INFO(this->get_logger(), "left_encoder: %f", joint_state_msg.position.at(0));
-        // RCLCPP_INFO(this->get_logger(), "right_encoder: %f", joint_state_msg.position.at(1));
-
         joint_state_pub_->publish(joint_state_msg);
-
 
     }
 
