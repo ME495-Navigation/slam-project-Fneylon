@@ -106,20 +106,6 @@ private:
     config_ = diff_drive_.get_configuration();
     set_odom_msg(config_.x, config_.y, config_.theta);
     odom_pub_->publish(odom_msg_);
-    // Send the Transform: 
-    // tf2::Quaternion q;
-    // q.setRPY(0, 0, config.theta);
-    // transformStamped_.header.stamp = this->get_clock()->now();
-    // transformStamped_.header.frame_id = odom_id_;
-    // transformStamped_.child_frame_id = body_id_;
-    // transformStamped_.transform.translation.x = config.x;
-    // transformStamped_.transform.translation.y = config.y;
-    // transformStamped_.transform.translation.z = 0.0;
-    // transformStamped_.transform.rotation.x = q.x();
-    // transformStamped_.transform.rotation.y = q.y();
-    // transformStamped_.transform.rotation.z = q.z();
-    // transformStamped_.transform.rotation.w = q.w();
-    // odom_broadcaster_->sendTransform(transformStamped_);
 
     set_transform(config_.x, config_.y, config_.theta);
     odom_broadcaster_->sendTransform(transformStamped_);
@@ -138,39 +124,8 @@ private:
       set_odom_msg(config_.x, config_.y, config_.theta);
       odom_pub_->publish(odom_msg_);
 
-      // nav_msgs::msg::Odometry odom_msg;
-      // odom_msg.header.stamp = this->now();
-      // odom_msg.header.frame_id = odom_id_;
-      // odom_msg.child_frame_id = body_id_;
-      // odom_msg.pose.pose.position.x = config.x;
-      // odom_msg.pose.pose.position.y = config.y;
-      // odom_msg.pose.pose.position.z = 0.0;
-      // tf2::Quaternion q;
-      // q.setRPY(0, 0, config.theta);
-      // odom_msg.pose.pose.orientation.x = q.x();
-      // odom_msg.pose.pose.orientation.y = q.y();
-      // odom_msg.pose.pose.orientation.z = q.z();
-      // odom_msg.pose.pose.orientation.w = q.w();
-
-
-      // // Publish the Odometry Message:
-      // odom_pub_->publish(odom_msg);
-
-    set_transform(config_.x, config_.y, config_.theta);
-    odom_broadcaster_->sendTransform(transformStamped_);
-
-      // Send the Transform: 
-      // transformStamped_.header.stamp = this->get_clock()->now();
-      // transformStamped_.header.frame_id = odom_id_;
-      // transformStamped_.child_frame_id = body_id_;
-      // transformStamped_.transform.translation.x = config.x;
-      // transformStamped_.transform.translation.y = config.y;
-      // transformStamped_.transform.translation.z = 0.0;
-      // transformStamped_.transform.rotation.x = q.x();
-      // transformStamped_.transform.rotation.y = q.y();
-      // transformStamped_.transform.rotation.z = q.z();
-      // transformStamped_.transform.rotation.w = q.w();
-      // odom_broadcaster_->sendTransform(transformStamped_);
+      set_transform(config_.x, config_.y, config_.theta);
+      odom_broadcaster_->sendTransform(transformStamped_);
   }
 
   void joint_state_callback(const sensor_msgs::msg::JointState::SharedPtr msg)
@@ -188,37 +143,9 @@ private:
       set_odom_msg(config_.x, config_.y, config_.theta);
       odom_pub_->publish(odom_msg_);
 
-      // nav_msgs::msg::Odometry odom_msg_;
-      // odom_msg.header.stamp = this->now();
-      // odom_msg.pose.pose.position.x = config.x;
-      // odom_msg.pose.pose.position.y = config.y;
-      // odom_msg.pose.pose.position.z = 0.0;
-      // tf2::Quaternion q;
-      // q.setRPY(0, 0, config.theta);
-      // odom_msg.pose.pose.orientation.x = q.x();
-      // odom_msg.pose.pose.orientation.y = q.y();
-      // odom_msg.pose.pose.orientation.z = q.z();
-      // odom_msg.pose.pose.orientation.w = q.w();
-
-
-      // Publish the Odometry Message:
-      // odom_pub_->publish(odom_msg);
-
-
       // Send the Transform: 
       set_transform(config_.x, config_.y, config_.theta);
       odom_broadcaster_->sendTransform(transformStamped_);
-      // transformStamped_.header.stamp = this->get_clock()->now();
-      // transformStamped_.header.frame_id = odom_id_;
-      // transformStamped_.child_frame_id = body_id_;
-      // transformStamped_.transform.translation.x = config.x;
-      // transformStamped_.transform.translation.y = config.y;
-      // transformStamped_.transform.translation.z = 0.0;
-      // transformStamped_.transform.rotation.x = q.x();
-      // transformStamped_.transform.rotation.y = q.y();
-      // transformStamped_.transform.rotation.z = q.z();
-      // transformStamped_.transform.rotation.w = q.w();
-      // odom_broadcaster_->sendTransform(transformStamped_);
 
     }
 

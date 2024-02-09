@@ -84,6 +84,8 @@ public:
     }
 
     diff_drive_ = turtlelib::DiffDrive(wheel_radius_, track_width_);
+    wheel_config_.theta_l = 0.0;
+    wheel_config_.theta_r = 0.0;
 
     rclcpp::QoS marker_qos(10);
     marker_qos.transient_local();
@@ -133,13 +135,13 @@ private:
     double right_wheel_vel = right_wheel_cmd * motor_cmd_per_rad_sec_/rate_;
     RCLCPP_INFO(this->get_logger(), "Left Wheel Velocity: %f Right Wheel Velocity: %f", left_wheel_vel, right_wheel_vel);
 
-    turtlelib::WheelConfiguration wheel_config;
-    wheel_config.theta_l = left_wheel_vel;
-    wheel_config.theta_r = right_wheel_vel;
+    // turtlelib::WheelConfiguration wheel_config;
+    wheel_config_.theta_l += left_wheel_vel;
+    wheel_config_.theta_r += right_wheel_vel;
     // RCLCPP_INFO(this->get_logger(), "Left Wheel Config: %f Right Wheel Config: %f", wheel_config.theta_l, wheel_config.theta_r);
 
     // We then convert these wheel velocities to update the pose of the robot 
-    diff_drive_.forward_kinematics(wheel_config);
+    diff_drive_.forward_kinematics(wheel_config_);
 
     // We then update the transform of the robot
     update_transform(diff_drive_.get_configuration().x, diff_drive_.get_configuration().y, diff_drive_.get_configuration().theta);
@@ -378,6 +380,8 @@ private:
   double encorder_ticks_per_rad_;
   double left_encoder_ = 0.0;
   double right_encoder_ = 0.0;
+
+  turtlelib::WheelConfiguration wheel_config_; // wheel positions that are used to update the pose of the robot
 
 
 };

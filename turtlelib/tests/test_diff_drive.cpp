@@ -6,6 +6,96 @@
 #include <sstream>
 #include <vector>
 
+TEST_CASE("Testing drive_forward", "[drive_forward]"){
+
+    turtlelib::DiffDrive diff_drive;
+    double wheel_radius = 0.5;
+    double wheel_track = 1.0;
+    diff_drive = turtlelib::DiffDrive(wheel_radius, wheel_track);
+
+    // We need the robot to move forward
+    turtlelib::WheelConfiguration w;
+    w.theta_l = turtlelib::PI/4.0;
+    w.theta_r = turtlelib::PI/4.0;
+
+    diff_drive.forward_kinematics(w);
+    turtlelib::Configuration2D c;
+    c = diff_drive.get_configuration(); // Pose x, y, theta
+
+    std::cout <<"X After first roll: "<< c.x << std::endl;
+    std::cout <<"Y After first roll: "<< c.y << std::endl;
+    std::cout <<"theta After first roll: "<< c.theta << std::endl;
+
+    REQUIRE_THAT(c.x, Catch::Matchers::WithinAbs(0.5 *turtlelib::PI/4, 1.0e-12));
+    REQUIRE_THAT(c.y, Catch::Matchers::WithinAbs(0.0, 1.0e-12));
+    REQUIRE_THAT(c.theta, Catch::Matchers::WithinAbs(0.0, 1.0e-12));
+
+    // Move the robot forward again
+    w.theta_l = turtlelib::PI/2.0;
+    w.theta_r = turtlelib::PI/2.0;
+
+    diff_drive.forward_kinematics(w);
+    c = diff_drive.get_configuration(); // Pose x, y, theta
+
+    std::cout <<"X After second roll: "<< c.x << std::endl;
+    std::cout <<"Y After second roll: "<< c.y << std::endl;
+    std::cout <<"theta After second roll: "<< c.theta << std::endl;
+
+    REQUIRE_THAT(c.x, Catch::Matchers::WithinAbs(turtlelib::PI/4, 1.0e-12));
+    REQUIRE_THAT(c.y, Catch::Matchers::WithinAbs(0.0, 1.0e-12));
+    REQUIRE_THAT(c.theta, Catch::Matchers::WithinAbs(0.0, 1.0e-12));
+
+    // Move the robot forward again
+    w.theta_l = turtlelib::PI*3/4.0;
+    w.theta_r = turtlelib::PI*3/4.0;
+
+    diff_drive.forward_kinematics(w);
+    c = diff_drive.get_configuration(); // Pose x, y, theta
+
+    std::cout <<"X After third roll: "<< c.x << std::endl;
+    std::cout <<"Y After third roll: "<< c.y << std::endl;
+    std::cout <<"theta After third roll: "<< c.theta << std::endl;
+
+    REQUIRE_THAT(c.x, Catch::Matchers::WithinAbs(3*turtlelib::PI/8, 1.0e-12));
+    REQUIRE_THAT(c.y, Catch::Matchers::WithinAbs(0.0, 1.0e-12));
+    REQUIRE_THAT(c.theta, Catch::Matchers::WithinAbs(0.0, 1.0e-12));
+
+    // Move the robot backwards 
+    w.theta_l = turtlelib::PI/2.0;
+    w.theta_r = turtlelib::PI/2.0;
+
+    diff_drive.forward_kinematics(w);
+    c = diff_drive.get_configuration(); // Pose x, y, theta
+
+    std::cout <<"X After fourth roll: "<< c.x << std::endl;
+    std::cout <<"Y After fourth roll: "<< c.y << std::endl;
+    std::cout <<"theta After fourth roll: "<< c.theta << std::endl;
+
+    REQUIRE_THAT(c.x, Catch::Matchers::WithinAbs(turtlelib::PI/4, 1.0e-12));
+    REQUIRE_THAT(c.y, Catch::Matchers::WithinAbs(0.0, 1.0e-12));
+    REQUIRE_THAT(c.theta, Catch::Matchers::WithinAbs(0.0, 1.0e-12));
+
+    // Have the robot do nothing
+    w.theta_l = turtlelib::PI/2.0;
+    w.theta_r = turtlelib::PI/2.0;
+
+    diff_drive.forward_kinematics(w);
+    c = diff_drive.get_configuration(); // Pose x, y, theta
+
+    std::cout <<"X After fifth roll: "<< c.x << std::endl;
+    std::cout <<"Y After fifth roll: "<< c.y << std::endl;
+    std::cout <<"theta After fifth roll: "<< c.theta << std::endl;
+
+    REQUIRE_THAT(c.x, Catch::Matchers::WithinAbs(turtlelib::PI/4, 1.0e-12));
+    REQUIRE_THAT(c.y, Catch::Matchers::WithinAbs(0.0, 1.0e-12));
+    REQUIRE_THAT(c.theta, Catch::Matchers::WithinAbs(0.0, 1.0e-12));
+
+    REQUIRE(0 ==1);
+
+}
+
+
+
 TEST_CASE("Testing forward_kinematics", "[forward_kinematics]")
 {
 
