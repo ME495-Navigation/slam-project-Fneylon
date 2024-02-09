@@ -109,6 +109,7 @@ private:
         joint_state_msg.header.stamp = this->now();
         joint_state_msg.name = {"wheel_left_joint", "wheel_right_joint"};
         joint_state_msg.position = {wc.theta_l, wc.theta_r};
+        RCLCPP_INFO(this->get_logger(), "wc.theta_l: %f wc.theta_r: %f", wc.theta_l, wc.theta_r);
         joint_state_pub_->publish(joint_state_msg);
 
     }
@@ -126,7 +127,7 @@ private:
 
         // Compute the Wheel Commands from the Twist2D object
         turtlelib::WheelConfiguration wc = diff_drive_.inverse_kinematics(tw);
-        RCLCPP_INFO(this->get_logger(), "wc.theta_l: %f wc.theta_r: %f", wc.theta_l, wc.theta_r);
+        // RCLCPP_INFO(this->get_logger(), "wc.theta_l: %f wc.theta_r: %f", wc.theta_l, wc.theta_r);
 
         // Convert to match unit of time of publishing rate
         wc.theta_l = wc.theta_l ;
@@ -156,7 +157,7 @@ private:
             mcu_r = -motor_cmd_max_;
         }
 
-        RCLCPP_INFO(this->get_logger(), "mcu_l: %f mcu_r: %f", mcu_l, mcu_r);
+        // RCLCPP_INFO(this->get_logger(), "mcu_l: %f mcu_r: %f", mcu_l, mcu_r);
 
         // Publish the Wheel Commands
         nuturtlebot_msgs::msg::WheelCommands wc_msg;

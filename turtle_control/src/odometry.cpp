@@ -105,9 +105,12 @@ private:
   {
     config_ = diff_drive_.get_configuration();
     set_odom_msg(config_.x, config_.y, config_.theta);
+    RCLCPP_INFO(this->get_logger(), "Odom Msg timer! x: %f y: %f theta: %f", config_.x, config_.y, config_.theta);
     odom_pub_->publish(odom_msg_);
 
+
     set_transform(config_.x, config_.y, config_.theta);
+    RCLCPP_INFO(this->get_logger(), "Transform timer! x: %f y: %f theta: %f", config_.x, config_.y, config_.theta);
     odom_broadcaster_->sendTransform(transformStamped_);
 
   }
@@ -116,16 +119,16 @@ private:
       std::shared_ptr<turtle_control::srv::InitialPose::Response>)
     {
     // Send back the current configuration
-      RCLCPP_INFO(this->get_logger(), "initial_pose_callback!");
+      // RCLCPP_INFO(this->get_logger(), "initial_pose_callback!");
       diff_drive_.set_configuration(request->x, request->y, request->theta);
 
       config_ = diff_drive_.get_configuration();
 
       set_odom_msg(config_.x, config_.y, config_.theta);
-      odom_pub_->publish(odom_msg_);
+      // odom_pub_->publish(odom_msg_);
 
       set_transform(config_.x, config_.y, config_.theta);
-      odom_broadcaster_->sendTransform(transformStamped_);
+      // odom_broadcaster_->sendTransform(transformStamped_);
   }
 
   void joint_state_callback(const sensor_msgs::msg::JointState::SharedPtr msg)
@@ -133,19 +136,23 @@ private:
       // RCLCPP_INFO(this->get_logger(), "joint_state_callback!");
       // Update the Internal Odometry...this is getting wheel positions and doing forward kinematics.
       turtlelib::WheelConfiguration wheel_config;
-      wheel_config.theta_l = msg->position[0];
-      wheel_config.theta_r = msg->position[1];
+      wheel_config.theta_l = msg->position.at(0);
+      wheel_config.theta_r = msg->position.at(1);
       diff_drive_.forward_kinematics(wheel_config);
 
       // turtlelib::Configuration2D config = diff_drive_.get_configuration();
       config_ = diff_drive_.get_configuration();
 
       set_odom_msg(config_.x, config_.y, config_.theta);
-      odom_pub_->publish(odom_msg_);
+      RCLCPP_INFO(this->get_logger(), "Odom Msg js! x: %f y: %f theta: %f", config_.x, config_.y, config_.theta);
+
+      // odom_pub_->publish(odom_msg_);
 
       // Send the Transform: 
       set_transform(config_.x, config_.y, config_.theta);
-      odom_broadcaster_->sendTransform(transformStamped_);
+      RCLCPP_INFO(this->get_logger(), "Transform js! x: %f y: %f theta: %f", config_.x, config_.y, config_.theta);
+
+      // odom_broadcaster_->sendTransform(transformStamped_);
 
     }
 

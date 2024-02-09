@@ -129,11 +129,10 @@ private:
     // We take in wheel commands which are in mcu and we need to convert them to rad/s which are actually positions for some reason
     double left_wheel_cmd = double(msg->left_velocity);
     double right_wheel_cmd = double(msg->right_velocity);
-    RCLCPP_INFO(this->get_logger(), "Left Wheel Command: %f Right Wheel: %f", left_wheel_cmd, right_wheel_cmd);
 
     double left_wheel_vel = left_wheel_cmd * motor_cmd_per_rad_sec_/rate_;
     double right_wheel_vel = right_wheel_cmd * motor_cmd_per_rad_sec_/rate_;
-    RCLCPP_INFO(this->get_logger(), "Left Wheel Velocity: %f Right Wheel Velocity: %f", left_wheel_vel, right_wheel_vel);
+    // RCLCPP_INFO(this->get_logger(), "Left Wheel Velocity: %f Right Wheel Velocity: %f", left_wheel_vel, right_wheel_vel);
 
     // turtlelib::WheelConfiguration wheel_config;
     wheel_config_.theta_l += left_wheel_vel;
@@ -145,17 +144,24 @@ private:
 
     // We then update the transform of the robot
     update_transform(diff_drive_.get_configuration().x, diff_drive_.get_configuration().y, diff_drive_.get_configuration().theta);
-    RCLCPP_INFO(this->get_logger(), "X: %f Y: %f Theta: %f", diff_drive_.get_configuration().x, diff_drive_.get_configuration().y, diff_drive_.get_configuration().theta);
+    // RCLCPP_INFO(this->get_logger(), "X: %f Y: %f Theta: %f", diff_drive_.get_configuration().x, diff_drive_.get_configuration().y, diff_drive_.get_configuration().theta);
 
 
     // Update Sensor data with new data
-    left_encoder_ += int(left_wheel_cmd * encorder_ticks_per_rad_);
-    right_encoder_ += int(right_wheel_cmd * encorder_ticks_per_rad_);
+    // left_encoder_ += int(left_wheel_cmd * encorder_ticks_per_rad_);
+    // right_encoder_ += int(right_wheel_cmd * encorder_ticks_per_rad_);
+    RCLCPP_INFO(this->get_logger(), "Left Wheel Command: %f Right Wheel: %f", left_wheel_cmd, right_wheel_cmd);
+
+    RCLCPP_INFO(this->get_logger(), "Left Wheel Cmd: %d Right Wheel Cmd: %d", int(left_wheel_cmd * encorder_ticks_per_rad_), int(right_wheel_cmd * encorder_ticks_per_rad_));
+    left_encoder_ = left_encoder_ + int(left_wheel_vel * encorder_ticks_per_rad_);
+    right_encoder_ = right_encoder_ + int(right_wheel_vel* encorder_ticks_per_rad_);
     update_sensor_data(left_encoder_, right_encoder_);
+    RCLCPP_INFO(this->get_logger(), "Left Encoder: %f Right Encoder: %f", left_encoder_, right_encoder_);
+
 
     // Update Joint States
     sensor_msgs::msg::JointState joint_state_msg_;
-    update_js(left_wheel_vel, right_wheel_vel);
+    update_js(wheel_config_.theta_l, wheel_config_.theta_r);
   }
 
   void timer_callback()
