@@ -150,13 +150,13 @@ private:
     // Update Sensor data with new data
     // left_encoder_ += int(left_wheel_cmd * encorder_ticks_per_rad_);
     // right_encoder_ += int(right_wheel_cmd * encorder_ticks_per_rad_);
-    RCLCPP_INFO(this->get_logger(), "Left Wheel Command: %f Right Wheel: %f", left_wheel_cmd, right_wheel_cmd);
+    // RCLCPP_INFO(this->get_logger(), "Left Wheel Command: %f Right Wheel: %f", left_wheel_cmd, right_wheel_cmd);
 
-    RCLCPP_INFO(this->get_logger(), "Left Wheel Cmd: %d Right Wheel Cmd: %d", int(left_wheel_cmd * encorder_ticks_per_rad_), int(right_wheel_cmd * encorder_ticks_per_rad_));
-    left_encoder_ = left_encoder_ + int(left_wheel_vel * encorder_ticks_per_rad_);
-    right_encoder_ = right_encoder_ + int(right_wheel_vel* encorder_ticks_per_rad_);
+    // RCLCPP_INFO(this->get_logger(), "Left Wheel Cmd: %d Right Wheel Cmd: %d", int(left_wheel_cmd * encorder_ticks_per_rad_), int(right_wheel_cmd * encorder_ticks_per_rad_));
+    left_encoder_ = left_encoder_ + left_wheel_vel * encorder_ticks_per_rad_;
+    right_encoder_ = right_encoder_ + right_wheel_vel* encorder_ticks_per_rad_;
     update_sensor_data(left_encoder_, right_encoder_);
-    RCLCPP_INFO(this->get_logger(), "Left Encoder: %f Right Encoder: %f", left_encoder_, right_encoder_);
+    // RCLCPP_INFO(this->get_logger(), "Left Encoder: %f Right Encoder: %f", left_encoder_, right_encoder_);
 
 
     // Update Joint States
