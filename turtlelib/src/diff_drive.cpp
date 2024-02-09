@@ -48,9 +48,7 @@ void DiffDrive::set_configuration(double x, double y, double theta)
 
 void DiffDrive::forward_kinematics(WheelConfiguration wheels)
 {
-
     // Begin Citation [5]
-
     Configuration2D qb;
     Configuration2D dq;
 
@@ -104,6 +102,10 @@ void DiffDrive::forward_kinematics(WheelConfiguration wheels)
     config_.theta += dtheta;
     config_.x += v2.x;
     config_.y += v2.y;
+
+    // config_.theta = dtheta;
+    // config_.x = v2.x;
+    // config_.y = v2.y;
 
     wheel_config_.theta_l = wheels.theta_l;
     wheel_config_.theta_r = wheels.theta_r;

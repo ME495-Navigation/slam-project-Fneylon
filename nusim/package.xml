@@ -12,6 +12,7 @@
   <exec_depend>rosidl_default_runtime</exec_depend>
 
   
+  <exec_depend>rosidl_default_runtime</exec_depend>
   <buildtool_depend>ament_cmake</buildtool_depend>
   <buildtool_depend>rclcpp</buildtool_depend>
   <buildtool_depend>std_msgs</buildtool_depend>
@@ -19,6 +20,9 @@
   <buildtool_depend>nuturtle_description</buildtool_depend>
   <buildtool_depend>geometry_msgs</buildtool_depend>
   <buildtool_depend>visualization_msgs</buildtool_depend>
+  <buildtool_depend>nuturtlebot_msgs</buildtool_depend>
+  <buildtool_depend>turtlelib</buildtool_depend>
+  <buildtool_depend>nav_msgs</buildtool_depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

@@ -99,6 +99,7 @@ private:
     void sensor_callback(const nuturtlebot_msgs::msg::SensorData::SharedPtr msg)
     {
         // RCLCPP_INFO(this->get_logger(), "sensor_callback!");
+        RCLCPP_INFO(this->get_logger(), "Left Encoder: %d Right Encoder: %d", msg->left_encoder, msg->right_encoder);
 
         turtlelib::WheelConfiguration wc;
         wc.theta_l = double(msg->left_encoder / encorder_ticks_per_rad_);
@@ -122,15 +123,18 @@ private:
         tw.y = msg->linear.y;
         tw.omega = msg->angular.z;
 
+
         // Compute the Wheel Commands from the Twist2D object
         turtlelib::WheelConfiguration wc = diff_drive_.inverse_kinematics(tw);
+        RCLCPP_INFO(this->get_logger(), "wc.theta_l: %f wc.theta_r: %f", wc.theta_l, wc.theta_r);
 
         // Convert to match unit of time of publishing rate
-        // wc.theta_l = wc.theta_l * 1/rate_;
-        // wc.theta_r = wc.theta_r * 1/rate_;
+        wc.theta_l = wc.theta_l ;
+        wc.theta_r = wc.theta_r ;
 
         double mcu_l = wc.theta_l/ motor_cmd_per_rad_sec_;
         double mcu_r = wc.theta_r/ motor_cmd_per_rad_sec_;
+
 
 
         // Saturate Control Signal
@@ -151,6 +155,8 @@ private:
         {
             mcu_r = -motor_cmd_max_;
         }
+
+        RCLCPP_INFO(this->get_logger(), "mcu_l: %f mcu_r: %f", mcu_l, mcu_r);
 
         // Publish the Wheel Commands
         nuturtlebot_msgs::msg::WheelCommands wc_msg;
