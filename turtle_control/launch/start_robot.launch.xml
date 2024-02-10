@@ -49,7 +49,7 @@
 
 <group if="$(eval '\'$(var robot)\' == \'localhost\'')">
     <!-- Launch the transform between the odom and the blue/base_footprint -->
-    <node pkg="tf2_ros" exec="static_transform_publisher" name="nurun_world_to_odom" args="--frame-id nurun/world --child-frame-id odom"/>
+    <node pkg="tf2_ros" exec="static_transform_publisher" name="nusim_world_to_odom" args="--frame-id nusim/world --child-frame-id odom"/>
 
     <node pkg="numsr_turtlebot" exec="numsr_turtlebot"/>
 
