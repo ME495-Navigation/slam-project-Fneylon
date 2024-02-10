@@ -90,7 +90,7 @@ TEST_CASE("Testing drive_forward", "[drive_forward]"){
     REQUIRE_THAT(c.y, Catch::Matchers::WithinAbs(0.0, 1.0e-12));
     REQUIRE_THAT(c.theta, Catch::Matchers::WithinAbs(0.0, 1.0e-12));
 
-    REQUIRE(0 ==1);
+    // REQUIRE(0 ==1);
 
 }
 

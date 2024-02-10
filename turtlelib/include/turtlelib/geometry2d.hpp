@@ -121,6 +121,7 @@ namespace turtlelib
 
     /// \brief Vector addition
     /// \param v1 - the first vector
+    /// \param v2 - the second vector
     /// \return the vector sum of v1 + v1
     Vector2D & operator+(Vector2D & v1, const Vector2D & v2);
 
@@ -132,6 +133,7 @@ namespace turtlelib
 
     /// \brief Vector subtraction
     /// \param v1 - the first vector
+    /// \param v2 - the second vector
     /// \return the vector difference v1 - v1
     Vector2D & operator-(Vector2D & v1, const Vector2D & v2);
 

@@ -100,7 +100,6 @@ public:
   }
 
 private:
-
   void time_callback()
   {
     config_ = diff_drive_.get_configuration();
@@ -114,47 +113,47 @@ private:
     odom_broadcaster_->sendTransform(transformStamped_);
 
   }
-    void initial_pose_callback(
-      const std::shared_ptr<turtle_control::srv::InitialPose::Request> request,
-      std::shared_ptr<turtle_control::srv::InitialPose::Response>)
-    {
+  void initial_pose_callback(
+    const std::shared_ptr<turtle_control::srv::InitialPose::Request> request,
+    std::shared_ptr<turtle_control::srv::InitialPose::Response>)
+  {
     // Send back the current configuration
-      // RCLCPP_INFO(this->get_logger(), "initial_pose_callback!");
-      diff_drive_.set_configuration(request->x, request->y, request->theta);
+    // RCLCPP_INFO(this->get_logger(), "initial_pose_callback!");
+    diff_drive_.set_configuration(request->x, request->y, request->theta);
 
-      config_ = diff_drive_.get_configuration();
+    config_ = diff_drive_.get_configuration();
 
-      set_odom_msg(config_.x, config_.y, config_.theta);
-      // odom_pub_->publish(odom_msg_);
+    set_odom_msg(config_.x, config_.y, config_.theta);
+    // odom_pub_->publish(odom_msg_);
 
-      set_transform(config_.x, config_.y, config_.theta);
-      // odom_broadcaster_->sendTransform(transformStamped_);
+    set_transform(config_.x, config_.y, config_.theta);
+    // odom_broadcaster_->sendTransform(transformStamped_);
   }
 
   void joint_state_callback(const sensor_msgs::msg::JointState::SharedPtr msg)
   {
-      // RCLCPP_INFO(this->get_logger(), "joint_state_callback!");
-      // Update the Internal Odometry...this is getting wheel positions and doing forward kinematics.
-      turtlelib::WheelConfiguration wheel_config;
-      wheel_config.theta_l = msg->position.at(0);
-      wheel_config.theta_r = msg->position.at(1);
-      diff_drive_.forward_kinematics(wheel_config);
+    // RCLCPP_INFO(this->get_logger(), "joint_state_callback!");
+    // Update the Internal Odometry...this is getting wheel positions and doing forward kinematics.
+    turtlelib::WheelConfiguration wheel_config;
+    wheel_config.theta_l = msg->position.at(0);
+    wheel_config.theta_r = msg->position.at(1);
+    diff_drive_.forward_kinematics(wheel_config);
 
-      // turtlelib::Configuration2D config = diff_drive_.get_configuration();
-      config_ = diff_drive_.get_configuration();
+    // turtlelib::Configuration2D config = diff_drive_.get_configuration();
+    config_ = diff_drive_.get_configuration();
 
-      set_odom_msg(config_.x, config_.y, config_.theta);
-      // RCLCPP_INFO(this->get_logger(), "Odom Msg js! x: %f y: %f theta: %f", config_.x, config_.y, config_.theta);
+    set_odom_msg(config_.x, config_.y, config_.theta);
+    // RCLCPP_INFO(this->get_logger(), "Odom Msg js! x: %f y: %f theta: %f", config_.x, config_.y, config_.theta);
 
-      // odom_pub_->publish(odom_msg_);
+    // odom_pub_->publish(odom_msg_);
 
-      // Send the Transform: 
-      set_transform(config_.x, config_.y, config_.theta);
-      // RCLCPP_INFO(this->get_logger(), "Transform js! x: %f y: %f theta: %f", config_.x, config_.y, config_.theta);
+    // Send the Transform:
+    set_transform(config_.x, config_.y, config_.theta);
+    // RCLCPP_INFO(this->get_logger(), "Transform js! x: %f y: %f theta: %f", config_.x, config_.y, config_.theta);
 
-      // odom_broadcaster_->sendTransform(transformStamped_);
+    // odom_broadcaster_->sendTransform(transformStamped_);
 
-    }
+  }
 
   void set_transform(double x, double y, double theta)
   {
@@ -193,10 +192,8 @@ private:
   // Initalize Publishers:
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub_;
 
-
   // Initialize Subscribers:
   rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_state_sub_;
-  
 
   // Initialize Services:
   rclcpp::Service<turtle_control::srv::InitialPose>::SharedPtr initial_pose_srv_;
@@ -211,7 +208,6 @@ private:
 
   // Initialize Variables:
   double rate_ = 200.0;
-  
 
   turtlelib::DiffDrive diff_drive_;
 

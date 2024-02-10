@@ -112,5 +112,6 @@ WheelConfiguration DiffDrive::inverse_kinematics(Twist2D twist)
     else
     {
         std::cout << "Invalid Twist, y comp. non-zero" << std::endl;
+        return wheel_config_;
     }
 }

@@ -7,7 +7,7 @@
 #include "std_msgs/msg/u_int64.hpp"
 #include "std_srvs/srv/empty.hpp"
 #include "geometry_msgs/msg/transform_stamped.hpp"
-#include "geometry_msgs/msg/twist.hpp" 
+#include "geometry_msgs/msg/twist.hpp"
 #include "turtlelib/diff_drive.hpp"
 #include "turtlelib/se2d.hpp"
 #include "turtlelib/geometry2d.hpp"
@@ -28,21 +28,21 @@ using namespace std::chrono_literals;
 
 TEST_CASE("Test turtle_odom", "[turtle_odom]")
 {
-auto node = rclcpp::Node::make_shared("turtle_odom");
+  auto node = rclcpp::Node::make_shared("turtle_odom");
 
-// Create a client to check the if the inital_pose service exists. 
-auto ip_client = node->create_client<turtle_control::srv::InitialPose>("initial_pose");
-bool service_found = false;
+  // Create a client to check the if the inital_pose service exists.
+  auto ip_client = node->create_client<turtle_control::srv::InitialPose>("initial_pose");
+  bool service_found = false;
 
-// Create a listener to check the odom to base_footprint transform
-auto tf_buffer_ = std::make_unique<tf2_ros::Buffer>(node->get_clock());
-auto tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
+  // Create a listener to check the odom to base_footprint transform
+  auto tf_buffer_ = std::make_unique<tf2_ros::Buffer>(node->get_clock());
+  auto tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
 
-geometry_msgs::msg::TransformStamped transform;
+  geometry_msgs::msg::TransformStamped transform;
 
-rclcpp::Time start_time = rclcpp::Clock().now();
+  rclcpp::Time start_time = rclcpp::Clock().now();
 
-while (
+  while (
     rclcpp::ok() &&
     ((rclcpp::Clock().now() - start_time) < 1s)
   )
@@ -51,13 +51,9 @@ while (
     if (ip_client->wait_for_service(0s)) {
       service_found = true;
     }
-
-    try{
-
+    try {
       transform = tf_buffer_->lookupTransform("odom", "base_footprint", tf2::TimePointZero);
-    }
-    catch (const tf2::TransformException &ex) 
-    {
+    } catch (const tf2::TransformException & ex) {
     }
 
     // RCLCPP_INFO(node->get_logger(), "Bool Status %d", service_found);
@@ -73,9 +69,4 @@ while (
   REQUIRE_THAT(transform.transform.rotation.y, Catch::Matchers::WithinAbs(0.0, 0.1));
   REQUIRE_THAT(transform.transform.rotation.z, Catch::Matchers::WithinAbs(0.0, 0.1));
   REQUIRE_THAT(transform.transform.rotation.w, Catch::Matchers::WithinAbs(1.0, 0.1));
-
-
-// REQUIRE(0 ==1);
-
 }
-

@@ -25,23 +25,23 @@ find_package(turtlelib REQUIRED)
 
 add_executable(nusim_node src/nusim.cpp)
 
-ament_target_dependencies(nusim_node 
-turtlelib 
-nuturtlebot_msgs 
-sensor_msgs 
-rclcpp 
+ament_target_dependencies(nusim_node
+turtlelib
+nuturtlebot_msgs
+sensor_msgs
+rclcpp
 std_msgs
 std_srvs
-nuturtle_description 
-geometry_msgs 
-tf2 
-tf2_ros 
+nuturtle_description
+geometry_msgs
+tf2
+tf2_ros
 visualization_msgs)
 
-set(srv_files 
+set(srv_files
 "srv/Teleport.srv")
 
-rosidl_generate_interfaces(${PROJECT_NAME} 
+rosidl_generate_interfaces(${PROJECT_NAME}
 "srv/Teleport.srv")
 
 

@@ -70,17 +70,15 @@ public:
     }
     this->declare_parameter("motor_cmd_per_rad_sec", -1.0);
     motor_cmd_per_rad_sec_ = this->get_parameter("motor_cmd_per_rad_sec").as_double();
-    if (motor_cmd_per_rad_sec_ <= 0.0)
-    {
-        RCLCPP_ERROR(this->get_logger(), "motor_cmd_per_rad_sec must be greater than 0.0");
-        rclcpp::shutdown();
+    if (motor_cmd_per_rad_sec_ <= 0.0) {
+      RCLCPP_ERROR(this->get_logger(), "motor_cmd_per_rad_sec must be greater than 0.0");
+      rclcpp::shutdown();
     }
     this->declare_parameter("encorder_ticks_per_rad", -1.0);
     encorder_ticks_per_rad_ = this->get_parameter("encorder_ticks_per_rad").as_double();
-    if (encorder_ticks_per_rad_ <= 0.0)
-    {
-        RCLCPP_ERROR(this->get_logger(), "encorder_ticks_per_rad must be greater than 0.0");
-        rclcpp::shutdown();
+    if (encorder_ticks_per_rad_ <= 0.0) {
+      RCLCPP_ERROR(this->get_logger(), "encorder_ticks_per_rad must be greater than 0.0");
+      rclcpp::shutdown();
     }
 
     diff_drive_ = turtlelib::DiffDrive(wheel_radius_, track_width_);
@@ -101,12 +99,11 @@ public:
     marker_obs_pub_ = this->create_publisher<visualization_msgs::msg::MarkerArray>(
       "~/obstacles",
       marker_qos);
-
     red_sensor_pub_ = this->create_publisher<nuturtlebot_msgs::msg::SensorData>("sensor_data", 10);
     red_joint_state_pub_ = this->create_publisher<sensor_msgs::msg::JointState>("joint_states", 10);
 
     // Define the Subscribers:
-    red_wheel_cmd_sub_= this->create_subscription<nuturtlebot_msgs::msg::WheelCommands>(
+    red_wheel_cmd_sub_ = this->create_subscription<nuturtlebot_msgs::msg::WheelCommands>(
       "wheel_cmd", 10,
       std::bind(&Nusim::red_wheel_cmd_callback, this, std::placeholders::_1));
 
@@ -123,41 +120,26 @@ public:
   }
 
 private:
-
   void red_wheel_cmd_callback(const nuturtlebot_msgs::msg::WheelCommands::SharedPtr msg)
   {
     // We take in wheel commands which are in mcu and we need to convert them to rad/s which are actually positions for some reason
     double left_wheel_cmd = double(msg->left_velocity);
     double right_wheel_cmd = double(msg->right_velocity);
 
-    double left_wheel_vel = left_wheel_cmd * motor_cmd_per_rad_sec_/rate_;
-    double right_wheel_vel = right_wheel_cmd * motor_cmd_per_rad_sec_/rate_;
-    // RCLCPP_INFO(this->get_logger(), "Left Wheel Velocity: %f Right Wheel Velocity: %f", left_wheel_vel, right_wheel_vel);
+    double left_wheel_vel = left_wheel_cmd * motor_cmd_per_rad_sec_ / rate_;
+    double right_wheel_vel = right_wheel_cmd * motor_cmd_per_rad_sec_ / rate_;
 
-    // turtlelib::WheelConfiguration wheel_config;
     wheel_config_.theta_l += left_wheel_vel;
     wheel_config_.theta_r += right_wheel_vel;
-    // RCLCPP_INFO(this->get_logger(), "Left Wheel Config: %f Right Wheel Config: %f", wheel_config.theta_l, wheel_config.theta_r);
-
-    // We then convert these wheel velocities to update the pose of the robot 
     diff_drive_.forward_kinematics(wheel_config_);
 
     // We then update the transform of the robot
-    update_transform(diff_drive_.get_configuration().x, diff_drive_.get_configuration().y, diff_drive_.get_configuration().theta);
-    // RCLCPP_INFO(this->get_logger(), "X: %f Y: %f Theta: %f", diff_drive_.get_configuration().x, diff_drive_.get_configuration().y, diff_drive_.get_configuration().theta);
-
-
-    // Update Sensor data with new data
-    // left_encoder_ += int(left_wheel_cmd * encorder_ticks_per_rad_);
-    // right_encoder_ += int(right_wheel_cmd * encorder_ticks_per_rad_);
-    // RCLCPP_INFO(this->get_logger(), "Left Wheel Command: %f Right Wheel: %f", left_wheel_cmd, right_wheel_cmd);
-
-    // RCLCPP_INFO(this->get_logger(), "Left Wheel Cmd: %d Right Wheel Cmd: %d", int(left_wheel_cmd * encorder_ticks_per_rad_), int(right_wheel_cmd * encorder_ticks_per_rad_));
+    update_transform(
+      diff_drive_.get_configuration().x,
+      diff_drive_.get_configuration().y, diff_drive_.get_configuration().theta);
     left_encoder_ = left_encoder_ + left_wheel_vel * encorder_ticks_per_rad_;
-    right_encoder_ = right_encoder_ + right_wheel_vel* encorder_ticks_per_rad_;
+    right_encoder_ = right_encoder_ + right_wheel_vel * encorder_ticks_per_rad_;
     update_sensor_data(left_encoder_, right_encoder_);
-    // RCLCPP_INFO(this->get_logger(), "Left Encoder: %f Right Encoder: %f", left_encoder_, right_encoder_);
-
 
     // Update Joint States
     sensor_msgs::msg::JointState joint_state_msg_;
@@ -166,12 +148,9 @@ private:
 
   void timer_callback()
   {
-    // RCLCPP_INFO(this->get_logger(), "Hello, world!");
-    // time_ = this->get_clock()->now();
     time_ += 1.0 / rate_;
     msg_.data = (time_) * 1e3;
     publisher_->publish(msg_);
-    // marker_pub_->publish(marker_walls_array_);
 
     // Update Transform with the new time and broadcast it
     update_transform();
@@ -295,8 +274,10 @@ private:
     joint_state_msg_.header.frame_id = "red/base_footprint";
     joint_state_msg_.name = {"wheel_left_joint", "wheel_right_joint"};
 
-    try { joint_state_msg_.position = {joint_state_msg_.position.at(0), joint_state_msg_.position.at(1)}; }
-    catch (const std::out_of_range& oor) { joint_state_msg_.position = {0.0, 0.0};}
+    try {
+      joint_state_msg_.position =
+      {joint_state_msg_.position.at(0), joint_state_msg_.position.at(1)};
+    } catch (const std::out_of_range & oor) {joint_state_msg_.position = {0.0, 0.0};}
 
   }
 
@@ -357,8 +338,6 @@ private:
   // Initialize Timers:
   rclcpp::TimerBase::SharedPtr timer_;
 
-
-  // Initalize Diff Drive Class: 
   turtlelib::DiffDrive diff_drive_;
 
   // Initlaize Messages:

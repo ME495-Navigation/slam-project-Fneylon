@@ -15,6 +15,7 @@
 
 namespace turtlelib
 {
+    /// \brief A 2D configuration
     struct Configuration2D
     {
         /// \brief the x position
@@ -27,6 +28,7 @@ namespace turtlelib
         double theta = 0.0;
     };
 
+    /// \brief Wheel configuration for 2 wheel robot
     struct WheelConfiguration
     {
         /// \brief left wheel configuration
@@ -37,6 +39,7 @@ namespace turtlelib
     };
 
 
+    /// \brief A differential drive model class 
     class DiffDrive
     {
         public:
@@ -49,16 +52,24 @@ namespace turtlelib
             /// \param wheel_track - the distance between the wheels
             DiffDrive(double wheel_radius, double wheel_track);
 
-
+            /// \brief compute the forward kinematics of the robot
+            /// \param wheels - the wheel configuration
             void forward_kinematics(WheelConfiguration wheels);
 
+            /// \brief compute the inverse kinematics of the robot
+            /// \param twist - the twist to apply
+            /// \return the wheel configuration
             WheelConfiguration inverse_kinematics(Twist2D twist);
 
+            /// \brief get the current configuration of the robot
+            /// \return the current configuration
             Configuration2D get_configuration();
 
+            /// \brief set the current configuration of the robot
+            /// \param x - the x position
+            /// \param y - the y position
+            /// \param theta - the orientation
             void set_configuration(double x, double y, double theta);
-
-
 
         private:
 
@@ -67,11 +78,7 @@ namespace turtlelib
 
             WheelConfiguration wheel_config_;
             Configuration2D config_;
-
-
-
     };
-
 }
 
 #endif // TURTLELIB_DIFF_DRIVE_INCLUDE_GUARD_HPP

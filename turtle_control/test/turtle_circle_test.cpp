@@ -24,75 +24,67 @@
 
 using namespace std::chrono_literals;
 double counter = 0.0;
+geometry_msgs::msg::Twist twist;
 
 TEST_CASE("Testing turtle_circle", "[turtle_circle]") {
 
-auto node = rclcpp::Node::make_shared("turtle_circle");
+  auto node = rclcpp::Node::make_shared("turtle_circle");
 
-auto cmd_vel_subscriber_ = node->create_subscription<geometry_msgs::msg::Twist>(
-  "cmd_vel", 10, [](const geometry_msgs::msg::Twist::SharedPtr msg) {
-    counter = counter + 1.0;
-  });
+  auto cmd_vel_subscriber_ = node->create_subscription<geometry_msgs::msg::Twist>(
+    "cmd_vel", 10, [](const geometry_msgs::msg::Twist::SharedPtr msg) {
+      counter = counter + 1.0;
+      twist = *msg;
+    });
 
   auto control_service_client = node->create_client<turtle_control::srv::Control>("control");
 
-
-rclcpp::Time start_time = rclcpp::Clock().now();
-while (
+  rclcpp::Time start_time = rclcpp::Clock().now();
+  while (
     rclcpp::ok() &&
     ((rclcpp::Clock().now() - start_time) < rclcpp::Duration::from_seconds(2))
   )
   {
     if (control_service_client->wait_for_service(0s)) {
-        break;
+      break;
     }
-    
+
     rclcpp::spin_some(node);
   }
 
   RCLCPP_INFO(node->get_logger(), "Service found");
 
-//   Initalize the request to be sent to the service;
-    auto request = std::make_shared<turtle_control::srv::Control::Request>();
-    request->radius = 0.5;
-    request->velocity = 0.5;
-    
-// Send the request to the service
-    auto result = control_service_client->async_send_request(request);
+  // BEGIN CITATION [1]-- MEGAN BLACK //
+  //   Initalize the request to be sent to the service;
+  auto request = std::make_shared<turtle_control::srv::Control::Request>();
+  request->radius = 0.5;
+  request->velocity = 0.5;
 
-// Wait for the result
-while (rclcpp::spin_until_future_complete(node, result) !=
-       rclcpp::FutureReturnCode::SUCCESS)
-    {
-        RCLCPP_INFO(node->get_logger(), "Service called");
-    }
+  // Send the request to the service
+  auto result = control_service_client->async_send_request(request);
 
-RCLCPP_INFO(node->get_logger(), "Service succeeded");
+  // Wait for the result
+  while (rclcpp::spin_until_future_complete(node, result) !=
+    rclcpp::FutureReturnCode::SUCCESS)
+  {
+    RCLCPP_INFO(node->get_logger(), "Service called");
+  }
+// END CITATION [1]-- MEGAN BLACK //
 
-start_time = rclcpp::Clock().now();
-rclcpp::Time end_time;// = rclcpp::Clock().now();
+  start_time = rclcpp::Clock().now();
+  rclcpp::Time end_time;// = rclcpp::Clock().now();
 
-while (
+  while (
     rclcpp::ok() &&
     ((rclcpp::Clock().now() - start_time) < rclcpp::Duration::from_seconds(2))
   )
   {
     end_time = rclcpp::Clock().now();
-    
-    // if (counter > 100.0)
-    // {
-    //     break;
-    // }
     rclcpp::spin_some(node);
   }
 
-//   REQUIRE(counter > 0);
-
-RCLCPP_INFO(node->get_logger(), "Frequency: %f", counter / (end_time - start_time).seconds());
-
-REQUIRE_THAT(counter/ (end_time - start_time).seconds(), Catch::Matchers::WithinAbs(100.0, 10.0));
-
-// REQUIRE(0 ==1);
+  REQUIRE_THAT(
+    counter / (end_time - start_time).seconds(),
+    Catch::Matchers::WithinAbs(100.0, 10.0));
+  // REQUIRE(0 ==1);
 
 }
-

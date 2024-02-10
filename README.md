@@ -11,3 +11,5 @@ This repository consists of several ROS packages
   [fiona_hw2_video.webm](https://github.com/ME495-Navigation/slam-project-Fneylon/assets/116540591/7742d568-0c1d-4e96-8c2f-67c4b1c6248b)
   
   [irl_video.webm](https://github.com/ME495-Navigation/slam-project-Fneylon/assets/117234679/fc96272c-cef4-4756-96dc-5a1cae63c692)
+
+  **Final Location of the Turtlebot:** {position-x: 0.24, y: 0.09, z: 0.0; Orientation-x: 0.0, y: 0.0, z: 0.35, w: 0.94}
