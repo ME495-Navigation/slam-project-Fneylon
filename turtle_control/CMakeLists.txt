@@ -19,7 +19,7 @@ find_package(visualization_msgs)
 find_package(nuturtlebot_msgs)
 find_package(turtlelib)
 find_package(nav_msgs)
-find_package(catch_ros2)
+
 add_executable(turtle_control_node src/turtle_control.cpp)
 add_executable(turtle_odometry_node src/odometry.cpp)
 add_executable(turtle_circle_node src/circle.cpp)
@@ -116,6 +116,7 @@ endif()
 
 if(BUILD_TESTING)
   include(CTest)
+  find_package(catch_ros2)
 
   ###########################
   ## INTEGRATION TEST NODE ##
@@ -148,8 +149,8 @@ catch_ros2::catch_ros2_with_node_main
 # rosidl_target_interfaces(turtle_odom_test_node ${PROJECT_NAME} "rosidl_typesupport_cpp")
 # target_link_libraries(turtle_odom_test_node "${cpp_typesupport_target}")
 
-rosidl_target_interfaces(turtle_circle_test_node ${PROJECT_NAME} "rosidl_typesupport_cpp")
-target_link_libraries(turtle_circle_test_node "${cpp_typesupport_target}")
+  rosidl_target_interfaces(turtle_circle_test_node ${PROJECT_NAME} "rosidl_typesupport_cpp")
+  target_link_libraries(turtle_circle_test_node "${cpp_typesupport_target}")
 
   target_link_libraries(turtle_control_test_node turtlelib::turtlelib "${cpp_typesupport_target}")
   target_link_libraries(turtle_odom_test_node turtlelib::turtlelib "${cpp_typesupport_target}")

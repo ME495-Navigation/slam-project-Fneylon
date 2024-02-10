@@ -105,12 +105,12 @@ private:
   {
     config_ = diff_drive_.get_configuration();
     set_odom_msg(config_.x, config_.y, config_.theta);
-    RCLCPP_INFO(this->get_logger(), "Odom Msg timer! x: %f y: %f theta: %f", config_.x, config_.y, config_.theta);
+    // RCLCPP_INFO(this->get_logger(), "Odom Msg timer! x: %f y: %f theta: %f", config_.x, config_.y, config_.theta);
     odom_pub_->publish(odom_msg_);
 
 
     set_transform(config_.x, config_.y, config_.theta);
-    RCLCPP_INFO(this->get_logger(), "Transform timer! x: %f y: %f theta: %f", config_.x, config_.y, config_.theta);
+    // RCLCPP_INFO(this->get_logger(), "Transform timer! x: %f y: %f theta: %f", config_.x, config_.y, config_.theta);
     odom_broadcaster_->sendTransform(transformStamped_);
 
   }
@@ -144,13 +144,13 @@ private:
       config_ = diff_drive_.get_configuration();
 
       set_odom_msg(config_.x, config_.y, config_.theta);
-      RCLCPP_INFO(this->get_logger(), "Odom Msg js! x: %f y: %f theta: %f", config_.x, config_.y, config_.theta);
+      // RCLCPP_INFO(this->get_logger(), "Odom Msg js! x: %f y: %f theta: %f", config_.x, config_.y, config_.theta);
 
       // odom_pub_->publish(odom_msg_);
 
       // Send the Transform: 
       set_transform(config_.x, config_.y, config_.theta);
-      RCLCPP_INFO(this->get_logger(), "Transform js! x: %f y: %f theta: %f", config_.x, config_.y, config_.theta);
+      // RCLCPP_INFO(this->get_logger(), "Transform js! x: %f y: %f theta: %f", config_.x, config_.y, config_.theta);
 
       // odom_broadcaster_->sendTransform(transformStamped_);
 

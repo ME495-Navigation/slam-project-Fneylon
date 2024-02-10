@@ -99,7 +99,7 @@ private:
     void sensor_callback(const nuturtlebot_msgs::msg::SensorData::SharedPtr msg)
     {
         // RCLCPP_INFO(this->get_logger(), "sensor_callback!");
-        RCLCPP_INFO(this->get_logger(), "Left Encoder: %d Right Encoder: %d", msg->left_encoder, msg->right_encoder);
+        // RCLCPP_INFO(this->get_logger(), "Left Encoder: %d Right Encoder: %d", msg->left_encoder, msg->right_encoder);
 
         turtlelib::WheelConfiguration wc;
         wc.theta_l = double(msg->left_encoder / encorder_ticks_per_rad_);
@@ -109,7 +109,7 @@ private:
         joint_state_msg.header.stamp = this->now();
         joint_state_msg.name = {"wheel_left_joint", "wheel_right_joint"};
         joint_state_msg.position = {wc.theta_l, wc.theta_r};
-        RCLCPP_INFO(this->get_logger(), "wc.theta_l: %f wc.theta_r: %f", wc.theta_l, wc.theta_r);
+        // RCLCPP_INFO(this->get_logger(), "wc.theta_l: %f wc.theta_r: %f", wc.theta_l, wc.theta_r);
         joint_state_pub_->publish(joint_state_msg);
 
     }
