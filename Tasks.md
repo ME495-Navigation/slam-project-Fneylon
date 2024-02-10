@@ -49,10 +49,10 @@
  - [x] E.4 ROS API Testing 
     -[x] Finished testing the odometry node
     -[x] Need to finish and fix the test_turtle_control node.
- - [ ] E.5 Launch File
- - [ ] E.6 Remote Launch 
+ - [x] E.5 Launch File
+ - [x] E.6 Remote Launch 
 
  #### Task F: The Real Robot 
- - [ ] F.1: Turtlebot Setup 
- - [ ] F.2 Cross-compliation 
- - [ ] F.3 Physical Testing   
+ - [x] F.1: Turtlebot Setup 
+ - [x] F.2 Cross-compliation 
+ - [x] F.3 Physical Testing   

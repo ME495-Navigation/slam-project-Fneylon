@@ -6,6 +6,7 @@ Conceptual questions are answered using external sources cited in the citation.t
 - geometry2d - Handles 2D geometry primitives
 - se2d - Handles 2D rigid body transformations
 - frame_main - Perform some rigid body computations based on user input
+- diff_drive - Handles the kinematics of a differential drive robot
 
 # Conceptual Questions
 1. If you needed to be able to ~normalize~ Vector2D objects (i.e., find the unit vector in the direction of a given Vector2D):
