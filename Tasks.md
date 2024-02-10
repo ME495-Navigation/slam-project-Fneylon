@@ -1,16 +1,16 @@
 # Completed Tasks
 #### Task 0: Preliminaries
-- [x] Task 0.1: Reading the Guidelines
-- [x] Task 0.2: Making a Git Repository
-- [x] Task 0.3: Making a GitHub README
-- [x] Task 0.4: Making a Tasks.md
+- [x] Task 0.1 Reading the Guidelines
+- [x] Task 0.2 Making a Git Repository
+- [x] Task 0.3 Making a GitHub README
+- [x] Task 0.4 Making a Tasks.md
 #### Task A: Robot Description
-- [x] Task A.1: nuturtle_desciption package
-- [x] Task A.2: visualization
-- [x] Task A.3: yaml File 
-- [x] Task A.4: prefix
-- [x] Task A.5: multi robot
-- [x] Task A.6: README
+- [x] Task A.1 nuturtle_desciption package
+- [x] Task A.2 visualization
+- [x] Task A.3 yaml File 
+- [x] Task A.4 prefix
+- [x] Task A.5 multi robot
+- [x] Task A.6 README
      - [x] Need to add images to README
 #### Task B: C++ and 2D Transforms
 - [x] Task B.1 geometry primiatives
@@ -24,22 +24,26 @@
 - [x] Task B.8 Vector Operations
 - [ ] Task B.9 Integrate a Twist 
 
-#### Task C: (The Simulator)
-- [x] Task C.1: nusim package
-- [x] Task C.2: simultion node
-- [x] Task C.3: simulated turtle 
-- [x] Task C.4: walls
-- [x] Task C.5: cylindrical obstacles
+#### Task C: The Simulator
+- [x] Task C.1 nusim package
+- [x] Task C.2 simultion node
+- [x] Task C.3 simulated turtle 
+- [x] Task C.4 walls
+- [x] Task C.5 cylindrical obstacles
 - [x] Task C.6 nusim launch
-- [x] Task C.7: README
+- [x] Task C.7 README
 - [x] Task C.8 Turtle Drive
+- [ ] Task C.9 Robot Position
+- [ ] Task C.10 Basic Sensor
+- [ ] Task C.11 Collision Detection
+- [ ] Task C.12 Lidar
 
 
  #### Task D: Kinematics
  - [x] D.1 DiffDrive Class 
  - [x] D.2 DiffDrive Test
      - [x] Need to add the final test for invalid Twist case
- - [ ] D.3 Documentation
+ - [x] D.3 Documentation
 
  #### Task E: Robot Control
  - [x] E.1 Turtle Interface 
@@ -53,6 +57,17 @@
  - [x] E.6 Remote Launch 
 
  #### Task F: The Real Robot 
- - [x] F.1: Turtlebot Setup 
+ - [x] F.1 Turtlebot Setup 
  - [x] F.2 Cross-compliation 
- - [x] F.3 Physical Testing   
+ - [x] F.3 Physical Testing
+ - [ ] F.4 Laser Scanner
+
+ #### Task L: SLAM
+ - [ ] L.1 Main SLAM Results
+ - [ ] L.2 SLAM in Controlled Environment
+
+ #### Task V: Visualization
+ - [ ] V.1 Simulation Standalone
+ - [ ] V.2 Simulation with Odometry
+ - [ ] V.3 Real Robot with Odometry
+ - [ ] V.4 Simulated Robot with SLAM
