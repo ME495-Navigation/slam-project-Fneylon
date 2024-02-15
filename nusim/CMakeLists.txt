@@ -18,6 +18,7 @@ find_package(rosidl_default_generators REQUIRED)
 find_package(visualization_msgs)
 find_package(nuturtlebot_msgs REQUIRED)
 find_package(sensor_msgs)
+find_package(nav_msgs)
 find_package(turtlelib REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
@@ -28,6 +29,7 @@ add_executable(nusim_node src/nusim.cpp)
 ament_target_dependencies(nusim_node
 turtlelib
 nuturtlebot_msgs
+nav_msgs
 sensor_msgs
 rclcpp
 std_msgs

@@ -70,6 +70,11 @@
         <remap from="joint_states" to="blue/joint_states"/>
     </node>
 
+    <!-- Launch the Sensor Driver -->
+    <include file="$(find-pkg-share hls_lfcd_lds_driver)/launch/hlds_laser.launch.py">
+        <arg name="port" value="/dev/ttyUSB0"/>
+        <arg name="frame_id" value="laser_frame"/>
+    </include>
 </group>
 
 <group if="$(eval '\'$(var robot)\' != \'none\'')">

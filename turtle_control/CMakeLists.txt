@@ -19,6 +19,7 @@ find_package(visualization_msgs)
 find_package(nuturtlebot_msgs)
 find_package(turtlelib)
 find_package(nav_msgs)
+find_package(hls_lfcd_lds_driver)
 
 add_executable(turtle_control_node src/turtle_control.cpp)
 add_executable(turtle_odometry_node src/odometry.cpp)
@@ -27,6 +28,7 @@ add_executable(turtle_circle_node src/circle.cpp)
 
 ament_target_dependencies(turtle_control_node
 rclcpp
+hls_lfcd_lds_driver
 std_msgs
 std_srvs
 nuturtle_description
@@ -40,6 +42,7 @@ nav_msgs)
 
 ament_target_dependencies(turtle_odometry_node
 rclcpp
+hls_lfcd_lds_driver
 std_msgs
 std_srvs
 nuturtle_description
@@ -53,6 +56,7 @@ nav_msgs)
 
 ament_target_dependencies(turtle_circle_node
 rclcpp
+hls_lfcd_lds_driver
 std_msgs
 std_srvs
 nuturtle_description
@@ -159,6 +163,7 @@ catch_ros2::catch_ros2_with_node_main
 
   ament_target_dependencies(turtle_control_test_node
     rclcpp
+    hls_lfcd_lds_driver
     std_msgs
     std_srvs
     nuturtle_description
@@ -173,6 +178,7 @@ catch_ros2::catch_ros2_with_node_main
 
   ament_target_dependencies(turtle_odom_test_node
   rclcpp
+  hls_lfcd_lds_driver
   std_msgs
   std_srvs
   nuturtle_description
@@ -187,6 +193,7 @@ catch_ros2::catch_ros2_with_node_main
 
   ament_target_dependencies(turtle_circle_test_node
   rclcpp
+  hls_lfcd_lds_driver
   std_msgs
   std_srvs
   nuturtle_description

@@ -15,6 +15,7 @@
 #include <nuturtlebot_msgs/msg/wheel_commands.hpp>
 #include <nuturtlebot_msgs/msg/sensor_data.hpp>
 #include <sensor_msgs/msg/joint_state.hpp>
+#include <nav_msgs/msg/path.hpp>
 #include "turtlelib/diff_drive.hpp"
 using namespace std::chrono_literals;
 
@@ -101,6 +102,7 @@ public:
       marker_qos);
     red_sensor_pub_ = this->create_publisher<nuturtlebot_msgs::msg::SensorData>("sensor_data", 10);
     red_joint_state_pub_ = this->create_publisher<sensor_msgs::msg::JointState>("joint_states", 10);
+    red_path_pub_ = this->create_publisher<nav_msgs::msg::Path>("path", 10);
 
     // Define the Subscribers:
     red_wheel_cmd_sub_ = this->create_subscription<nuturtlebot_msgs::msg::WheelCommands>(
@@ -133,6 +135,8 @@ private:
     wheel_config_.theta_r += right_wheel_vel;
     diff_drive_.forward_kinematics(wheel_config_);
 
+    // 
+
     // We then update the transform of the robot
     update_transform(
       diff_drive_.get_configuration().x,
@@ -163,6 +167,9 @@ private:
     update_js();
     red_joint_state_pub_->publish(joint_state_msg_);
 
+    update_path();
+    red_path_pub_->publish(path_msg_);
+
     visualization_msgs::msg::MarkerArray marker_walls_array_;
 
     for (int i = 0; i < 4; ++i) {
@@ -187,10 +194,10 @@ private:
         marker.scale.z = 0.25;
         if (i == 0) {
           marker.pose.position.y = 0.0;
-          marker.pose.position.x = -arena_x_length_ / 2 - dh_ / 2;
+          marker.pose.position.x = -arena_x_length_ / 2.0 - dh_ / 2.0;
         } else {
           marker.pose.position.y = 0.0;
-          marker.pose.position.x = arena_x_length_ / 2 + dh_ / 2;
+          marker.pose.position.x = arena_x_length_ / 2.0 + dh_ / 2.0;
         }
       } else if (i == 2 || i == 3) {
         marker.color.r = 1;
@@ -203,10 +210,10 @@ private:
         marker.scale.z = 0.25;
 
         if (i == 2) {
-          marker.pose.position.y = arena_y_length_ / 2 + dh_ / 2;
+          marker.pose.position.y = arena_y_length_ / 2.0 + dh_ / 2.0;
           marker.pose.position.x = 0.0;
         } else {
-          marker.pose.position.y = -arena_y_length_ / 2 - dh_ / 2;
+          marker.pose.position.y = -arena_y_length_ / 2.0 - dh_ / 2.0;
           marker.pose.position.x = 0.0;
         }
       }
@@ -280,7 +287,6 @@ private:
     } catch (const std::out_of_range & oor) {joint_state_msg_.position = {0.0, 0.0};}
 
   }
-
   void update_js(double left_vel, double right_vel)
   {
     joint_state_msg_.header.stamp = this->get_clock()->now();
@@ -318,12 +324,31 @@ private:
     transformStamped_.child_frame_id = "red/base_footprint";
   }
 
+  void update_path()
+  {
+    path_msg_.header.stamp = this->get_clock()->now();
+    path_msg_.header.frame_id = "nusim/world";
+    geometry_msgs::msg::PoseStamped pose;
+    pose.header.stamp = this->get_clock()->now();
+    pose.header.frame_id = "nusim/world";
+    pose.pose.position.x = diff_drive_.get_configuration().x;
+    pose.pose.position.y = diff_drive_.get_configuration().y;
+    pose.pose.position.z = 0.0;
+    tf2::Quaternion q;
+    q.setRPY(0, 0, diff_drive_.get_configuration().theta);
+    pose.pose.orientation.x = q.x();
+    pose.pose.orientation.y = q.y();
+    pose.pose.orientation.z = q.z();
+    pose.pose.orientation.w = q.w();
+    path_msg_.poses.push_back(pose);
+  }
   // Initalize Publishers:
   rclcpp::Publisher<std_msgs::msg::UInt64>::SharedPtr publisher_;
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr marker_pub_;
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr marker_obs_pub_;
   rclcpp::Publisher<nuturtlebot_msgs::msg::SensorData>::SharedPtr red_sensor_pub_;
   rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr red_joint_state_pub_;
+  rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr red_path_pub_;
 
   // Initialize Services:
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr reset_srv_; // Use the correct service type
@@ -345,6 +370,7 @@ private:
   std_msgs::msg::UInt64 msg_;
   nuturtlebot_msgs::msg::SensorData sensor_msg_;
   sensor_msgs::msg::JointState joint_state_msg_;
+  nav_msgs::msg::Path path_msg_;
 
   // Initialize Variables:
   double time_ = 0.0;
