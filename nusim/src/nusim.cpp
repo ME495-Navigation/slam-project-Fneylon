@@ -104,6 +104,10 @@ public:
     red_joint_state_pub_ = this->create_publisher<sensor_msgs::msg::JointState>("joint_states", 10);
     red_path_pub_ = this->create_publisher<nav_msgs::msg::Path>("path", 10);
 
+    marker_dist_pub_ = this->create_publisher<visualization_msgs::msg::MarkerArray>(
+      "~/marker_distances",
+      marker_qos);
+
     // Define the Subscribers:
     red_wheel_cmd_sub_ = this->create_subscription<nuturtlebot_msgs::msg::WheelCommands>(
       "wheel_cmd", 10,
@@ -157,18 +161,28 @@ private:
     publisher_->publish(msg_);
 
     // Update Transform with the new time and broadcast it
+    // RCLCPP_INFO(this->get_logger(), "Updating Transform");
     update_transform();
     tf_broadcaster_->sendTransform(transformStamped_);
 
     // Update Sensor Data
+    // RCLCPP_INFO(this->get_logger(), "Updating Sensor Data");
     red_sensor_pub_->publish(sensor_msg_);
 
     // Update Joint States
+    // RCLCPP_INFO(this->get_logger(), "Updating Joint States");
     update_js();
     red_joint_state_pub_->publish(joint_state_msg_);
 
+    // Update Path
+    // RCLCPP_INFO(this->get_logger(), "Updating Path");
     update_path();
     red_path_pub_->publish(path_msg_);
+
+    // Update Markers
+    // RCLCPP_INFO(this->get_logger(), "Updating Text Markers");
+    visualization_msgs::msg::MarkerArray marker_dist_array = update_dist_text();
+    marker_dist_pub_->publish(marker_dist_array);
 
     visualization_msgs::msg::MarkerArray marker_walls_array_;
 
@@ -342,6 +356,72 @@ private:
     pose.pose.orientation.w = q.w();
     path_msg_.poses.push_back(pose);
   }
+  
+  visualization_msgs::msg::MarkerArray update_dist_text(){
+    // This will be used to update and publish text messages in rviz denoting how far the robot is away from each obstacle in each direction
+    visualization_msgs::msg::MarkerArray marker_dist_array_;
+    visualization_msgs::msg::Marker obs_dist_1;
+    visualization_msgs::msg::Marker obs_dist_2;
+    visualization_msgs::msg::Marker obs_dist_3;
+    // marker_dist_array_.markers.resize(3);
+
+    obs_dist_1.header.frame_id = "nusim/world";
+    obs_dist_1.ns = "obstacle1_distance";
+    obs_dist_1.id = 11;
+    obs_dist_1.type = visualization_msgs::msg::Marker::TEXT_VIEW_FACING;
+    obs_dist_1.action = visualization_msgs::msg::Marker::ADD;
+    obs_dist_1.pose.position.x = x_obstacles_[0];
+    obs_dist_1.pose.position.y = y_obstacles_[0];
+    obs_dist_1.pose.position.z = 0.25;
+    obs_dist_1.scale.z = 0.25;
+    obs_dist_1.color.r = 0.0;
+    obs_dist_1.color.g = 1.0;
+    obs_dist_1.color.b = 1.0;
+    obs_dist_1.text = "TEST";
+    // obs_dist_1.text = "x: " + std::to_string(abs(diff_drive_.get_configuration().x - x_obstacles_[0])) + " y: " + std::to_string(abs(diff_drive_.get_configuration().y - y_obstacles_[0]));
+
+    obs_dist_2.header.frame_id = "nusim/world";
+    obs_dist_2.ns = "obstacle2_distance";
+    obs_dist_2.id = 12;
+    obs_dist_2.type = visualization_msgs::msg::Marker::TEXT_VIEW_FACING;
+    obs_dist_2.action = visualization_msgs::msg::Marker::ADD;
+    obs_dist_2.pose.position.x = x_obstacles_[1];
+    obs_dist_2.pose.position.y = y_obstacles_[1];
+    obs_dist_2.pose.position.z = 0.25;
+    obs_dist_2.scale.z = 0.5;
+    obs_dist_2.color.r = 0.0;
+    obs_dist_2.color.g = 1.0;
+    obs_dist_2.color.b = 1.0;
+    obs_dist_2.text = "TEST";
+    // obs_dist_2.text = "x: " + std::to_string(abs(diff_drive_.get_configuration().x - x_obstacles_[1])) + " y: " + std::to_string(abs(diff_drive_.get_configuration().y - y_obstacles_[1]));
+
+    obs_dist_3.header.frame_id = "nusim/world";
+    obs_dist_3.ns = "obstacle3_distance";
+    obs_dist_3.id = 13;
+    obs_dist_3.type = visualization_msgs::msg::Marker::TEXT_VIEW_FACING;
+    obs_dist_3.action = visualization_msgs::msg::Marker::ADD;
+    obs_dist_3.pose.position.x = x_obstacles_[2];
+    obs_dist_3.pose.position.y = y_obstacles_[2];
+    obs_dist_3.scale.z = 0.25;
+    obs_dist_3.scale.z = 0.5;
+    obs_dist_3.color.r = 0.0;
+    obs_dist_3.color.g = 1.0;
+    obs_dist_3.color.b = 1.0;
+    obs_dist_3.text = "TEST";
+    // obs_dist_3.text = "x: " + std::to_string(abs(diff_drive_.get_configuration().x - x_obstacles_[2])) + " y: " + std::to_string(abs(diff_drive_.get_configuration().y - y_obstacles_[2]));
+
+    // marker_dist_array_.markers.at(0) = obs_dist_1;
+    // marker_dist_array_.markers.at(1) = obs_dist_2;
+    // marker_dist_array_.markers.at(2) = obs_dist_3;
+
+    marker_dist_array_.markers.push_back(obs_dist_1);
+    marker_dist_array_.markers.push_back(obs_dist_2);
+    marker_dist_array_.markers.push_back(obs_dist_3);
+
+    return marker_dist_array_;
+  }
+  
+  
   // Initalize Publishers:
   rclcpp::Publisher<std_msgs::msg::UInt64>::SharedPtr publisher_;
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr marker_pub_;
@@ -349,6 +429,7 @@ private:
   rclcpp::Publisher<nuturtlebot_msgs::msg::SensorData>::SharedPtr red_sensor_pub_;
   rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr red_joint_state_pub_;
   rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr red_path_pub_;
+  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr marker_dist_pub_;
 
   // Initialize Services:
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr reset_srv_; // Use the correct service type
@@ -371,6 +452,9 @@ private:
   nuturtlebot_msgs::msg::SensorData sensor_msg_;
   sensor_msgs::msg::JointState joint_state_msg_;
   nav_msgs::msg::Path path_msg_;
+  
+  
+
 
   // Initialize Variables:
   double time_ = 0.0;
