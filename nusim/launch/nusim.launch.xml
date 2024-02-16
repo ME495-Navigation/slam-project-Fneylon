@@ -3,6 +3,7 @@
 <arg name="config_file" default="$(find-pkg-share nusim)/config/basic_world.yaml"/>
 <node pkg="nusim" exec="nusim_node" name="nusim" output="screen">
     <param from="$(var config_file)"/>
+    <param from="$(find-pkg-share nuturtle_description)/config/diff_params.yaml"/>
     <!-- <arg name="rate" default= "200.0"/>
     <arg name="x0" default= "0.0"/>
     <arg name="y0" default= "0.0"/>

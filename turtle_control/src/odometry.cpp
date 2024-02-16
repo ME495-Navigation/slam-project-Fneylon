@@ -19,6 +19,7 @@
 #include <nav_msgs/msg/odometry.hpp>
 #include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
 #include <geometry_msgs/msg/pose_stamped.hpp>
+#include <nav_msgs/msg/path.hpp>
 #include "turtle_control/srv/initial_pose.hpp"
 
 using namespace std::chrono_literals;
@@ -77,7 +78,7 @@ public:
 
     // Define Publishers:
     odom_pub_ = this->create_publisher<nav_msgs::msg::Odometry>("/odom", 10);
-
+    odom_path_pub_ = this->create_publisher<nav_msgs::msg::Path>("/odom_path", 10);
 
     // Define Subscribers:
     joint_state_sub_ = this->create_subscription<sensor_msgs::msg::JointState>(
@@ -104,7 +105,8 @@ private:
   {
     config_ = diff_drive_.get_configuration();
     set_odom_msg(config_.x, config_.y, config_.theta);
-    // RCLCPP_INFO(this->get_logger(), "Odom Msg timer! x: %f y: %f theta: %f", config_.x, config_.y, config_.theta);
+    update_odom_path();
+    odom_path_pub_->publish(odom_path_);
     odom_pub_->publish(odom_msg_);
 
 
@@ -117,17 +119,35 @@ private:
     const std::shared_ptr<turtle_control::srv::InitialPose::Request> request,
     std::shared_ptr<turtle_control::srv::InitialPose::Response>)
   {
-    // Send back the current configuration
-    // RCLCPP_INFO(this->get_logger(), "initial_pose_callback!");
     diff_drive_.set_configuration(request->x, request->y, request->theta);
 
     config_ = diff_drive_.get_configuration();
 
     set_odom_msg(config_.x, config_.y, config_.theta);
-    // odom_pub_->publish(odom_msg_);
+    update_odom_path();
+    odom_path_pub_->publish(odom_path_);
 
     set_transform(config_.x, config_.y, config_.theta);
     // odom_broadcaster_->sendTransform(transformStamped_);
+  }
+
+  void update_odom_path()
+  {
+    // nav_msgs::msg::Path odom_path;
+    odom_path_.header.stamp = this->now();
+    odom_path_.header.frame_id = odom_id_;
+    geometry_msgs::msg::PoseStamped pose;
+    pose.header.stamp = this->now();
+    pose.header.frame_id = odom_id_;
+    pose.pose.position.x = odom_msg_.pose.pose.position.x;
+    pose.pose.position.y = odom_msg_.pose.pose.position.y;
+    pose.pose.position.z = 0.0;
+    pose.pose.orientation.x = odom_msg_.pose.pose.orientation.x;
+    pose.pose.orientation.y = odom_msg_.pose.pose.orientation.y;
+    pose.pose.orientation.z = odom_msg_.pose.pose.orientation.z;
+    pose.pose.orientation.w = odom_msg_.pose.pose.orientation.w;
+    odom_path_.poses.push_back(pose);
+    odom_path_pub_->publish(odom_path_);
   }
 
   void joint_state_callback(const sensor_msgs::msg::JointState::SharedPtr msg)
@@ -191,6 +211,7 @@ private:
 
   // Initalize Publishers:
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub_;
+  rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr odom_path_pub_;
 
   // Initialize Subscribers:
   rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_state_sub_;
@@ -214,6 +235,7 @@ private:
   geometry_msgs::msg::TransformStamped transformStamped_;
   turtlelib::Configuration2D config_;
   nav_msgs::msg::Odometry odom_msg_;
+  nav_msgs::msg::Path odom_path_;
 
   std::string body_id_;
   std::string odom_id_;

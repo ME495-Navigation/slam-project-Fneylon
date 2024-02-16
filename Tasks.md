@@ -60,7 +60,7 @@
  - [x] F.1 Turtlebot Setup 
  - [x] F.2 Cross-compliation 
  - [x] F.3 Physical Testing
- - [ ] F.4 Laser Scanner
+ - [x] F.4 Laser Scanner
 
  #### Task L: SLAM
  - [ ] L.1 Main SLAM Results
