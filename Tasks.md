@@ -33,8 +33,8 @@
 - [x] Task C.6 nusim launch
 - [x] Task C.7 README
 - [x] Task C.8 Turtle Drive
-- [ ] Task C.9 Robot Position
-- [ ] Task C.10 Basic Sensor
+- [x] Task C.9 Robot Position
+- [x] Task C.10 Basic Sensor
 - [ ] Task C.11 Collision Detection
 - [ ] Task C.12 Lidar
 

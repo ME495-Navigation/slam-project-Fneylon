@@ -34,6 +34,12 @@ public:
     this->declare_parameter("rate", 200.0);
     rate_ = this->get_parameter("rate").as_double();
 
+    this->declare_parameter("basic_sensor_variance", 0.05);
+    basic_sensor_variance_ = this->get_parameter("basic_sensor_variance").as_double();
+
+    this->declare_parameter("max_range", 1.0);
+    max_radius_ = this->get_parameter("max_range").as_double();
+
     this->declare_parameter("input_noise", 5.0);
     input_noise_ = this->get_parameter("input_noise").as_double();
 
@@ -112,6 +118,8 @@ public:
     red_joint_state_pub_ = this->create_publisher<sensor_msgs::msg::JointState>("joint_states", 10);
     red_path_pub_ = this->create_publisher<nav_msgs::msg::Path>("path", 10);
 
+    fake_obs_pub_ = this->create_publisher<visualization_msgs::msg::MarkerArray>("/fake_obstacles", 10);
+
     // Define the Subscribers:
     red_wheel_cmd_sub_ = this->create_subscription<nuturtlebot_msgs::msg::WheelCommands>(
       "wheel_cmd", 10,
@@ -130,68 +138,63 @@ public:
   }
 
 private:
-  void red_wheel_cmd_callback(const nuturtlebot_msgs::msg::WheelCommands::SharedPtr msg)
-  {
-    // We take in wheel commands which are in mcu and we need to convert them to rad/s which are actually positions for some reason
-    double left_wheel_cmd = double(msg->left_velocity) * motor_cmd_per_rad_sec_;
-    double right_wheel_cmd = double(msg->right_velocity) * motor_cmd_per_rad_sec_ ;
 
-    double vl = 0.0;
-    double vr = 0.0;
-    // We then add noise to the wheel commands
-    std::normal_distribution<double> norm_distribution_(0.0, input_noise_);
-    std::uniform_real_distribution<double> uniform_distribution_(-slip_fraction_, slip_fraction_);
-    if (turtlelib::almost_equal(left_wheel_cmd, 0.0, 1e-6)){
+  // double calc_distance(double x, double y){
+  //   dx = fabs(diff_drive_.get_configuration().x - x);
+  //   dy = fabs(diff_drive_.get_configuration().y - y);
+  //   double dist = sqrt(pow(dx, 2) + pow(dy, 2));
 
-      vl = 0.0;
-    } else {
-      vl = left_wheel_cmd + norm_distribution_(generator_);
-
-      // left_wheel_cmd = left_wheel_cmd + input_noise_ * left_wheel_cmd;
-    }
-
-    if (turtlelib::almost_equal(right_wheel_cmd, 0.0, 1e-6)){
-
-      vr = 0.0;
-    } else {
-      vr = right_wheel_cmd + norm_distribution_(generator_);
-    }
-
-    double left_wheel_vel = vl  / rate_;
-    double right_wheel_vel = vr / rate_;
-
-    left_encoder_ = left_encoder_ + left_wheel_vel * encorder_ticks_per_rad_;
-    right_encoder_ = right_encoder_ + right_wheel_vel * encorder_ticks_per_rad_;
-    update_sensor_data(left_encoder_, right_encoder_);
-
-
-    // We then need to add slip
-    left_wheel_vel = vl * (1.0 + uniform_distribution_(generator_));
-    right_wheel_vel = vr * (1.0 + uniform_distribution_(generator_));
-  
-    wheel_config_.theta_l = wheel_config_.theta_l + left_wheel_vel / rate_;
-    wheel_config_.theta_r = wheel_config_.theta_r + right_wheel_vel /  rate_;
-    diff_drive_.forward_kinematics(wheel_config_);
-
-    // We then update the transform of the robot
-    update_transform(
-      diff_drive_.get_configuration().x,
-      diff_drive_.get_configuration().y, diff_drive_.get_configuration().theta);
-
-
-    // Update Joint States
-    sensor_msgs::msg::JointState joint_state_msg_;
-    update_js(wheel_config_.theta_l, wheel_config_.theta_r);
-
-
-
-
-  }
+  //   return dist;
+  // }
   void timer_callback()
   {
     time_ += 1.0 / rate_;
     msg_.data = (time_) * 1e3;
     publisher_->publish(msg_);
+    std::normal_distribution<double> obs_norm_distribution_(0.0, basic_sensor_variance_);
+
+    if (turtlelib::almost_equal((time_ - time0_), 0.2, 1e-6)) {
+      time0_ = time_;
+
+      // Publish and update the fake markers 
+      visualization_msgs::msg::MarkerArray fake_obs_array_;
+      for (int i = 0; i < int(x_obstacles_.size()); ++i) {
+        visualization_msgs::msg::Marker marker;
+        marker.header.frame_id = "nusim/world";
+        marker.ns = "fake_obstacle" + std::to_string(i);
+        marker.id = i*10;
+        marker.type = visualization_msgs::msg::Marker::CYLINDER;
+        marker.pose.orientation.x = 1.0;
+        marker.pose.orientation.y = 0.0;
+        marker.pose.orientation.z = 0.0;
+        marker.pose.orientation.w = 0.0;
+        marker.pose.position.x = x_obstacles_[i] + obs_norm_distribution_(generator_);
+        marker.pose.position.y = y_obstacles_[i] + obs_norm_distribution_(generator_);
+        marker.pose.position.z = 0.0;
+        marker.color.r = 1;
+        marker.color.g = 1;
+        marker.color.b = 0;
+        marker.color.a = 1.0;
+        marker.scale.x = radius_;
+        marker.scale.y = radius_;
+        marker.scale.z = 0.25;
+        // dist_ = calc_distance(marker.pose.position.x, marker.pose.position.y);
+        double dx = fabs(diff_drive_.get_configuration().x - x_obstacles_[i] + obs_norm_distribution_(generator_));
+        double dy = fabs(diff_drive_.get_configuration().y -  y_obstacles_[i] + obs_norm_distribution_(generator_));
+        dist_ = sqrt(pow(dx, 2) + pow(dy, 2));
+        if (dist_ < max_radius_){
+          marker.action = visualization_msgs::msg::Marker::ADD;
+
+
+          fake_obs_array_.markers.push_back(marker);
+        } else {
+          marker.action = visualization_msgs::msg::Marker::DELETE;
+          fake_obs_array_.markers.push_back(marker);
+        }
+      fake_obs_pub_->publish(fake_obs_array_);
+        
+      }
+    }
 
     // Update Transform with the new time and broadcast it
     // RCLCPP_INFO(this->get_logger(), "Updating Transform");
@@ -211,11 +214,6 @@ private:
     // RCLCPP_INFO(this->get_logger(), "Updating Path");
     update_red_path();
     red_path_pub_->publish(path_msg_);
-
-    // Update Markers
-    // RCLCPP_INFO(this->get_logger(), "Updating Text Markers");
-    // visualization_msgs::msg::MarkerArray marker_dist_array = update_dist_text();
-    // marker_dist_pub_->publish(marker_dist_array);
 
     visualization_msgs::msg::MarkerArray marker_walls_array_;
 
@@ -301,7 +299,7 @@ private:
       RCLCPP_INFO(this->get_logger(), "Obstacle x and y vectors are not the same size!");
       rclcpp::shutdown();
     }
-  }
+}
 
   void reset_callback(
     const std::shared_ptr<std_srvs::srv::Empty::Request>,
@@ -322,6 +320,63 @@ private:
     tf_broadcaster_->sendTransform(transformStamped_);
   }
 
+
+  void red_wheel_cmd_callback(const nuturtlebot_msgs::msg::WheelCommands::SharedPtr msg)
+  {
+    // We take in wheel commands which are in mcu and we need to convert them to rad/s which are actually positions for some reason
+    double left_wheel_cmd = double(msg->left_velocity) * motor_cmd_per_rad_sec_;
+    double right_wheel_cmd = double(msg->right_velocity) * motor_cmd_per_rad_sec_ ;
+
+    double vl = 0.0;
+    double vr = 0.0;
+    // We then add noise to the wheel commands
+    std::normal_distribution<double> norm_distribution_(0.0, input_noise_);
+    std::uniform_real_distribution<double> uniform_distribution_(-slip_fraction_, slip_fraction_);
+    if (turtlelib::almost_equal(left_wheel_cmd, 0.0, 1e-6)){
+
+      vl = 0.0;
+    } else {
+      vl = left_wheel_cmd + norm_distribution_(generator_);
+
+      // left_wheel_cmd = left_wheel_cmd + input_noise_ * left_wheel_cmd;
+    }
+
+    if (turtlelib::almost_equal(right_wheel_cmd, 0.0, 1e-6)){
+
+      vr = 0.0;
+    } else {
+      vr = right_wheel_cmd + norm_distribution_(generator_);
+    }
+
+    double left_wheel_vel = vl  / rate_;
+    double right_wheel_vel = vr / rate_;
+
+    left_encoder_ = left_encoder_ + left_wheel_vel * encorder_ticks_per_rad_;
+    right_encoder_ = right_encoder_ + right_wheel_vel * encorder_ticks_per_rad_;
+    update_sensor_data(left_encoder_, right_encoder_);
+
+
+    // We then need to add slip
+    left_wheel_vel = vl * (1.0 + uniform_distribution_(generator_));
+    right_wheel_vel = vr * (1.0 + uniform_distribution_(generator_));
+  
+    wheel_config_.theta_l = wheel_config_.theta_l + left_wheel_vel / rate_;
+    wheel_config_.theta_r = wheel_config_.theta_r + right_wheel_vel /  rate_;
+    diff_drive_.forward_kinematics(wheel_config_);
+
+    // We then update the transform of the robot
+    update_transform(
+      diff_drive_.get_configuration().x,
+      diff_drive_.get_configuration().y, diff_drive_.get_configuration().theta);
+
+
+    // Update Joint States
+    sensor_msgs::msg::JointState joint_state_msg_;
+    update_js(wheel_config_.theta_l, wheel_config_.theta_r);
+
+
+  }
+  
   void update_js()
   {
     joint_state_msg_.header.stamp = this->get_clock()->now();
@@ -394,9 +449,6 @@ private:
     path_msg_.poses.push_back(pose);
   }
   
-  
-  
-  
   // Initalize Publishers:
   rclcpp::Publisher<std_msgs::msg::UInt64>::SharedPtr publisher_;
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr marker_pub_;
@@ -404,8 +456,7 @@ private:
   rclcpp::Publisher<nuturtlebot_msgs::msg::SensorData>::SharedPtr red_sensor_pub_;
   rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr red_joint_state_pub_;
   rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr red_path_pub_;
-  // rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr blue_path_pub_;
-  // rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr marker_dist_pub_;
+  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr fake_obs_pub_;
 
   // Initialize Services:
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr reset_srv_; // Use the correct service type
@@ -416,11 +467,11 @@ private:
 
   // Initialize Subscribers:
   rclcpp::Subscription<nuturtlebot_msgs::msg::WheelCommands>::SharedPtr red_wheel_cmd_sub_;
-  // rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
 
   // Initialize Timers:
   rclcpp::TimerBase::SharedPtr timer_;
 
+  // Initialize the DiffDrive Object:
   turtlelib::DiffDrive diff_drive_;
 
   // Initlaize Messages:
@@ -430,11 +481,12 @@ private:
   sensor_msgs::msg::JointState joint_state_msg_;
   nav_msgs::msg::Path path_msg_;
   nav_msgs::msg::Path blue_path_msg_;
-  // geometry_msgs::msg::PoseStamped pose_msg_;
   
-
   // Initialize Variables:
+  std::vector<double> x_obstacles_;
+  std::vector<double> y_obstacles_;
   double time_ = 0.0;
+  double time0_ = 0.0;
   double rate_;
   double x0_;
   double y0_;
@@ -442,8 +494,6 @@ private:
   double arena_x_length_;
   double arena_y_length_;
   double dh_ = 0.1;
-  std::vector<double> x_obstacles_;
-  std::vector<double> y_obstacles_;
   double radius_;
   double wheel_radius_;
   double track_width_;
@@ -454,9 +504,11 @@ private:
   double right_encoder_ = 0.0;
   double input_noise_;
   double slip_fraction_;
+  double basic_sensor_variance_;
+  double max_radius_;
+  double dist_;
 
   turtlelib::WheelConfiguration wheel_config_; // wheel positions that are used to update the pose of the robot
-
 
   // Initailize the distributions for the noise
   std::default_random_engine generator_;
