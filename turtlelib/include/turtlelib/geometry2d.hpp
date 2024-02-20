@@ -205,7 +205,7 @@ namespace turtlelib
     // /// \param mag - the magnitude of the vector
     // /// \return the magnitude of v
     // Vector2D operator*(const Vector2D & v, double mag);
-    // Vector2D normalize(const Vector2D & v);
+    Vector2D normalize(const Vector2D & v);
 
 }
 

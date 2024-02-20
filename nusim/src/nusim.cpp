@@ -96,6 +96,13 @@ public:
       rclcpp::shutdown();
     }
 
+    this->declare_parameter("collision_radius", -1.0);
+    coll_radius_ = this->get_parameter("collision_radius").as_double();
+    if (coll_radius_ <= 0.0) {
+      RCLCPP_ERROR(this->get_logger(), "collision_radius must be greater than 0.0");
+      rclcpp::shutdown();
+    }
+
     diff_drive_ = turtlelib::DiffDrive(wheel_radius_, track_width_);
     wheel_config_.theta_l = 0.0;
     wheel_config_.theta_r = 0.0;
@@ -145,6 +152,7 @@ private:
     msg_.data = (time_) * 1e3;
     publisher_->publish(msg_);
 
+    // Create the Fake Sensor Noise
     std::normal_distribution<double> obs_norm_distribution_(0.0, basic_sensor_variance_);
     if (turtlelib::almost_equal((time_ - time0_), 0.2, 1e-6)) {
       time0_ = time_;
@@ -167,8 +175,8 @@ private:
         marker.color.g = 1;
         marker.color.b = 0;
         marker.color.a = 1.0;
-        marker.scale.x = radius_;
-        marker.scale.y = radius_;
+        marker.scale.x = radius_*2.0;
+        marker.scale.y = radius_*2.0;
         marker.scale.z = 0.25;
         // dist_ = calc_distance(marker.pose.position.x, marker.pose.position.y);
         double dx = fabs(diff_drive_.get_configuration().x - x_obstacles_[i] + obs_norm_distribution_(generator_));
@@ -275,8 +283,8 @@ private:
         marker.color.g = 0;
         marker.color.b = 0;
         marker.color.a = 1.0;
-        marker.scale.x = radius_;
-        marker.scale.y = radius_;
+        marker.scale.x = radius_ * 2.0;
+        marker.scale.y = radius_ * 2.0;
         marker.scale.z = 0.25;
         marker.pose.position.x = x_obstacles_[i];
         marker.pose.position.y = y_obstacles_[i];
@@ -354,18 +362,56 @@ private:
     wheel_config_.theta_r = wheel_config_.theta_r + right_wheel_vel /  rate_;
     diff_drive_.forward_kinematics(wheel_config_);
 
+    // Update Joint States
+    sensor_msgs::msg::JointState joint_state_msg_;
+    update_js(wheel_config_.theta_l, wheel_config_.theta_r);
+
+    turtlelib::Configuration2D config = diff_drive_.get_configuration();
+    is_in_collision(config);
+
+
+
     // We then update the transform of the robot
     update_transform(
       diff_drive_.get_configuration().x,
       diff_drive_.get_configuration().y, diff_drive_.get_configuration().theta);
 
+  }
 
-    // Update Joint States
-    sensor_msgs::msg::JointState joint_state_msg_;
-    update_js(wheel_config_.theta_l, wheel_config_.theta_r);
+  void is_in_collision(turtlelib::Configuration2D config)
+  {
+    int count = 0;
+    // RCLCPP_INFO_STREAM(this->get_logger(), "num obstacles: " << x_obstacles_.size());
+    for (int i = 0; i < int(x_obstacles_.size()); i++) {
 
+      auto dx = config.x - x_obstacles_.at(i);
+      auto dy = config.y - y_obstacles_.at(i);
+      auto dist = std::sqrt(std::pow(dx, 2) + std::pow(dy, 2));
+
+
+      if (dist <= (coll_radius_ + radius_)) {
+
+        // Compute the Line between the robot center and the obstacle
+        turtlelib::Vector2D center_line;
+        center_line.x = x_obstacles_.at(i) - config.x;
+        center_line.y = y_obstacles_.at(i) - config.y;
+
+        auto unit_vec = turtlelib::normalize(center_line);
+
+        auto new_x = config.x - unit_vec.x * (coll_radius_ + radius_);
+        auto new_y = config.y - unit_vec.y * (coll_radius_ + radius_);
+
+        diff_drive_.set_configuration(new_x, new_y, config.theta);
+
+      } else {
+        count = count;
+      }
+
+      
+    }
 
   }
+
   
   void update_js()
   {
@@ -497,6 +543,7 @@ private:
   double basic_sensor_variance_;
   double max_radius_;
   double dist_;
+  double coll_radius_;
 
   turtlelib::WheelConfiguration wheel_config_; // wheel positions that are used to update the pose of the robot
 
