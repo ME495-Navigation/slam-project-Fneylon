@@ -139,23 +139,15 @@ public:
 
 private:
 
-  // double calc_distance(double x, double y){
-  //   dx = fabs(diff_drive_.get_configuration().x - x);
-  //   dy = fabs(diff_drive_.get_configuration().y - y);
-  //   double dist = sqrt(pow(dx, 2) + pow(dy, 2));
-
-  //   return dist;
-  // }
   void timer_callback()
   {
     time_ += 1.0 / rate_;
     msg_.data = (time_) * 1e3;
     publisher_->publish(msg_);
-    std::normal_distribution<double> obs_norm_distribution_(0.0, basic_sensor_variance_);
 
+    std::normal_distribution<double> obs_norm_distribution_(0.0, basic_sensor_variance_);
     if (turtlelib::almost_equal((time_ - time0_), 0.2, 1e-6)) {
       time0_ = time_;
-
       // Publish and update the fake markers 
       visualization_msgs::msg::MarkerArray fake_obs_array_;
       for (int i = 0; i < int(x_obstacles_.size()); ++i) {
@@ -184,8 +176,6 @@ private:
         dist_ = sqrt(pow(dx, 2) + pow(dy, 2));
         if (dist_ < max_radius_){
           marker.action = visualization_msgs::msg::Marker::ADD;
-
-
           fake_obs_array_.markers.push_back(marker);
         } else {
           marker.action = visualization_msgs::msg::Marker::DELETE;
