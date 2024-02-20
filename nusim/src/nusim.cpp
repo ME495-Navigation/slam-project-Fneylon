@@ -3,6 +3,8 @@
 #include <memory>
 #include <string>
 #include <sstream>
+#include <random>
+#include <tuple>
 #include "std_msgs/msg/u_int64.hpp"
 #include "std_srvs/srv/empty.hpp"
 #include "geometry_msgs/msg/transform_stamped.hpp"
@@ -31,6 +33,12 @@ public:
     // Declare parameters
     this->declare_parameter("rate", 200.0);
     rate_ = this->get_parameter("rate").as_double();
+
+    this->declare_parameter("input_noise", 5.0);
+    input_noise_ = this->get_parameter("input_noise").as_double();
+
+    this->declare_parameter("slip_fraction", 0.5);
+    slip_fraction_ = this->get_parameter("slip_fraction").as_double();
 
     this->declare_parameter("x0", 0.0);
     x0_ = this->get_parameter("x0").as_double();
@@ -103,11 +111,6 @@ public:
     red_sensor_pub_ = this->create_publisher<nuturtlebot_msgs::msg::SensorData>("sensor_data", 10);
     red_joint_state_pub_ = this->create_publisher<sensor_msgs::msg::JointState>("joint_states", 10);
     red_path_pub_ = this->create_publisher<nav_msgs::msg::Path>("path", 10);
-    // blue_path_pub_ = this->create_publisher<nav_msgs::msg::Path>("blue_path", 10);
-
-    // marker_dist_pub_ = this->create_publisher<visualization_msgs::msg::MarkerArray>(
-    //   "~/marker_distances",
-    //   marker_qos);
 
     // Define the Subscribers:
     red_wheel_cmd_sub_ = this->create_subscription<nuturtlebot_msgs::msg::WheelCommands>(
@@ -130,33 +133,60 @@ private:
   void red_wheel_cmd_callback(const nuturtlebot_msgs::msg::WheelCommands::SharedPtr msg)
   {
     // We take in wheel commands which are in mcu and we need to convert them to rad/s which are actually positions for some reason
-    double left_wheel_cmd = double(msg->left_velocity);
-    double right_wheel_cmd = double(msg->right_velocity);
+    double left_wheel_cmd = double(msg->left_velocity) * motor_cmd_per_rad_sec_;
+    double right_wheel_cmd = double(msg->right_velocity) * motor_cmd_per_rad_sec_ ;
 
-    double left_wheel_vel = left_wheel_cmd * motor_cmd_per_rad_sec_ / rate_;
-    double right_wheel_vel = right_wheel_cmd * motor_cmd_per_rad_sec_ / rate_;
+    double vl = 0.0;
+    double vr = 0.0;
+    // We then add noise to the wheel commands
+    std::normal_distribution<double> norm_distribution_(0.0, input_noise_);
+    std::uniform_real_distribution<double> uniform_distribution_(-slip_fraction_, slip_fraction_);
+    if (turtlelib::almost_equal(left_wheel_cmd, 0.0, 1e-6)){
 
-    wheel_config_.theta_l += left_wheel_vel;
-    wheel_config_.theta_r += right_wheel_vel;
+      vl = 0.0;
+    } else {
+      vl = left_wheel_cmd + norm_distribution_(generator_);
+
+      // left_wheel_cmd = left_wheel_cmd + input_noise_ * left_wheel_cmd;
+    }
+
+    if (turtlelib::almost_equal(right_wheel_cmd, 0.0, 1e-6)){
+
+      vr = 0.0;
+    } else {
+      vr = right_wheel_cmd + norm_distribution_(generator_);
+    }
+
+    double left_wheel_vel = vl  / rate_;
+    double right_wheel_vel = vr / rate_;
+
+    left_encoder_ = left_encoder_ + left_wheel_vel * encorder_ticks_per_rad_;
+    right_encoder_ = right_encoder_ + right_wheel_vel * encorder_ticks_per_rad_;
+    update_sensor_data(left_encoder_, right_encoder_);
+
+
+    // We then need to add slip
+    left_wheel_vel = vl * (1.0 + uniform_distribution_(generator_));
+    right_wheel_vel = vr * (1.0 + uniform_distribution_(generator_));
+  
+    wheel_config_.theta_l = wheel_config_.theta_l + left_wheel_vel / rate_;
+    wheel_config_.theta_r = wheel_config_.theta_r + right_wheel_vel /  rate_;
     diff_drive_.forward_kinematics(wheel_config_);
-
-    // 
 
     // We then update the transform of the robot
     update_transform(
       diff_drive_.get_configuration().x,
       diff_drive_.get_configuration().y, diff_drive_.get_configuration().theta);
-    left_encoder_ = left_encoder_ + left_wheel_vel * encorder_ticks_per_rad_;
-    right_encoder_ = right_encoder_ + right_wheel_vel * encorder_ticks_per_rad_;
-    update_sensor_data(left_encoder_, right_encoder_);
+
 
     // Update Joint States
     sensor_msgs::msg::JointState joint_state_msg_;
     update_js(wheel_config_.theta_l, wheel_config_.theta_r);
+
+
+
+
   }
-
-
-
   void timer_callback()
   {
     time_ += 1.0 / rate_;
@@ -363,30 +393,6 @@ private:
 
     path_msg_.poses.push_back(pose);
   }
-
-  // void update_blue_path()
-  // {
-  //   blue_path_msg_.header.stamp = this->get_clock()->now();
-  //   blue_path_msg_.header.frame_id = "nusim/world";
-
-  //   geometry_msgs::msg::PoseStamped pose;
-  //   pose.header.stamp = this->get_clock()->now();
-  //   pose.header.frame_id = "nusim/world";
-  //   pose.pose.position.x = 0.0; // TODO: Change this to the odom position
-  //   pose.pose.position.y = 0.0;
-  //   pose.pose.position.z = 0.0;
-
-  //   tf2::Quaternion q;
-  //   q.setRPY(0, 0, 0);
-  //   pose.pose.orientation.x = q.x();
-  //   pose.pose.orientation.y = q.y();
-  //   pose.pose.orientation.z = q.z();
-  //   pose.pose.orientation.w = q.w();
-
-  //   blue_path_msg_.poses.push_back(pose);
-
-
-  // }
   
   
   
@@ -446,10 +452,14 @@ private:
   double encorder_ticks_per_rad_;
   double left_encoder_ = 0.0;
   double right_encoder_ = 0.0;
+  double input_noise_;
+  double slip_fraction_;
 
   turtlelib::WheelConfiguration wheel_config_; // wheel positions that are used to update the pose of the robot
 
 
+  // Initailize the distributions for the noise
+  std::default_random_engine generator_;
 };
 
 
