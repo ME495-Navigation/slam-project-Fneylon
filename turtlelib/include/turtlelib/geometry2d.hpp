@@ -83,6 +83,13 @@ namespace turtlelib
         double y = 0.0;
     };
 
+    /// \brief compute the distance between two points
+    struct LineEquation2D
+    {
+        double m = 0.0;
+        double b = 0.0;
+    };
+
     /// \brief output a 2 dimensional point as [xcomponent ycomponent]
     /// \param os - stream to output to
     /// \param p - the point to print
