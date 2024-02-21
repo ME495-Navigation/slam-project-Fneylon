@@ -337,7 +337,8 @@ private:
 }
 
   void set_laser_msg(){
-    RCLCPP_INFO(this->get_logger(), "Setting Laser Message");
+    
+    // RCLCPP_INFO(this->get_logger(), "Setting Laser Message");
     laser_scan_msg_.ranges.clear();
 
     laser_scan_msg_.header.stamp = this->get_clock()->now();
@@ -356,15 +357,17 @@ private:
     auto x_curr = diff_drive_.get_configuration().x;
     auto y_curr = diff_drive_.get_configuration().y;
 
-    for (int i = 0; i < lidar_num_samps_; i++) {
-      auto gamma = i * lidar_resolution_;
+    // Define the Transform between the world frame and the robot frame (rotation and translation)
+    turtlelib::Transform2D T_w_r;
+    turtlelib::Vector2D v_w_r;
+    v_w_r.x = x_curr;
+    v_w_r.y = y_curr;
+    T_w_r = turtlelib::Transform2D(v_w_r, diff_drive_.get_configuration().theta);
 
-      // Define the Transform between the world frame and the robot frame (rotation and translation)
-      turtlelib::Transform2D T_w_r;
-      turtlelib::Vector2D v_w_r;
-      v_w_r.x = x_curr;
-      v_w_r.y = y_curr;
-      T_w_r = turtlelib::Transform2D(v_w_r, diff_drive_.get_configuration().theta);
+
+    for (int i = 0; i < lidar_num_samps_; i++) {
+      double curr_reading = 2.0*max_range_;
+      auto gamma = i * lidar_resolution_;
 
       // Define the Transform between the robot frame and the lidar frame (just rotation)
       turtlelib::Transform2D T_r_l;
@@ -400,79 +403,96 @@ private:
       // Transform the intersection point to the lidar frame
       turtlelib::Transform2D T_l_i;
       turtlelib::Transform2D T_w_l = T_w_r * T_r_l;
-      T_l_i = (T_w_l.inv()* T_w_i);
+      T_l_i = (T_w_l.inv() * T_w_i);
       // T_l_i = (T_r_l.inv() * T_w_i).inv();
 
-      // auto dist = turtlelib::magnitude(T_i_r.translation());
-      RCLCPP_INFO(this->get_logger(), "Checking Wall 1");
       auto dist = T_l_i.translation().x; // only concerned with x component
-      RCLCPP_INFO_STREAM(this->get_logger(), "Distance: " << dist);
 
       if (dist > 0.0){
-          // RCLCPP_INFO_STREAM(this->get_logger(), "Distance: " << dist);
-        if (dist <= max_range_ && dist >= min_lidar_range_){
-          laser_scan_msg_.ranges.push_back(dist);
-        } else {
-          laser_scan_msg_.ranges.push_back(0.0);
+        if (dist < curr_reading){
+          curr_reading = dist;
         }
       }
 
-
       // Check for intersection with left wall at (-x_length/2, y)
-      x_int = -arena_x_length_ / 2.0 + dh_/2.0;
+      x_int = -arena_x_length_ / 2.0;
       y_int = calc_y_pt(beam, x_int);
 
       // Transform between the robot and the intersection point 
-      // turtlelib::Transform2D T_w_i;
-      // turtlelib::Vector2D v_w_i;
       v_w_i.x = x_int;
       v_w_i.y = y_int;
       T_w_i = turtlelib::Transform2D(v_w_i);
 
       // Transform the intersection point to the lidar frame
-      // turtlelib::Transform2D T_l_i;
+      T_w_l = T_w_r * T_r_l;
+      T_l_i = (T_w_l.inv() * T_w_i);
+
+      dist = T_l_i.translation().x; // only concerned with x component
+
+
+      if (dist > 0.0){
+        if (dist < curr_reading){
+          curr_reading = dist;
+        }
+      } 
+
+      // Check for intersection with top wall at (x, y_length/2)
+      auto y_int_top = arena_y_length_ / 2.0;
+      auto x_int_top = calc_x_pt(beam, y_int_top);
+      
+      // Transform between the robot and the intersection point 
+      v_w_i.x = x_int_top;
+      v_w_i.y = y_int_top;
+      T_w_i = turtlelib::Transform2D(v_w_i);
+
+      // Transform the intersection point to the lidar frame
       T_w_l = T_w_r * T_r_l;
       T_l_i = (T_w_l.inv()* T_w_i);
       // T_l_i = (T_r_l.inv() * T_w_i).inv();
 
       // auto dist = turtlelib::magnitude(T_i_r.translation());
-      RCLCPP_INFO(this->get_logger(), "Checking Wall 2");
+      // RCLCPP_INFO(this->get_logger(), "Checking Wall 2");
       dist = T_l_i.translation().x; // only concerned with x component
-      RCLCPP_INFO_STREAM(this->get_logger(), "Distance: " << dist);
-
+      // RCLCPP_INFO_STREAM(this->get_logger(), "Distance: " << dist);
 
       if (dist > 0.0){
-          // RCLCPP_INFO_STREAM(this->get_logger(), "Distance: " << dist);
-        if (dist <= max_range_ && dist >= min_lidar_range_){
-          laser_scan_msg_.ranges.push_back(dist);
-        } else {
-          laser_scan_msg_.ranges.push_back(0.0);
+        if (dist < curr_reading){
+          curr_reading = dist;
         }
       } 
+    // Check for intersection with bottom wall at (x, -y_length/2)
+      auto y_int_bom = - arena_y_length_ / 2.0;
+      auto x_int_bom = calc_x_pt(beam, y_int_bom);
+      
+      // Transform between the robot and the intersection point 
+      v_w_i.x = x_int_bom;
+      v_w_i.y = y_int_bom;
+      T_w_i = turtlelib::Transform2D(v_w_i);
 
-      // if (dist <= max_range_ && dist >= min_lidar_range_){
-      //   laser_scan_msg_.ranges.push_back(dist);
-      // } else {
-      //   laser_scan_msg_.ranges.push_back(max_range_);
-        
-      // }
+      // Transform the intersection point to the lidar frame
+      T_w_l = T_w_r * T_r_l;
+      T_l_i = (T_w_l.inv()* T_w_i);
+      // T_l_i = (T_r_l.inv() * T_w_i).inv();
 
+      // auto dist = turtlelib::magnitude(T_i_r.translation());
+      // RCLCPP_INFO(this->get_logger(), "Checking Wall 2");
+      dist = T_l_i.translation().x; // only concerned with x component
+      // RCLCPP_INFO_STREAM(this->get_logger(), "Distance: " << dist);
 
-    //   // Check for intersection with top wall at (x, y_length/2)
-    //   auto y_int_top = arena_y_length_ / 2.0;
-    //   auto x_int_top = calc_x_pt(beam, y_int_top);
-    //   dist = std::sqrt(std::pow(x_int_top - x_curr, 2) + std::pow(y_int_top - y_curr, 2));
-    //   if (dist <= max_lidar_range_ && dist >= min_lidar_range_){
-    //     laser_scan_msg_.ranges.push_back(dist);
-    //   }
+      if (dist > 0.0){
+        if (dist < curr_reading){
+          curr_reading = dist;
+        }
+      }
 
-    //   // Check for intersection with bottom wall at (x, -y_length/2)
-    //   auto y_int_bot = -arena_y_length_ / 2.0;
-    //   auto x_int_bot = calc_x_pt(beam, y_int_bot);
-    //   dist = std::sqrt(std::pow(x_int_bot - x_curr, 2) + std::pow(y_int_bot - y_curr, 2));
-    //   if (dist <= max_lidar_range_ && dist >= min_lidar_range_){
-    //     laser_scan_msg_.ranges.push_back(dist);
-    //   }
+      if (curr_reading <= max_range_ && curr_reading >= min_lidar_range_){
+        laser_scan_msg_.ranges.push_back(curr_reading);
+      } else if (curr_reading > max_range_){
+        laser_scan_msg_.ranges.push_back(max_range_);
+      } else if (curr_reading < min_lidar_range_){
+        laser_scan_msg_.ranges.push_back(min_lidar_range_);
+      }
+
     }
   
   }
