@@ -325,7 +325,7 @@ private:
         marker.scale.z = 0.25;
         marker.pose.position.x = x_obstacles_[i];
         marker.pose.position.y = y_obstacles_[i];
-        marker.pose.position.z = 0.0;
+        marker.pose.position.z = 0.25/2;
         marker_obstacles_array_.markers.push_back(marker);
       }
       marker_obs_pub_->publish(marker_obstacles_array_);
@@ -348,9 +348,7 @@ private:
     laser_scan_msg_.angle_min = 0.0;
     laser_scan_msg_.angle_max = 2 * turtlelib::PI;
     laser_scan_msg_.angle_increment = lidar_angle_increment_;
-    // Begin citation [6]
     laser_scan_msg_.time_increment = 0.000559;
-    // End citation [6]
     laser_scan_msg_.scan_time = 0.2; 
 
     // Generate LIDAR Beam
@@ -404,8 +402,6 @@ private:
       turtlelib::Transform2D T_l_i;
       turtlelib::Transform2D T_w_l = T_w_r * T_r_l;
       T_l_i = (T_w_l.inv() * T_w_i);
-      // T_l_i = (T_r_l.inv() * T_w_i).inv();
-
       auto dist = T_l_i.translation().x; // only concerned with x component
 
       if (dist > 0.0){
@@ -426,7 +422,6 @@ private:
       // Transform the intersection point to the lidar frame
       T_w_l = T_w_r * T_r_l;
       T_l_i = (T_w_l.inv() * T_w_i);
-
       dist = T_l_i.translation().x; // only concerned with x component
 
 
@@ -448,19 +443,16 @@ private:
       // Transform the intersection point to the lidar frame
       T_w_l = T_w_r * T_r_l;
       T_l_i = (T_w_l.inv()* T_w_i);
-      // T_l_i = (T_r_l.inv() * T_w_i).inv();
-
-      // auto dist = turtlelib::magnitude(T_i_r.translation());
-      // RCLCPP_INFO(this->get_logger(), "Checking Wall 2");
       dist = T_l_i.translation().x; // only concerned with x component
-      // RCLCPP_INFO_STREAM(this->get_logger(), "Distance: " << dist);
 
       if (dist > 0.0){
         if (dist < curr_reading){
           curr_reading = dist;
         }
       } 
-    // Check for intersection with bottom wall at (x, -y_length/2)
+
+
+      // Check for intersection with bottom wall at (x, -y_length/2)
       auto y_int_bom = - arena_y_length_ / 2.0;
       auto x_int_bom = calc_x_pt(beam, y_int_bom);
       
@@ -472,18 +464,69 @@ private:
       // Transform the intersection point to the lidar frame
       T_w_l = T_w_r * T_r_l;
       T_l_i = (T_w_l.inv()* T_w_i);
-      // T_l_i = (T_r_l.inv() * T_w_i).inv();
-
-      // auto dist = turtlelib::magnitude(T_i_r.translation());
-      // RCLCPP_INFO(this->get_logger(), "Checking Wall 2");
       dist = T_l_i.translation().x; // only concerned with x component
-      // RCLCPP_INFO_STREAM(this->get_logger(), "Distance: " << dist);
 
       if (dist > 0.0){
         if (dist < curr_reading){
           curr_reading = dist;
         }
       }
+
+
+      // Detecting the Obstacles: 
+      // Detecting the first obstacle
+      turtlelib::Transform2D T_l_w = T_w_l.inv();
+      turtlelib::Point2D obs_center;
+
+      for (int j = 0; j < int(x_obstacles_.size()); j++) {
+        obs_center.x = x_obstacles_.at(j);
+        obs_center.y = y_obstacles_.at(j);
+
+        turtlelib::Point2D lidar_obs_center = T_l_w(obs_center);
+
+        double obs_radius = radius_;
+
+        double x1 = std::sqrt(std::pow(obs_radius, 2) - std::pow(lidar_obs_center.y, 2)) + lidar_obs_center.x;
+        double x2 = -std::sqrt(std::pow(obs_radius, 2) - std::pow(lidar_obs_center.y, 2)) + lidar_obs_center.x;
+
+        if (x1 >= 0.0){
+          if (x1 < curr_reading){
+            curr_reading = x1;
+          }
+        }
+
+        if (x2 >= 0.0){
+          if (x2 < curr_reading){
+            curr_reading = x2;
+          }
+        }
+
+      }
+
+
+      // turtlelib::Transform2D T_l_w = T_w_l.inv();
+      // turtlelib::Point2D obs_center;
+      // obs_center.x = x_obstacles_.at(0);
+      // obs_center.y = y_obstacles_.at(0);
+
+      // turtlelib::Point2D lidar_obs_center = T_l_w(obs_center);
+
+      // double obs_radius = radius_;
+
+      // double x1 = std::sqrt(std::pow(obs_radius, 2) - std::pow(lidar_obs_center.y, 2)) + lidar_obs_center.x;
+      // double x2 = -std::sqrt(std::pow(obs_radius, 2) - std::pow(lidar_obs_center.y, 2)) + lidar_obs_center.x;
+
+      // if (x1 >= 0.0){
+      //   if (x1 < curr_reading){
+      //     curr_reading = x1;
+      //   }
+      // }
+
+      // if (x2 >= 0.0){
+      //   if (x2 < curr_reading){
+      //     curr_reading = x2;
+      //   }
+      // }
 
       if (curr_reading <= max_range_ && curr_reading >= min_lidar_range_){
         laser_scan_msg_.ranges.push_back(curr_reading);
