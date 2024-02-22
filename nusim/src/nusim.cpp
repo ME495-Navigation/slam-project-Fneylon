@@ -503,30 +503,9 @@ private:
 
       }
 
-
-      // turtlelib::Transform2D T_l_w = T_w_l.inv();
-      // turtlelib::Point2D obs_center;
-      // obs_center.x = x_obstacles_.at(0);
-      // obs_center.y = y_obstacles_.at(0);
-
-      // turtlelib::Point2D lidar_obs_center = T_l_w(obs_center);
-
-      // double obs_radius = radius_;
-
-      // double x1 = std::sqrt(std::pow(obs_radius, 2) - std::pow(lidar_obs_center.y, 2)) + lidar_obs_center.x;
-      // double x2 = -std::sqrt(std::pow(obs_radius, 2) - std::pow(lidar_obs_center.y, 2)) + lidar_obs_center.x;
-
-      // if (x1 >= 0.0){
-      //   if (x1 < curr_reading){
-      //     curr_reading = x1;
-      //   }
-      // }
-
-      // if (x2 >= 0.0){
-      //   if (x2 < curr_reading){
-      //     curr_reading = x2;
-      //   }
-      // }
+      // Add noise to the lidar reading
+      std::normal_distribution<double> norm_distribution_(0.0, lidar_noise_);
+      curr_reading = curr_reading + norm_distribution_(generator_);
 
       if (curr_reading <= max_range_ && curr_reading >= min_lidar_range_){
         laser_scan_msg_.ranges.push_back(curr_reading);
@@ -641,8 +620,8 @@ private:
 
         auto unit_vec = turtlelib::normalize(center_line);
 
-        auto new_x = config.x - unit_vec.x * (coll_radius_ + radius_);
-        auto new_y = config.y - unit_vec.y * (coll_radius_ + radius_);
+        auto new_x = x_obstacles_.at(i) - unit_vec.x * (coll_radius_ + radius_);
+        auto new_y = y_obstacles_.at(i) - unit_vec.y * (coll_radius_ + radius_);
 
         diff_drive_.set_configuration(new_x, new_y, config.theta);
 
