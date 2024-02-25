@@ -65,6 +65,10 @@ namespace turtlelib
             /// \return the current configuration
             Configuration2D get_configuration();
 
+            /// \brief get the current twist of the robot
+            /// \return the current twist
+            Twist2D get_Twist();
+
             /// \brief set the current configuration of the robot
             /// \param x - the x position
             /// \param y - the y position
@@ -78,6 +82,8 @@ namespace turtlelib
 
             WheelConfiguration wheel_config_;
             Configuration2D config_;
+
+            Twist2D twist_;
     };
 }
 

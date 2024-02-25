@@ -46,6 +46,12 @@ void DiffDrive::set_configuration(double x, double y, double theta)
     config_.theta = theta;
 }
 
+Twist2D DiffDrive::get_Twist(){
+    return twist_;
+
+}
+
+
 void DiffDrive::forward_kinematics(WheelConfiguration wheels)
 {
     // Begin Citation [5]
@@ -58,14 +64,13 @@ void DiffDrive::forward_kinematics(WheelConfiguration wheels)
     // double delta_theta_l = wheels.theta_l;
     // double delta_theta_r = wheels.theta_r;
 
-    Twist2D twist;
-    twist.omega = wheel_radius_*(-(delta_theta_l) / wheel_track_ + (delta_theta_r) / wheel_track_);
-    twist.x = wheel_radius_*(delta_theta_l/2 + delta_theta_r/2);
-    twist.y = 0.0;
+    twist_.omega = wheel_radius_*(-(delta_theta_l) / wheel_track_ + (delta_theta_r) / wheel_track_);
+    twist_.x = wheel_radius_*(delta_theta_l/2 + delta_theta_r/2);
+    twist_.y = 0.0;
 
     // Get Tbbp 
     Transform2D Tbbp;
-    Tbbp = integrate_twist(twist);
+    Tbbp = integrate_twist(twist_);
 
     // Get Twb
     Transform2D Twb;

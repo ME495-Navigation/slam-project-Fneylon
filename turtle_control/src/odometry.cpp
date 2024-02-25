@@ -207,6 +207,12 @@ private:
     odom_msg_.pose.pose.orientation.y = q.y();
     odom_msg_.pose.pose.orientation.z = q.z();
     odom_msg_.pose.pose.orientation.w = q.w();
+
+    turtlelib::Twist2D twist = diff_drive_.get_Twist();
+
+    odom_msg_.twist.twist.linear.x = twist.x;
+    odom_msg_.twist.twist.linear.y = twist.y;
+    odom_msg_.twist.twist.angular.z = twist.omega;
   }
 
   // Initalize Publishers:

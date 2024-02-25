@@ -35,6 +35,7 @@
         <param name="wheel_left" value="blue/wheel_left"/>
         <param name="wheel_right" value="blue/wheel_right"/>
         <remap from="joint_states" to="blue/joint_states"/>
+        <!-- <remap from="odom" to "blue/odom"/> -->
         <param from="$(find-pkg-share nuturtle_description)/config/diff_params.yaml"/>
     </node>
 

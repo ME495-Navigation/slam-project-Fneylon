@@ -1,0 +1,29 @@
+<launch>
+
+<arg name="cmd_src" default="circle"/> 
+<arg name="robot" default="nusim"/>
+<arg name="use_rviz" default="true"/>
+
+<include file="$(find-pkg-share nuslam)/launch/start_robot.launch.xml">
+    <arg name="robot" value="nusim"/>
+    <arg name="use_rviz" value="false"/>
+    <arg name="cmd_src" value="circle"/>
+</include>
+
+
+<node pkg="nuslam" exec="nuslam_node" name="nuslam_node">
+    <param name="body_id" value="green/base_footprint"/>
+    <param name="odom_id" value="green/odom"/>
+
+<include file="$(find-pkg-share nuturtle_description)/launch/load_one.launch.py" if="$(eval '\'$(var use_rviz)\' == \'true\'')" >
+            <arg name="use_rviz" value="false" />
+            <arg name="color" value="green" />
+            <arg name="use_jsp" value="false" />
+</include>
+
+<node pkg="rviz2" exec="rviz2" name="rviz2" args="-d $(find-pkg-share turtle_control)/config/slam.rviz -f nusim/world" if="$(eval '\'$(var use_rviz)\' == \'true\'')" />
+
+<node pkg="tf2_ros" exec="static_transform_publisher" name="nusim_world_to_map" args="--frame-id nusim/world --child-frame-id map"/>
+
+
+</launch>
