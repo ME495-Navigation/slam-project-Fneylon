@@ -11,6 +11,8 @@ Panels:
         - /RedPath1
         - /OdomPath1
         - /LaserScan1
+        - /GreenRobot1
+        - /SLAMPath1
       Splitter Ratio: 0.5
     Tree Height: 1239
   - Class: rviz_common/Selection
@@ -118,17 +120,21 @@ Visualization Manager:
         All Enabled: true
         blue/base_footprint:
           Value: true
-        blue/base_link:
+        green/base_footprint:
           Value: true
-        blue/base_scan:
+        green/base_link:
           Value: true
-        blue/caster_back_link:
+        green/base_scan:
           Value: true
-        blue/imu_link:
+        green/caster_back_link:
           Value: true
-        blue/wheel_left_link:
+        green/imu_link:
           Value: true
-        blue/wheel_right_link:
+        green/wheel_left_link:
+          Value: true
+        green/wheel_right_link:
+          Value: true
+        map:
           Value: true
         nusim/world:
           Value: true
@@ -155,19 +161,22 @@ Visualization Manager:
       Show Names: false
       Tree:
         nusim/world:
+          map:
+            green/base_footprint:
+              green/base_link:
+                green/base_scan:
+                  {}
+                green/caster_back_link:
+                  {}
+                green/imu_link:
+                  {}
+                green/wheel_left_link:
+                  {}
+                green/wheel_right_link:
+                  {}
           odom:
             blue/base_footprint:
-              blue/base_link:
-                blue/base_scan:
-                  {}
-                blue/caster_back_link:
-                  {}
-                blue/imu_link:
-                  {}
-                blue/wheel_left_link:
-                  {}
-                blue/wheel_right_link:
-                  {}
+              {}
           red/base_footprint:
             red/base_link:
               red/base_scan:
@@ -229,39 +238,6 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        base_footprint:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        base_scan:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        caster_back_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        imu_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        wheel_left_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        wheel_right_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
       Mass Properties:
         Inertia: false
         Mass: false
@@ -373,6 +349,93 @@ Visualization Manager:
         Value: /laser_scan
       Use Fixed Frame: true
       Use rainbow: false
+      Value: true
+    - Alpha: 1
+      Class: rviz_default_plugins/RobotModel
+      Collision Enabled: false
+      Description File: ""
+      Description Source: Topic
+      Description Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /green/robot_description
+      Enabled: true
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: Links in Alphabetic Order
+        base_footprint:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        base_scan:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        caster_back_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        imu_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        wheel_left_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        wheel_right_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+      Mass Properties:
+        Inertia: false
+        Mass: false
+      Name: GreenRobot
+      TF Prefix: green
+      Update Interval: 0
+      Value: true
+      Visual Enabled: true
+    - Alpha: 1
+      Buffer Length: 1
+      Class: rviz_default_plugins/Path
+      Color: 25; 255; 0
+      Enabled: true
+      Head Diameter: 0.30000001192092896
+      Head Length: 0.20000000298023224
+      Length: 0.30000001192092896
+      Line Style: Lines
+      Line Width: 0.029999999329447746
+      Name: SLAMPath
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Color: 255; 85; 255
+      Pose Style: None
+      Radius: 0.029999999329447746
+      Shaft Diameter: 0.10000000149011612
+      Shaft Length: 0.10000000149011612
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /green/odom_path
       Value: true
   Enabled: true
   Global Options:

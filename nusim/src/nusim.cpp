@@ -194,15 +194,15 @@ private:
       for (int i = 0; i < int(x_obstacles_.size()); ++i) {
         visualization_msgs::msg::Marker marker;
         marker.header.frame_id = "nusim/world";
-        marker.ns = "fake_obstacle" + std::to_string(i);
-        marker.id = i*10;
+        marker.ns = "fake_obstacle";
+        marker.id = i;
         marker.type = visualization_msgs::msg::Marker::CYLINDER;
         marker.pose.orientation.x = 1.0;
         marker.pose.orientation.y = 0.0;
         marker.pose.orientation.z = 0.0;
         marker.pose.orientation.w = 0.0;
-        marker.pose.position.x = x_obstacles_[i] + obs_norm_distribution_(generator_);
-        marker.pose.position.y = y_obstacles_[i] + obs_norm_distribution_(generator_);
+        marker.pose.position.x = x_obstacles_.at(i) + obs_norm_distribution_(generator_);
+        marker.pose.position.y = y_obstacles_.at(i) + obs_norm_distribution_(generator_);
         marker.pose.position.z = 0.0;
         marker.color.r = 1;
         marker.color.g = 1;
@@ -212,19 +212,21 @@ private:
         marker.scale.y = radius_*2.0;
         marker.scale.z = 0.25;
         // dist_ = calc_distance(marker.pose.position.x, marker.pose.position.y);
-        double dx = fabs(diff_drive_.get_configuration().x - x_obstacles_[i] + obs_norm_distribution_(generator_));
-        double dy = fabs(diff_drive_.get_configuration().y -  y_obstacles_[i] + obs_norm_distribution_(generator_));
+        double dx = fabs(diff_drive_.get_configuration().x - x_obstacles_.at(i) + obs_norm_distribution_(generator_));
+        double dy = fabs(diff_drive_.get_configuration().y -  y_obstacles_.at(i) + obs_norm_distribution_(generator_));
         dist_ = sqrt(pow(dx, 2) + pow(dy, 2));
+
         if (dist_ < max_range_){
           marker.action = visualization_msgs::msg::Marker::ADD;
-          fake_obs_array_.markers.push_back(marker);
+          // fake_obs_array_.markers.push_back(marker);
         } else {
           marker.action = visualization_msgs::msg::Marker::DELETE;
-          fake_obs_array_.markers.push_back(marker);
+          // fake_obs_array_.markers.push_back(marker);
         }
-      fake_obs_pub_->publish(fake_obs_array_);
-        
+        fake_obs_array_.markers.push_back(marker);
       }
+      fake_obs_pub_->publish(fake_obs_array_);
+
       // Set a publish the lidar data
       set_laser_msg();
       laser_scan_pub_->publish(laser_scan_msg_);

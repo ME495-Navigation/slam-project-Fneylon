@@ -21,6 +21,7 @@ find_package(sensor_msgs)
 find_package(nav_msgs)
 find_package(turtlelib REQUIRED)
 find_package(Armadillo REQUIRED) 
+find_package(nusim REQUIRED)
 include_directories(${ARMADILLO_INCLUDE_DIRS})
 
 add_executable(nuslam_node src/slam.cpp)
@@ -28,6 +29,7 @@ add_executable(nuslam_node src/slam.cpp)
 
 ament_target_dependencies(nuslam_node
 turtlelib
+nusim
 nuturtlebot_msgs
 nav_msgs
 sensor_msgs
