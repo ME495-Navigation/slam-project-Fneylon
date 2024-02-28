@@ -14,7 +14,7 @@
 
 
 <node pkg="nuslam" exec="nuslam_node" name="nuslam_node">
-    <param name="body_id" value="green/base_footprint"/>
+    <param name="body_id" value="green/odom"/>
     <param name="odom_id" value="map"/>
 </node>
 

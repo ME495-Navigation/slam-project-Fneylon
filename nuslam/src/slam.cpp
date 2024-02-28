@@ -49,6 +49,7 @@ public:
 
     // Define Publishers:
     odom_path_pub_ = this->create_publisher<nav_msgs::msg::Path>("green/odom_path", 10);
+    green_marker_array_pub_ = this->create_publisher<visualization_msgs::msg::MarkerArray>("green/obstacles", 10);
 
     // Subscribe to odom topic: 
     odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
@@ -70,10 +71,7 @@ private:
   void time_callback()
   {
     // Set the transform:
-    set_transform(mu_(1), mu_(2), mu_(0));
-
-    // Print the transform: 
-    // RCLCPP_INFO(this->get_logger(), "Transform: x: %f, y: %f, theta: %f", mu_(1), mu_(2), mu_(0));
+    set_transform();
 
     // Publish the transform:
     odom_broadcaster_->sendTransform(transformStamped_);
@@ -86,6 +84,28 @@ private:
 
     // Publish the odometry path:
     odom_path_pub_->publish(odom_path_);
+
+    // Set the Green Marker Message:
+    set_green_marker_msg();
+
+    // Publish the green marker message:
+    green_marker_array_pub_->publish(green_marker_array_);
+
+    // Define Map to Robot Transform:
+    turtlelib::Vector2D r;
+    r.x = mu_.at(1);
+    r.y = mu_.at(2);
+    turtlelib::Transform2D Tmr_(r, mu_.at(0));
+
+    // Define Odom to Robot Transform:
+    turtlelib::Vector2D o;
+    o.x = odom_store_.back().pose.pose.position.x;
+    o.y = odom_store_.back().pose.pose.position.y;
+    turtlelib::Transform2D Tor_(o, odom_store_.back().pose.pose.orientation.z);
+
+    // Solve for the Map to Odom Transform:
+    Tmo_ = Tmr_ * Tor_.inv();
+
   }
 
 
@@ -93,6 +113,16 @@ private:
   {
     // Store the odometry messages that we receive:
     odom_store_.push_back(*msg);
+
+    // broadcast the transform:
+    odom_tf_.header.stamp = this->now();
+    odom_tf_.header.frame_id = "green/odom";
+    odom_tf_.child_frame_id = "green/base_footprint";
+    odom_tf_.transform.translation.x = msg->pose.pose.position.x;
+    odom_tf_.transform.translation.y = msg->pose.pose.position.y;
+    odom_tf_.transform.translation.z = 0.0;
+    odom_tf_.transform.rotation = msg->pose.pose.orientation;
+    odom_broadcaster_->sendTransform(odom_tf_);
 
   }
 
@@ -116,6 +146,7 @@ private:
     mu_bar_.at(1) = mu_prev_.at(1) + odom_dx;
     mu_bar_.at(2) = mu_prev_.at(2) + odom_dy;
 
+    // Maybe use the measurement model. 
     mu_bar_.at(3) = mu_prev_.at(3);
     mu_bar_.at(4) = mu_prev_.at(4);
     mu_bar_.at(5) = mu_prev_.at(5);
@@ -127,7 +158,8 @@ private:
     RCLCPP_INFO_STREAM(this->get_logger(), "mu_bar_: " << mu_bar_);
 
     // Calculate A: 
-    At_ = calculate_A(mu_prev_, current_twist);
+    // At_ = calculate_A(mu_prev_, current_twist);
+    At_ = calculate_A(odom_dx, odom_dy, odom_dtheta);
 
     // Print A:
     RCLCPP_INFO_STREAM(this->get_logger(), "A: " << At_);
@@ -140,13 +172,13 @@ private:
 
     // This is where we actually implement the SLAM algorithm. 
     arma::vec zi = arma::zeros(6, 1);
-    RCLCPP_INFO_STREAM(this->get_logger(), "Marker Array " << marker_array_.markers.size());
-    RCLCPP_INFO_STREAM(this->get_logger(), "Marker Array " << marker_array_.markers.at(0).pose.position.x);
-    RCLCPP_INFO_STREAM(this->get_logger(), "Marker Array " << marker_array_.markers.at(0).pose.position.y);
-    RCLCPP_INFO_STREAM(this->get_logger(), "Marker Array " << marker_array_.markers.at(1).pose.position.x);
-    RCLCPP_INFO_STREAM(this->get_logger(), "Marker Array " << marker_array_.markers.at(1).pose.position.y);
-    RCLCPP_INFO_STREAM(this->get_logger(), "Marker Array " << marker_array_.markers.at(2).pose.position.x);
-    RCLCPP_INFO_STREAM(this->get_logger(), "Marker Array " << marker_array_.markers.at(2).pose.position.y);
+    // RCLCPP_INFO_STREAM(this->get_logger(), "Marker Array " << marker_array_.markers.size());
+    // RCLCPP_INFO_STREAM(this->get_logger(), "Marker Array " << marker_array_.markers.at(0).pose.position.x);
+    // RCLCPP_INFO_STREAM(this->get_logger(), "Marker Array " << marker_array_.markers.at(0).pose.position.y);
+    // RCLCPP_INFO_STREAM(this->get_logger(), "Marker Array " << marker_array_.markers.at(1).pose.position.x);
+    // RCLCPP_INFO_STREAM(this->get_logger(), "Marker Array " << marker_array_.markers.at(1).pose.position.y);
+    // RCLCPP_INFO_STREAM(this->get_logger(), "Marker Array " << marker_array_.markers.at(2).pose.position.x);
+    // RCLCPP_INFO_STREAM(this->get_logger(), "Marker Array " << marker_array_.markers.at(2).pose.position.y);
 
     for (int i = 0; i < int(marker_array_.markers.size()); i++){
       geometry_msgs::msg::Point obstacle_position = marker_array_.markers.at(i).pose.position;
@@ -187,6 +219,36 @@ private:
     // Update the previous state:
     mu_prev_ = mu_;
 
+  }
+
+  void set_green_marker_msg()
+  {
+    // visualization_msgs::msg::MarkerArray green_marker_array;
+    green_marker_array_.markers.clear();
+    for (int i = 0; i < int(marker_array_.markers.size()); i++){
+      visualization_msgs::msg::Marker green_marker;
+      green_marker.header.frame_id = "map";
+      green_marker.header.stamp = this->now();
+      green_marker.ns = "green";
+      green_marker.id = i;
+      green_marker.type = visualization_msgs::msg::Marker::CYLINDER;
+      green_marker.action = visualization_msgs::msg::Marker::ADD;
+      green_marker.pose.position.x = mu_.at(3 + (2*i));
+      green_marker.pose.position.y = mu_.at(4 + (2*i));
+      green_marker.pose.position.z = 0.0;
+      green_marker.pose.orientation.x = 0.0;
+      green_marker.pose.orientation.y = 0.0;
+      green_marker.pose.orientation.z = 0.0;
+      green_marker.pose.orientation.w = 1.0;
+      green_marker.scale.x = 0.1;
+      green_marker.scale.y = 0.1;
+      green_marker.scale.z = 0.25;
+      green_marker.color.a = 1.0;
+      green_marker.color.r = 0.0;
+      green_marker.color.g = 1.0;
+      green_marker.color.b = 0.0;
+      green_marker_array_.markers.push_back(green_marker);
+    }
   }
 
   void update_odom_path()
@@ -232,17 +294,20 @@ private:
     // odom_msg_.twist.twist.angular.z = twist.omega;
   }
 
-  void set_transform(double x, double y, double theta)
+  void set_transform()
   {
+
+    // Get the Map to Odom Transform:
+    
     // geometry_msgs::msg::TransformStamped transformStamped;
     transformStamped_.header.stamp = this->get_clock()->now();
     transformStamped_.header.frame_id = odom_id_;
     transformStamped_.child_frame_id = body_id_;
-    transformStamped_.transform.translation.x = x;
-    transformStamped_.transform.translation.y = y;
+    transformStamped_.transform.translation.x = Tmo_.translation().x;
+    transformStamped_.transform.translation.y = Tmo_.translation().y;
     transformStamped_.transform.translation.z = 0.0;
     tf2::Quaternion q;
-    q.setRPY(0, 0, theta);
+    q.setRPY(0, 0, Tmo_.rotation());
     transformStamped_.transform.rotation.x = q.x();
     transformStamped_.transform.rotation.y = q.y();
     transformStamped_.transform.rotation.z = q.z();
@@ -262,12 +327,15 @@ private:
 
   arma::mat calculate_K(arma::mat Sigma_bar, arma::mat Ht){
 
-    arma::mat R = arma::eye(6, 6);
+    arma::mat R = arma::eye(6, 6)*5.0;
     arma::mat Kt = Sigma_bar * Ht.t() * (Ht * Sigma_bar * Ht.t() + R).i();
     return Kt;
   }
 
   arma::mat calculate_H(arma::vec zi){
+    // TODO: Change this function to be dynamics of the number of landmarks we see.
+    // TODO: Change this function to not index according to the number of 3 landmarks at a time.
+    // TODO: This should only update for a landmark when we see it a get a measurement. 
     arma::mat H = arma::zeros(6, 9);
     RCLCPP_INFO_STREAM(this->get_logger(), "Calculating H");
     RCLCPP_INFO_STREAM(this->get_logger(), "H: " << H);
@@ -291,23 +359,23 @@ private:
       H.at(i*2, 1) = -delta_x / sqrt(d);
       H.at(i*2, 2) = -delta_y / sqrt(d);
 
-      H.at(i*2, 5) = delta_x/sqrt(d);
-      H.at(i*2, 6) = delta_y/sqrt(d);
+      H.at(i*2, (2*i) + 3) = delta_x/sqrt(d);
+      H.at(i*2, (2*i) + 4) = delta_y/sqrt(d);
 
       RCLCPP_INFO_STREAM(this->get_logger(), "Calculating Second Sections of H");
       H.at(i*2 + 1, 0) = -1;
       H.at(i*2 + 1, 1) = delta_y / d;
       H.at(i*2 + 1, 2) = -delta_x / d;
 
-      H.at(i*2 + 1, 5) = -delta_y / d;
-      H.at(i*2 + 1, 6) = delta_x / d;
+      H.at(i*2 + 1, (2*i) + 3) = -delta_y / d;
+      H.at(i*2 + 1, (2*i) + 4) = delta_x / d;
     }
     return H;
   }
 
 
  arma::mat calculate_Sigma_bar(arma::mat Sigma_prev_, arma::mat A){
-  arma::mat Q = arma::eye(3, 3);
+  arma::mat Q = arma::eye(3, 3) *0.01;
 
   arma::mat Q_bar = arma::zeros(9, 9);
   Q_bar.at(0, 0) = Q.at(0, 0);
@@ -320,34 +388,46 @@ private:
   return Sigma_bar;
  }
 
- arma::mat calculate_A(arma::vec mu_prev_, geometry_msgs::msg::Twist current_twist){
+ arma::mat calculate_A(double dx, double dy, double d_theta){
+
+  arma::mat A = arma::zeros(9,9);
+  A.at(1,0) = -dy;
+  A.at(2,0) = dx;
+
+  A = arma::eye(9,9) + A;
+
+  return A;
+ }
+
+//  arma::mat calculate_A(arma::vec mu_prev_, geometry_msgs::msg::Twist current_twist){
     
-    double delta_x = current_twist.linear.x;
-    // double delta_y = current_twist.linear.y;
-    double delta_theta = current_twist.angular.z;
+//     double delta_x = current_twist.linear.x;
+//     // double delta_y = current_twist.linear.y;
+//     double delta_theta = current_twist.angular.z;
   
-    arma::mat A = arma::zeros(9, 9);
-    arma::mat a = arma::zeros(9, 9);
+//     arma::mat A = arma::zeros(9, 9);
+//     arma::mat a = arma::zeros(9, 9);
 
-    if (turtlelib::almost_equal(delta_theta, 0.0, 1e-9)){
-      a.at(0, 1) = -delta_x*sin(mu_prev_.at(0));
-      a.at(0, 2) = delta_x*cos(mu_prev_.at(0));
+//     if (turtlelib::almost_equal(delta_theta, 0.0, 1e-9)){
+//       a.at(0, 1) = -delta_x*sin(mu_prev_.at(0));
+//       a.at(0, 2) = delta_x*cos(mu_prev_.at(0));
       
-    } else {
-      a.at(0, 1) = -(delta_x / delta_theta) * cos(mu_prev_.at(0)) + (delta_x / delta_theta) * cos(mu_prev_.at(0)+ delta_theta);
-      a.at(0, 2) = -(delta_x / delta_theta) * sin(mu_prev_.at(0)) + (delta_x / delta_theta) * sin(mu_prev_.at(0) + delta_theta);
+//     } else {
+//       a.at(0, 1) = -(delta_x / delta_theta) * cos(mu_prev_.at(0)) + (delta_x / delta_theta) * cos(mu_prev_.at(0)+ delta_theta);
+//       a.at(0, 2) = -(delta_x / delta_theta) * sin(mu_prev_.at(0)) + (delta_x / delta_theta) * sin(mu_prev_.at(0) + delta_theta);
 
-    }
+//     }
 
-    A = arma::eye(9,9) + a;
+//     A = arma::eye(9,9) + a;
   
-    return A;
+//     return A;
 
-}
+// }
 
   // Initalize Publishers:
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub_;
   rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr odom_path_pub_;
+  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr green_marker_array_pub_;
 
   // Initialize Subscribers:
   rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
@@ -365,6 +445,7 @@ private:
   // double rate_ = 200.0;
 
   geometry_msgs::msg::TransformStamped transformStamped_;
+  geometry_msgs::msg::TransformStamped odom_tf_;
   nav_msgs::msg::Odometry odom_msg_;
   std::vector<nav_msgs::msg::Odometry> odom_store_;
   geometry_msgs::msg::Pose prev_odom_;
@@ -372,15 +453,23 @@ private:
   std::vector<geometry_msgs::msg::PoseStamped> obstacle_store_;
   visualization_msgs::msg::MarkerArray marker_array_;
   nav_msgs::msg::Path odom_path_;
+  visualization_msgs::msg::MarkerArray green_marker_array_;
 
   // Initalize State Variables: 
-  arma::vec mu_prev_ = arma::zeros(9,1);
+  // arma::vec mu_prev_ = arma::zeros(9,1);
+  // arma::vec mu_prev_ = {0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
+  arma::vec mu_prev_ = {0.0, 0.0, 0.0, -0.5, -0.7, 0.8, -0.8, 0.4, 0.8};
+
 
   // Initalize Current State, uncorrected: 
-  arma::vec mu_bar_ = arma::zeros(9,1);
-
+  // arma::vec mu_bar_ = arma::zeros(9,1);
+  // arma::vec mu_bar_ = {0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
+  arma::vec mu_bar_ = {0.0, 0.0, 0.0, -0.5, -0.7, 0.8, -0.8, 0.4, 0.8};
   // Initalize Current State, corrected:
-  arma::vec mu_ = arma::zeros(9,1);
+  // arma::vec mu_ = arma::zeros(9,1);
+  // arma::vec mu_ = {0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
+  arma::vec mu_ = {0.0, 0.0, 0.0, -0.5, -0.7, 0.8, -0.8, 0.4, 0.8};
+
 
   // Initalize Covariance Matrix:
   arma::mat Sigma_prev_ = arma::eye(9,9);
@@ -399,6 +488,11 @@ private:
 
   // Initalize H matrix:
   arma::mat Ht_ = arma::eye(6,9);
+
+  // Define transforms:
+  turtlelib::Transform2D Tmr_;
+  turtlelib::Transform2D Tor_;
+  turtlelib::Transform2D Tmo_;
 
 
   std::string body_id_;
