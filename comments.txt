@@ -1,0 +1,12 @@
+1. Package is called nuturtle_control rather than turtle_control
+2. README.md and Tasks.md should not be executable
+Use rosidl_get_typesupport is deprecated see
+https://docs.ros.org/en/iron/Tutorials/Beginner-Client-Libraries/Single-Package-Define-And-Use-Interface.html#use-an-interface-from-the-same-package
+
+3. some tests fail
+
+4. launch with teleop doesn't work "teleop_twist_keyboard" is not a node in turtlebot3_teleop
+
+5. Robot moves too slowly fails the 1 m in 10 seconds @ 0.1m/s test
+
+6. ROS nodes missing comments descrbing the ros api

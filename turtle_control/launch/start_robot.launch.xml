@@ -79,7 +79,7 @@
     </node>
 
     <!-- If the cmd_src is set to teleop -->
-    <node pkg="turtlebot3_teleop" exec="teleop_twist_keyboard" if="$(eval '\'$(var cmd_src)\' == \'teleop\'')">
+    <node pkg="turtlebot3_teleop" exec="teleop_keyboard" if="$(eval '\'$(var cmd_src)\' == \'teleop\'')" launch-prefix="xterm -e">
     </node>
 </group>
 

@@ -5,9 +5,11 @@
 # include <cmath>
 # include <vector>
 
-using namespace turtlelib;
+using namespace turtlelib; // no using namespace.
 
-DiffDrive::DiffDrive()
+// diff drive should be in the turtlelib namespace
+
+DiffDrive::DiffDrive() // initializer lists
 {
     wheel_radius_ = 0.0;
     wheel_track_ = 0.0;
@@ -33,7 +35,7 @@ DiffDrive::DiffDrive(double wheel_radius, double wheel_track)
     config_.theta = 0.0;
 }
 
-Configuration2D DiffDrive::get_configuration()
+Configuration2D DiffDrive::get_configuration() // const
 {
     return config_;
 }
@@ -49,22 +51,22 @@ void DiffDrive::set_configuration(double x, double y, double theta)
 void DiffDrive::forward_kinematics(WheelConfiguration wheels)
 {
     // Begin Citation [5]
-    Configuration2D qb;
+    Configuration2D qb; // initialize
     Configuration2D dq;
 
-    double delta_theta_l = wheels.theta_l - wheel_config_.theta_l;
+    double delta_theta_l = wheels.theta_l - wheel_config_.theta_l; // const auto
     double delta_theta_r = wheels.theta_r - wheel_config_.theta_r;
 
-    // double delta_theta_l = wheels.theta_l;
+    // double delta_theta_l = wheels.theta_l; No commented out code
     // double delta_theta_r = wheels.theta_r;
 
-    Twist2D twist;
+    Twist2D twist; // use constructor to initialize
     twist.omega = wheel_radius_*(-(delta_theta_l) / wheel_track_ + (delta_theta_r) / wheel_track_);
     twist.x = wheel_radius_*(delta_theta_l/2 + delta_theta_r/2);
     twist.y = 0.0;
 
     // Get Tbbp 
-    Transform2D Tbbp;
+    Transform2D Tbbp; // constructor to initializer
     Tbbp = integrate_twist(twist);
 
     // Get Twb
