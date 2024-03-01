@@ -71,6 +71,12 @@ private:
     // ROS Callbacks:
     void timer_callback(){
 
+        // Set the Map to Robot Transform:
+        set_Tmr();
+
+        // Solve for the Map to Odom Transform:
+        solve_for_Tmo();
+
         // Set Green Odom Transform:
         set_green_odom_transform();
 
@@ -89,12 +95,6 @@ private:
         // Broadcast the green odom transform:
         broadcaster_->sendTransform(green_odom_tf_);
 
-        // Set the Map to Robot Transform:
-        set_Tmr();
-
-        // Solve for the Map to Odom Transform:
-        solve_for_Tmo();
-        
         // Set the map odom transform:
         set_Tmo_transform();
 
@@ -189,8 +189,7 @@ private:
         // Calculate the difference between the observed and predicted x and y:
         double dx = mu_bar_.at(3 + (2*idx)) - mu_bar_.at(1);
         double dy = mu_bar_.at(4 + (2*idx)) - mu_bar_.at(2);
-        // double dx = x - mu_bar_.at(1);
-        // double dy = y - mu_bar_.at(2);
+
         RCLCPP_INFO_STREAM(this->get_logger(), "mu_bar_x: " << mu_bar_.at(1) << " mu_bar_y: " << mu_bar_.at(2));
 
         RCLCPP_INFO_STREAM(this->get_logger(), "dx: " << dx << " dy: " << dy);
@@ -219,10 +218,7 @@ private:
     }
 
     void update_mu(arma::vec z, arma::vec z_hat){
-
-        // RCLCPP_INFO_STREAM(this->get_logger(), "mu_bar_prime: " << mu_bar_prime);
-
-        mu_ = mu_bar_ + (Kt_ * (z - z_hat));
+        mu_ = mu_bar_ + (Kt_ * (z_hat - z));
     }
     
     void calculate_K(){
@@ -230,6 +226,7 @@ private:
         // calculate R:
         calculate_R();
 
+        Kt_ = arma::zeros(9,2);
         Kt_ = Sigma_bar_ * Hj_.t() * ((Hj_ * Sigma_bar_ * Hj_.t()) + R_).i();
     }
     
@@ -257,9 +254,10 @@ private:
     }
 
     void calculate_A(double dx, double dy){
+        
+        At_ = arma::zeros(9,9);
         At_.at(1,0) = -dy;
         At_.at(2,0) = dx;
-
         At_ = arma::eye(9,9) + At_;
     }
    
@@ -289,8 +287,8 @@ private:
 
     arma::vec calculate_z(int idx){
 
-        double range = sqrt(pow(mu_.at(3 + (2*idx)) - mu_.at(2), 2) + pow(mu_.at(4 + (2*idx)) - mu_.at(2), 2));
-        double bearing = atan2(mu_.at(4 + (2*idx)) - mu_.at(2), mu_.at(3 + (2*idx)) - mu_.at(1));
+        double range = sqrt(pow(mu_bar_.at(3 + (2*idx)) - mu_bar_.at(1), 2) + pow(mu_bar_.at(4 + (2*idx)) - mu_bar_.at(2), 2));
+        double bearing = atan2(mu_bar_.at(4 + (2*idx)) - mu_bar_.at(2), mu_bar_.at(3 + (2*idx)) - mu_bar_.at(1)) - mu_bar_.at(0);
 
         arma::vec z = {range, bearing};
 
@@ -341,9 +339,14 @@ private:
         geometry_msgs::msg::PoseStamped pose;
         pose.header.stamp = this->now();
         pose.header.frame_id = odom_id_;
-        pose.pose.position = green_odom_msg_.pose.pose.position;
-        pose.pose.orientation = green_odom_msg_.pose.pose.orientation;
-
+        pose.pose.position.x = Tmr_.translation().x;
+        pose.pose.position.y = Tmr_.translation().y;
+        tf2::Quaternion q;
+        q.setRPY(0, 0, Tmr_.rotation());
+        pose.pose.orientation.x = q.x();
+        pose.pose.orientation.y = q.y();
+        pose.pose.orientation.z = q.z();
+        pose.pose.orientation.w = q.w();
         green_odom_path_msg_.poses.push_back(pose);
         green_odom_path_pub_->publish(green_odom_path_msg_);
     }
