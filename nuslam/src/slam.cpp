@@ -111,7 +111,7 @@ private:
         // Calculate the change in x, y, and theta:
         double dx = green_odom_msg_.pose.pose.position.x - prev_green_odom_.pose.pose.position.x;
         double dy = green_odom_msg_.pose.pose.position.y - prev_green_odom_.pose.pose.position.y;
-        double dtheta = return_yaw(green_odom_msg_.pose.pose.orientation) - return_yaw(prev_green_odom_.pose.pose.orientation);
+        double dtheta = turtlelib::normalize_angle(return_yaw(green_odom_msg_.pose.pose.orientation) - return_yaw(prev_green_odom_.pose.pose.orientation));
 
         // Predict the next state:
         predict(dx, dy, dtheta);
@@ -146,16 +146,16 @@ private:
     // Kalman filter functions:
     void predict(double dx, double dy, double dtheta){
         // Calculate mu_bar: 
-        mu_bar_.at(0) = mu_.at(0) + dtheta;
-        mu_bar_.at(1) = mu_.at(1) + dx;
-        mu_bar_.at(2) = mu_.at(2) + dy;
+        mu_bar_.at(0) = mu_bar_.at(0) + dtheta;
+        mu_bar_.at(1) = mu_bar_.at(1) + dx;
+        mu_bar_.at(2) = mu_bar_.at(2) + dy;
 
-        mu_bar_.at(3) = mu_.at(3);
-        mu_bar_.at(4) = mu_.at(4);
-        mu_bar_.at(5) = mu_.at(5);
-        mu_bar_.at(6) = mu_.at(6);
-        mu_bar_.at(7) = mu_.at(7);
-        mu_bar_.at(8) = mu_.at(8);
+        mu_bar_.at(3) = mu_bar_.at(3);
+        mu_bar_.at(4) = mu_bar_.at(4);
+        mu_bar_.at(5) = mu_bar_.at(5);
+        mu_bar_.at(6) = mu_bar_.at(6);
+        mu_bar_.at(7) = mu_bar_.at(7);
+        mu_bar_.at(8) = mu_bar_.at(8);
 
         // Calculate At_:
         calculate_A(dx, dy);
@@ -209,6 +209,9 @@ private:
         // Update Sigma_:
         update_Sigma();
         RCLCPP_FATAL_STREAM(this->get_logger(), "Sigma_: " << Sigma_);
+
+        mu_bar_ = mu_;
+        Sigma_bar_ = Sigma_;
     }
 
 
@@ -218,7 +221,10 @@ private:
     }
 
     void update_mu(arma::vec z, arma::vec z_hat){
-        mu_ = mu_bar_ + (Kt_ * (z_hat - z));
+        arma::vec z_diff = z_hat - z;
+        z_diff.at(1) = turtlelib::normalize_angle(z_diff.at(1));
+        // z_diff.at(0) = turtlelib::normalize_angle(z_diff.at(0));
+        mu_ = mu_bar_ + (Kt_ * (z_diff));
     }
     
     void calculate_K(){
@@ -275,7 +281,7 @@ private:
     
     void calculate_Sigma_bar(){
 
-        Sigma_bar_ = (At_ * Sigma_ * At_.t()) + Q_bar_;
+        Sigma_bar_ = (At_ * Sigma_bar_ * At_.t()) + Q_bar_;
     }
 
     double return_yaw(geometry_msgs::msg::Quaternion q){
@@ -288,8 +294,7 @@ private:
     arma::vec calculate_z(int idx){
 
         double range = sqrt(pow(mu_bar_.at(3 + (2*idx)) - mu_bar_.at(1), 2) + pow(mu_bar_.at(4 + (2*idx)) - mu_bar_.at(2), 2));
-        double bearing = atan2(mu_bar_.at(4 + (2*idx)) - mu_bar_.at(2), mu_bar_.at(3 + (2*idx)) - mu_bar_.at(1)) - mu_bar_.at(0);
-
+        double bearing = turtlelib::normalize_angle(atan2(mu_bar_.at(4 + (2*idx)) - mu_bar_.at(2), mu_bar_.at(3 + (2*idx)) - mu_bar_.at(1)) - mu_bar_.at(0));
         arma::vec z = {range, bearing};
 
         return z;
@@ -298,7 +303,7 @@ private:
     arma::vec calculate_z_hat(arma::vec z){
         arma::vec z_hat = arma::zeros(2,1);
         z_hat.at(0) = sqrt(pow(z.at(0), 2) + pow(z.at(1), 2));
-        z_hat.at(1) = atan2(z.at(1), z.at(0));
+        z_hat.at(1) = turtlelib::normalize_angle(atan2(z.at(1), z.at(0)));
         return z_hat;
     }
 
@@ -448,8 +453,8 @@ private:
     std::string odom_id_;
     int num_obs_ = 3;
 
-    double q_= 1.0;
-    double r_= 1.0;
+    double q_= 0.01;
+    double r_= 0.01;
 
     // Define transforms:
     turtlelib::Transform2D Tmr_;
