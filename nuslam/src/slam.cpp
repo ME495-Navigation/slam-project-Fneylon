@@ -190,9 +190,9 @@ private:
         double dx = mu_bar_.at(3 + (2*idx)) - mu_bar_.at(1);
         double dy = mu_bar_.at(4 + (2*idx)) - mu_bar_.at(2);
 
-        RCLCPP_INFO_STREAM(this->get_logger(), "mu_bar_x: " << mu_bar_.at(1) << " mu_bar_y: " << mu_bar_.at(2));
+        // RCLCPP_INFO_STREAM(this->get_logger(), "mu_bar_x: " << mu_bar_.at(1) << " mu_bar_y: " << mu_bar_.at(2));
 
-        RCLCPP_INFO_STREAM(this->get_logger(), "dx: " << dx << " dy: " << dy);
+        // RCLCPP_INFO_STREAM(this->get_logger(), "dx: " << dx << " dy: " << dy);
 
         // Calculate the H matrix:
         calculate_Hj(idx, dx, dy);
@@ -200,15 +200,15 @@ private:
         // Calculate the Kalman Gain:
         calculate_K();
 
-        RCLCPP_INFO_STREAM(this->get_logger(), "Kt_: " << Kt_);
+        // RCLCPP_INFO_STREAM(this->get_logger(), "Kt_: " << Kt_);
 
         // Update mu_:
         update_mu(z, z_hat);
-        RCLCPP_FATAL_STREAM(this->get_logger(), "mu_: " << mu_);
+        // RCLCPP_FATAL_STREAM(this->get_logger(), "mu_: " << mu_);
 
         // Update Sigma_:
         update_Sigma();
-        RCLCPP_FATAL_STREAM(this->get_logger(), "Sigma_: " << Sigma_);
+        // RCLCPP_FATAL_STREAM(this->get_logger(), "Sigma_: " << Sigma_);
 
         mu_bar_ = mu_;
         Sigma_bar_ = Sigma_;
