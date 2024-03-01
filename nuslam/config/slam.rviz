@@ -120,6 +120,18 @@ Visualization Manager:
         All Enabled: true
         blue/base_footprint:
           Value: true
+        blue/base_link:
+          Value: true
+        blue/base_scan:
+          Value: true
+        blue/caster_back_link:
+          Value: true
+        blue/imu_link:
+          Value: true
+        blue/wheel_left_link:
+          Value: true
+        blue/wheel_right_link:
+          Value: true
         green/base_footprint:
           Value: true
         green/base_link:
@@ -129,6 +141,8 @@ Visualization Manager:
         green/caster_back_link:
           Value: true
         green/imu_link:
+          Value: true
+        green/odom:
           Value: true
         green/wheel_left_link:
           Value: true
@@ -162,21 +176,32 @@ Visualization Manager:
       Tree:
         nusim/world:
           map:
-            green/base_footprint:
-              green/base_link:
-                green/base_scan:
-                  {}
-                green/caster_back_link:
-                  {}
-                green/imu_link:
-                  {}
-                green/wheel_left_link:
-                  {}
-                green/wheel_right_link:
-                  {}
+            green/odom:
+              green/base_footprint:
+                green/base_link:
+                  green/base_scan:
+                    {}
+                  green/caster_back_link:
+                    {}
+                  green/imu_link:
+                    {}
+                  green/wheel_left_link:
+                    {}
+                  green/wheel_right_link:
+                    {}
           odom:
             blue/base_footprint:
-              {}
+              blue/base_link:
+                blue/base_scan:
+                  {}
+                blue/caster_back_link:
+                  {}
+                blue/imu_link:
+                  {}
+                blue/wheel_left_link:
+                  {}
+                blue/wheel_right_link:
+                  {}
           red/base_footprint:
             red/base_link:
               red/base_scan:
@@ -238,6 +263,39 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
+        base_footprint:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        base_scan:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        caster_back_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        imu_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        wheel_left_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        wheel_right_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
       Mass Properties:
         Inertia: false
         Mass: false
@@ -306,9 +364,7 @@ Visualization Manager:
       Enabled: true
       Name: FakeObstacles
       Namespaces:
-        fake_obstacle0: true
-        fake_obstacle1: true
-        fake_obstacle2: true
+        fake_obstacle: true
       Topic:
         Depth: 5
         Durability Policy: Volatile
@@ -437,6 +493,18 @@ Visualization Manager:
         Reliability Policy: Reliable
         Value: /green/odom_path
       Value: true
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: true
+      Name: MarkerArray
+      Namespaces:
+        green: true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /green/obstacles
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -483,7 +551,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 23.630332946777344
+      Distance: 10.769960403442383
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -498,18 +566,18 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.0847967863082886
+      Pitch: 1.0347968339920044
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 6.0954718589782715
+      Yaw: 6.25547456741333
     Saved: ~
 Window Geometry:
   Displays:
-    collapsed: false
+    collapsed: true
   Height: 1536
-  Hide Left Dock: false
+  Hide Left Dock: true
   Hide Right Dock: false
-  QMainWindow State: 000000ff00000000fd00000004000000000000056000000562fc0200000008fb000000100044006900730070006c006100790073010000003d00000562000000c900fffffffb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f00000562fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073010000003d00000562000000a400fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000009c40000003efc0100000002fb0000000800540069006d00650100000000000009c4000002fb00fffffffb0000000800540069006d00650100000000000004500000000000000000000003490000056200000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000400000000000003a400000562fc0200000008fb000000100044006900730070006c006100790073000000003d00000562000000c900fffffffb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010000000562fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073010000003d00000562000000a400fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000004e20000003efc0100000002fb0000000800540069006d00650100000000000004e2000002fb00fffffffb0000000800540069006d00650100000000000004500000000000000000000003dc0000056200000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
@@ -518,6 +586,6 @@ Window Geometry:
     collapsed: false
   Views:
     collapsed: false
-  Width: 2500
+  Width: 1250
   X: 60
   Y: 27

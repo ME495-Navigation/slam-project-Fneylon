@@ -10,4 +10,6 @@ People worked with: Demiana Barsoum, Megan Black
 
 [5] Modern Robotics, Lynch.K et. al, Chapter 13.5 Mobile Manipulation
 
-[6] https://answers.ros.org/question/12425/scantime_increment-in-laser-scan-message-publishing/ 
+[6] https://answers.ros.org/question/12425/scantime_increment-in-laser-scan-message-publishing/
+
+[7] https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles 

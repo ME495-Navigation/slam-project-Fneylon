@@ -64,163 +64,11 @@ public:
 
     // Define the timer:
     timer_ = this->create_wall_timer(
-      std::chrono::duration<double>(1.0 / 5.0), std::bind(&Slam::time_callback, this));
+      std::chrono::duration<double>(1.0 / 5.0), std::bind(&Slam::timer_callback, this));
   }
 
 private:
-  void time_callback()
-  {
-    // Set the transform:
-    set_transform();
-
-    // Publish the transform:
-    odom_broadcaster_->sendTransform(transformStamped_);
-
-    // Set the odometry message:
-    set_odom_msg(mu_(1), mu_(2), mu_(0));
-
-    // Update the odometry path:
-    update_odom_path();
-
-    // Publish the odometry path:
-    odom_path_pub_->publish(odom_path_);
-
-    // Set the Green Marker Message:
-    set_green_marker_msg();
-
-    // Publish the green marker message:
-    green_marker_array_pub_->publish(green_marker_array_);
-
-    // Define Map to Robot Transform:
-    turtlelib::Vector2D r;
-    r.x = mu_.at(1);
-    r.y = mu_.at(2);
-    turtlelib::Transform2D Tmr_(r, mu_.at(0));
-
-    // Define Odom to Robot Transform:
-    turtlelib::Vector2D o;
-    o.x = odom_store_.back().pose.pose.position.x;
-    o.y = odom_store_.back().pose.pose.position.y;
-    turtlelib::Transform2D Tor_(o, odom_store_.back().pose.pose.orientation.z);
-
-    // Solve for the Map to Odom Transform:
-    Tmo_ = Tmr_ * Tor_.inv();
-
-  }
-
-
-  void odom_callback(const nav_msgs::msg::Odometry::SharedPtr msg)
-  {
-    // Store the odometry messages that we receive:
-    odom_store_.push_back(*msg);
-
-    // broadcast the transform:
-    odom_tf_.header.stamp = this->now();
-    odom_tf_.header.frame_id = "green/odom";
-    odom_tf_.child_frame_id = "green/base_footprint";
-    odom_tf_.transform.translation.x = msg->pose.pose.position.x;
-    odom_tf_.transform.translation.y = msg->pose.pose.position.y;
-    odom_tf_.transform.translation.z = 0.0;
-    odom_tf_.transform.rotation = msg->pose.pose.orientation;
-    odom_broadcaster_->sendTransform(odom_tf_);
-
-  }
-
-  void fake_sensor_callback(const visualization_msgs::msg::MarkerArray::SharedPtr msg)
-  {
-    marker_array_ = *msg;
-
-    // std::vector<geometry_msgs::msg::PoseStamped> obstacle_store;
-    geometry_msgs::msg::Pose current_odom = odom_store_.back().pose.pose;
-    geometry_msgs::msg::Twist current_twist = odom_store_.back().twist.twist;
-    odom_store_.clear();
-    
-    double odom_dx = current_odom.position.x - prev_odom_.position.x;
-    double odom_dy = current_odom.position.y - prev_odom_.position.y;
-    double odom_dtheta = current_odom.orientation.z - prev_odom_.orientation.z;
-
-    prev_odom_ = current_odom;
-
-    // Calculate mu_bar_;
-    mu_bar_.at(0) = mu_prev_.at(0) + odom_dtheta;
-    mu_bar_.at(1) = mu_prev_.at(1) + odom_dx;
-    mu_bar_.at(2) = mu_prev_.at(2) + odom_dy;
-
-    // Maybe use the measurement model. 
-    mu_bar_.at(3) = mu_prev_.at(3);
-    mu_bar_.at(4) = mu_prev_.at(4);
-    mu_bar_.at(5) = mu_prev_.at(5);
-    mu_bar_.at(6) = mu_prev_.at(6);
-    mu_bar_.at(7) = mu_prev_.at(7);
-    mu_bar_.at(8) = mu_prev_.at(8);
-
-    // Print the uncorrected state:
-    RCLCPP_INFO_STREAM(this->get_logger(), "mu_bar_: " << mu_bar_);
-
-    // Calculate A: 
-    // At_ = calculate_A(mu_prev_, current_twist);
-    At_ = calculate_A(odom_dx, odom_dy, odom_dtheta);
-
-    // Print A:
-    RCLCPP_INFO_STREAM(this->get_logger(), "A: " << At_);
-
-    // Calculate Sigma_Bar:
-    Sigma_bar_ = calculate_Sigma_bar(Sigma_prev_, At_);
-
-    // Print Sigma_bar:
-    RCLCPP_INFO_STREAM(this->get_logger(), "Sigma_bar: " << Sigma_bar_);
-
-    // This is where we actually implement the SLAM algorithm. 
-    arma::vec zi = arma::zeros(6, 1);
-    // RCLCPP_INFO_STREAM(this->get_logger(), "Marker Array " << marker_array_.markers.size());
-    // RCLCPP_INFO_STREAM(this->get_logger(), "Marker Array " << marker_array_.markers.at(0).pose.position.x);
-    // RCLCPP_INFO_STREAM(this->get_logger(), "Marker Array " << marker_array_.markers.at(0).pose.position.y);
-    // RCLCPP_INFO_STREAM(this->get_logger(), "Marker Array " << marker_array_.markers.at(1).pose.position.x);
-    // RCLCPP_INFO_STREAM(this->get_logger(), "Marker Array " << marker_array_.markers.at(1).pose.position.y);
-    // RCLCPP_INFO_STREAM(this->get_logger(), "Marker Array " << marker_array_.markers.at(2).pose.position.x);
-    // RCLCPP_INFO_STREAM(this->get_logger(), "Marker Array " << marker_array_.markers.at(2).pose.position.y);
-
-    for (int i = 0; i < int(marker_array_.markers.size()); i++){
-      geometry_msgs::msg::Point obstacle_position = marker_array_.markers.at(i).pose.position;
-      RCLCPP_INFO_STREAM(this->get_logger(), "Obstacle Position X: " << obstacle_position.x);
-      RCLCPP_INFO_STREAM(this->get_logger(), "Obstacle Position Y: " << obstacle_position.y);
-      zi.at(i*2) = obstacle_position.x;
-      zi.at((i*2) + 1) = obstacle_position.y;
-      // zi.push_back(obstacle_position);
-    }
-
-    // Print the observation:
-    RCLCPP_INFO_STREAM(this->get_logger(), "Observation: " << zi);
-
-    // Calculate Ht_:
-    Ht_ = calculate_H(zi);
-
-    // Print Ht_:
-    RCLCPP_INFO_STREAM(this->get_logger(), "Ht: " << Ht_);
-
-    // Calculate the Kalman Gain:
-    Kt_ = calculate_K(Sigma_bar_, Ht_);
-
-    // Print Kt_:
-    RCLCPP_INFO_STREAM(this->get_logger(), "Kt: " << Kt_);
-
-    // Calculate the corrected state:
-    mu_ = calculate_mu(mu_bar_, Kt_, Ht_, zi);
-
-    // Print the corrected state:
-    RCLCPP_INFO(this->get_logger(), "Corrected State: x: %f, y: %f, theta: %f", mu_(1), mu_(2), mu_(0));
-
-    // Calculate the corrected covariance matrix:
-    Sigma_ = calculate_Sigma(Sigma_bar_, Kt_, Ht_);
-
-    // Print the corrected covariance matrix:
-    RCLCPP_INFO_STREAM(this->get_logger(), "Sigma: " << Sigma_);
-
-    // Update the previous state:
-    mu_prev_ = mu_;
-
-  }
-
+  
   void set_green_marker_msg()
   {
     // visualization_msgs::msg::MarkerArray green_marker_array;
@@ -270,7 +118,6 @@ private:
     odom_path_pub_->publish(odom_path_);
   }
 
-
   void set_odom_msg(double x, double y, double theta)
   {
     // nav_msgs::msg::Odometry odom_msg;
@@ -296,9 +143,6 @@ private:
 
   void set_transform()
   {
-
-    // Get the Map to Odom Transform:
-    
     // geometry_msgs::msg::TransformStamped transformStamped;
     transformStamped_.header.stamp = this->get_clock()->now();
     transformStamped_.header.frame_id = odom_id_;
@@ -314,6 +158,164 @@ private:
     transformStamped_.transform.rotation.w = q.w();
   }
 
+  void timer_callback()
+  {
+    // Set the transform:
+    set_transform();
+
+    // Publish the transform:
+    odom_broadcaster_->sendTransform(transformStamped_);
+
+    // Set the odometry message:
+    set_odom_msg(mu_(1), mu_(2), mu_(0));
+
+    // Update the odometry path:
+    update_odom_path();
+
+    // Publish the odometry path:
+    odom_path_pub_->publish(odom_path_);
+
+    // Set the Green Marker Message:
+    set_green_marker_msg();
+
+    // Publish the green marker message:
+    green_marker_array_pub_->publish(green_marker_array_);
+
+    // Define Map to Robot Transform:
+    turtlelib::Vector2D r;
+    r.x = mu_.at(1);
+    r.y = mu_.at(2);
+    turtlelib::Transform2D Tmr_(r, mu_.at(0));
+
+    // Define Odom to Robot Transform:
+    turtlelib::Vector2D o;
+    o.x = odom_store_.back().pose.pose.position.x;
+    o.y = odom_store_.back().pose.pose.position.y;
+    double theta = return_yaw(odom_store_.back().pose.pose.orientation);
+    turtlelib::Transform2D Tor_(o, theta);
+
+    // Solve for the Map to Odom Transform:
+    Tmo_ = Tmr_ * Tor_.inv();
+
+  }
+
+  void fake_sensor_callback(const visualization_msgs::msg::MarkerArray::SharedPtr msg)
+  
+  {
+    marker_array_ = *msg;
+    geometry_msgs::msg::Pose current_odom = odom_store_.back().pose.pose;
+    geometry_msgs::msg::Twist current_twist = odom_store_.back().twist.twist;
+    odom_store_.clear();
+    
+    double odom_dx = current_odom.position.x - prev_odom_.position.x;
+    double odom_dy = current_odom.position.y - prev_odom_.position.y;
+
+    double yaw1 = return_yaw(current_odom.orientation);
+    double yaw2 = return_yaw(prev_odom_.orientation);
+
+    double odom_dtheta = yaw1 - yaw2;
+
+    prev_odom_ = current_odom;
+
+    // Calculate mu_bar_;
+    mu_bar_.at(0) = mu_.at(0) + odom_dtheta;
+    mu_bar_.at(1) = mu_.at(1) + odom_dx;
+    mu_bar_.at(2) = mu_.at(2) + odom_dy;
+
+    // Maybe use the measurement model. 
+    mu_bar_.at(3) = mu_.at(3);
+    mu_bar_.at(4) = mu_.at(4);
+    mu_bar_.at(5) = mu_.at(5);
+    mu_bar_.at(6) = mu_.at(6);
+    mu_bar_.at(7) = mu_.at(7);
+    mu_bar_.at(8) = mu_.at(8);
+
+    // Print the uncorrected state:
+    RCLCPP_INFO_STREAM(this->get_logger(), "mu_bar_: " << mu_bar_);
+
+    // Calculate A: 
+    At_ = calculate_A(odom_dx, odom_dy, odom_dtheta);
+
+    // Print A:
+    RCLCPP_INFO_STREAM(this->get_logger(), "A: " << At_);
+
+    // Calculate Sigma_Bar:
+    Sigma_bar_ = calculate_Sigma_bar(Sigma_, At_);
+
+    // Print Sigma_bar:
+    // RCLCPP_INFO_STREAM(this->get_logger(), "Sigma_bar: " << Sigma_bar_);
+
+    // This is where we actually implement the SLAM algorithm. 
+    arma::vec zi = arma::zeros(6, 1);
+    RCLCPP_INFO_STREAM(this->get_logger(), "Marker Array " << marker_array_.markers.size());
+    RCLCPP_INFO_STREAM(this->get_logger(), "Marker Array " << marker_array_.markers.at(0).pose.position.x);
+    RCLCPP_INFO_STREAM(this->get_logger(), "Marker Array " << marker_array_.markers.at(0).pose.position.y);
+    RCLCPP_INFO_STREAM(this->get_logger(), "Marker Array " << marker_array_.markers.at(1).pose.position.x);
+    RCLCPP_INFO_STREAM(this->get_logger(), "Marker Array " << marker_array_.markers.at(1).pose.position.y);
+    RCLCPP_INFO_STREAM(this->get_logger(), "Marker Array " << marker_array_.markers.at(2).pose.position.x);
+    RCLCPP_INFO_STREAM(this->get_logger(), "Marker Array " << marker_array_.markers.at(2).pose.position.y);
+
+    for (int i = 0; i < int(marker_array_.markers.size()); i++){
+      geometry_msgs::msg::Point obstacle_position = marker_array_.markers.at(i).pose.position;
+      RCLCPP_INFO_STREAM(this->get_logger(), "Obstacle Position X: " << obstacle_position.x);
+      RCLCPP_INFO_STREAM(this->get_logger(), "Obstacle Position Y: " << obstacle_position.y);
+      zi.at(i*2) = obstacle_position.x;
+      zi.at((i*2) + 1) = obstacle_position.y;
+      // zi.push_back(obstacle_position);
+    }
+
+    // Print the observation:
+    // RCLCPP_INFO_STREAM(this->get_logger(), "Observation: " << zi);
+
+    // Calculate Ht_:
+    // Ht_ = calculate_H(zi);
+
+    // Print Ht_:
+    // RCLCPP_INFO_STREAM(this->get_logger(), "Ht: " << Ht_);
+
+    // Calculate the Kalman Gain:
+    // Kt_ = calculate_K(Sigma_bar_, Ht_);
+
+    // Print Kt_:
+    // RCLCPP_INFO_STREAM(this->get_logger(), "Kt: " << Kt_);
+
+    // Calculate the corrected state:
+    // mu_ = calculate_mu(mu_bar_, Kt_, Ht_, zi);
+
+    // Print the corrected state:
+    // RCLCPP_INFO(this->get_logger(), "Corrected State: x: %f, y: %f, theta: %f", mu_(1), mu_(2), mu_(0));
+
+    // Calculate the corrected covariance matrix:
+    // Sigma_ = calculate_Sigma(Sigma_bar_, Kt_, Ht_);
+
+    // Print the corrected covariance matrix:
+    // RCLCPP_INFO_STREAM(this->get_logger(), "Sigma: " << Sigma_);
+
+    // Update the previous state:
+    // mu_prev_ = mu_;
+    mu_ = mu_bar_;
+    // mu_prev_ = mu_bar_;
+
+  }
+
+  void odom_callback(const nav_msgs::msg::Odometry::SharedPtr msg)
+  {
+    // Store the odometry messages that we receive:
+    odom_store_.push_back(*msg);
+
+    // broadcast the transform:
+    odom_tf_.header.stamp = this->now();
+    odom_tf_.header.frame_id = "green/odom";
+    odom_tf_.child_frame_id = "green/base_footprint";
+    odom_tf_.transform.translation.x = msg->pose.pose.position.x;
+    odom_tf_.transform.translation.y = msg->pose.pose.position.y;
+    odom_tf_.transform.translation.z = 0.0;
+    odom_tf_.transform.rotation = msg->pose.pose.orientation;
+    odom_broadcaster_->sendTransform(odom_tf_);
+
+  }
+
+  
   arma::mat calculate_Sigma(arma::mat Sigma_bar, arma::mat Kt, arma::mat Ht){
     arma::mat Sigma = (arma::eye(9, 9) - Kt * Ht) * Sigma_bar;
     return Sigma;
@@ -344,8 +346,8 @@ private:
       RCLCPP_INFO_STREAM(this->get_logger(), "Iteration: " << i);
 
 
-      double delta_x = mu_bar_.at(3 + i) - mu_bar_.at(1);
-      double delta_y = mu_bar_.at((3 + i) + 1) - mu_bar_.at(2);
+      double delta_x = mu_bar_.at(3 + (2*i)) - mu_bar_.at(1);
+      double delta_y = mu_bar_.at((3 + (2*i)) + 1) - mu_bar_.at(2);
       // double delta_x = zi(i*2) - mu_bar_(1);
       // double delta_y = zi(i*2 + 1) - mu_bar_(2);
       double d = pow(delta_x, 2) + pow(delta_y, 2);
@@ -373,9 +375,8 @@ private:
     return H;
   }
 
-
- arma::mat calculate_Sigma_bar(arma::mat Sigma_prev_, arma::mat A){
-  arma::mat Q = arma::eye(3, 3) *0.01;
+  arma::mat calculate_Sigma_bar(arma::mat Sigma_prev_, arma::mat A){
+  arma::mat Q = arma::eye(3, 3);
 
   arma::mat Q_bar = arma::zeros(9, 9);
   Q_bar.at(0, 0) = Q.at(0, 0);
@@ -388,7 +389,7 @@ private:
   return Sigma_bar;
  }
 
- arma::mat calculate_A(double dx, double dy, double d_theta){
+  arma::mat calculate_A(double dx, double dy, double d_theta){
 
   arma::mat A = arma::zeros(9,9);
   A.at(1,0) = -dy;
@@ -399,30 +400,13 @@ private:
   return A;
  }
 
-//  arma::mat calculate_A(arma::vec mu_prev_, geometry_msgs::msg::Twist current_twist){
-    
-//     double delta_x = current_twist.linear.x;
-//     // double delta_y = current_twist.linear.y;
-//     double delta_theta = current_twist.angular.z;
-  
-//     arma::mat A = arma::zeros(9, 9);
-//     arma::mat a = arma::zeros(9, 9);
-
-//     if (turtlelib::almost_equal(delta_theta, 0.0, 1e-9)){
-//       a.at(0, 1) = -delta_x*sin(mu_prev_.at(0));
-//       a.at(0, 2) = delta_x*cos(mu_prev_.at(0));
-      
-//     } else {
-//       a.at(0, 1) = -(delta_x / delta_theta) * cos(mu_prev_.at(0)) + (delta_x / delta_theta) * cos(mu_prev_.at(0)+ delta_theta);
-//       a.at(0, 2) = -(delta_x / delta_theta) * sin(mu_prev_.at(0)) + (delta_x / delta_theta) * sin(mu_prev_.at(0) + delta_theta);
-
-//     }
-
-//     A = arma::eye(9,9) + a;
-  
-//     return A;
-
-// }
+  double return_yaw(geometry_msgs::msg::Quaternion q)
+  {
+    // Begin Citation [7]
+    double yaw = atan2(2.0 * (q.w * q.z + q.x * q.y), 1.0 - 2.0 * (q.y * q.y + q.z * q.z));
+    // End Citation [7]
+    return yaw;
+  }
 
   // Initalize Publishers:
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub_;
@@ -432,7 +416,6 @@ private:
   // Initialize Subscribers:
   rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
   rclcpp::Subscription<visualization_msgs::msg::MarkerArray>::SharedPtr fake_sensor_sub_;
-
 
   // Initalize Broadcasters:
   std::unique_ptr<tf2_ros::TransformBroadcaster> odom_broadcaster_;
@@ -455,24 +438,12 @@ private:
   nav_msgs::msg::Path odom_path_;
   visualization_msgs::msg::MarkerArray green_marker_array_;
 
-  // Initalize State Variables: 
-  // arma::vec mu_prev_ = arma::zeros(9,1);
-  // arma::vec mu_prev_ = {0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
-  arma::vec mu_prev_ = {0.0, 0.0, 0.0, -0.5, -0.7, 0.8, -0.8, 0.4, 0.8};
-
 
   // Initalize Current State, uncorrected: 
-  // arma::vec mu_bar_ = arma::zeros(9,1);
-  // arma::vec mu_bar_ = {0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
   arma::vec mu_bar_ = {0.0, 0.0, 0.0, -0.5, -0.7, 0.8, -0.8, 0.4, 0.8};
+
   // Initalize Current State, corrected:
-  // arma::vec mu_ = arma::zeros(9,1);
-  // arma::vec mu_ = {0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
   arma::vec mu_ = {0.0, 0.0, 0.0, -0.5, -0.7, 0.8, -0.8, 0.4, 0.8};
-
-
-  // Initalize Covariance Matrix:
-  arma::mat Sigma_prev_ = arma::eye(9,9);
 
   // Initalize Covariance Matrix, uncorrected:
   arma::mat Sigma_bar_ = arma::eye(9,9);
