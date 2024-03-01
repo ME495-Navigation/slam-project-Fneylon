@@ -192,8 +192,11 @@ private:
       // Publish and update the fake markers 
       visualization_msgs::msg::MarkerArray fake_obs_array_;
       for (int i = 0; i < int(x_obstacles_.size()); ++i) {
+        double diff_x = x_obstacles_.at(i) - diff_drive_.get_configuration().x;
+        double diff_y = y_obstacles_.at(i) - diff_drive_.get_configuration().y;
+        double theta_current = diff_drive_.get_configuration().theta;
         visualization_msgs::msg::Marker marker;
-        marker.header.frame_id = "nusim/world";
+        marker.header.frame_id = "red/base_footprint";
         marker.ns = "fake_obstacle";
         marker.id = i;
         marker.type = visualization_msgs::msg::Marker::CYLINDER;
@@ -201,8 +204,8 @@ private:
         marker.pose.orientation.y = 0.0;
         marker.pose.orientation.z = 0.0;
         marker.pose.orientation.w = 0.0;
-        marker.pose.position.x = x_obstacles_.at(i) + obs_norm_distribution_(generator_);
-        marker.pose.position.y = y_obstacles_.at(i) + obs_norm_distribution_(generator_);
+        marker.pose.position.x = diff_x * cos(theta_current) + diff_y * sin(theta_current) + obs_norm_distribution_(generator_);
+        marker.pose.position.y = diff_y * cos(theta_current) - diff_x * sin(theta_current)  + obs_norm_distribution_(generator_);
         marker.pose.position.z = 0.0;
         marker.color.r = 1;
         marker.color.g = 1;

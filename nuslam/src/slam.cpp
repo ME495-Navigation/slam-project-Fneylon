@@ -71,40 +71,11 @@ private:
     // ROS Callbacks:
     void timer_callback(){
 
-        // Broadcast the green odom transform:
-        broadcaster_->sendTransform(green_odom_tf_);
-
-        // Calculate the Map to Robot Transform:
-        turtlelib::Vector2D r;
-        r.x = mu_.at(1);
-        r.y = mu_.at(2);
-        Tmr_ = turtlelib::Transform2D(r, mu_.at(0));
-
-        // Solve for the Map to Odom Transform:
-        Tmo_ = Tmr_ * Tor_.inv();
-
-        // Set the map odom transform:
-        set_Tmo_transform();
-
-        // Broadcast the map odom transform:
-        broadcaster_->sendTransform(map_odom_tf_);
-
-    }
-
-    void odom_callback(const nav_msgs::msg::Odometry::SharedPtr msg){
-
-        double dx = msg->pose.pose.position.x - prev_green_odom_.pose.pose.position.x;
-        double dy = msg->pose.pose.position.y - prev_green_odom_.pose.pose.position.y;
-        double dtheta = return_yaw(msg->pose.pose.orientation) - return_yaw(prev_green_odom_.pose.pose.orientation);
-
-        predict(dx, dy, dtheta);
-
         // Set Green Odom Transform:
         set_green_odom_transform();
 
-        // Set Green Odom Message:
-        green_odom_msg_ = *msg;
-        set_green_odom_msg();
+        // Update the Green Odom Message:
+        update_green_odom_msg();
 
         // Update the Green Odom Path:
         update_green_odom_path();
@@ -115,29 +86,65 @@ private:
         // Publish the Green Marker Array:
         green_marker_array_pub_->publish(green_marker_array_msg_);
 
+        // Broadcast the green odom transform:
+        broadcaster_->sendTransform(green_odom_tf_);
+
+        // Set the Map to Robot Transform:
+        set_Tmr();
+
+        // Solve for the Map to Odom Transform:
+        solve_for_Tmo();
+        
+        // Set the map odom transform:
+        set_Tmo_transform();
+
+        // Broadcast the map odom transform:
+        broadcaster_->sendTransform(map_odom_tf_);
+
+    }
+
+    void odom_callback(const nav_msgs::msg::Odometry::SharedPtr msg){
+        
+        // Set Green Odom Message:
+        green_odom_msg_ = *msg;
+
+        // Calculate the change in x, y, and theta:
+        double dx = green_odom_msg_.pose.pose.position.x - prev_green_odom_.pose.pose.position.x;
+        double dy = green_odom_msg_.pose.pose.position.y - prev_green_odom_.pose.pose.position.y;
+        double dtheta = return_yaw(green_odom_msg_.pose.pose.orientation) - return_yaw(prev_green_odom_.pose.pose.orientation);
+
+        // Predict the next state:
+        predict(dx, dy, dtheta);
 
         // Calculate the Odom to Robot Transform:
-        turtlelib::Vector2D o;
-        o.x = msg->pose.pose.position.x;
-        o.y = msg->pose.pose.position.y;
-        double theta = return_yaw(msg->pose.pose.orientation);
-        Tor_ = turtlelib::Transform2D(o, theta);
+        set_Tor();
 
         // Set the previous green odom:
         prev_green_odom_ = *msg;
     }
 
     void fake_obstacles_callback(const visualization_msgs::msg::MarkerArray::SharedPtr msg){
+        
+        // Define the for loop to call the update over: 
+        for (int i = 0; i < int(num_obs_); i++){
+            // Extract the id, x, and y from the message:
+            int idx = msg->markers.at(i).id;
+            RCLCPP_INFO_STREAM(this->get_logger(), "idx: " << idx);
+            double x = msg->markers.at(i).pose.position.x;
+            double y = msg->markers.at(i).pose.position.y;
 
+            // Call the update function:
+            if (msg->markers.at(i).action == visualization_msgs::msg::Marker::ADD){
+                update(idx, x, y);
+            }
+
+        }
 
 
     }
 
-
-
     // Kalman filter functions:
     void predict(double dx, double dy, double dtheta){
-        
         // Calculate mu_bar: 
         mu_bar_.at(0) = mu_.at(0) + dtheta;
         mu_bar_.at(1) = mu_.at(1) + dx;
@@ -152,33 +159,110 @@ private:
 
         // Calculate At_:
         calculate_A(dx, dy);
+        RCLCPP_INFO_STREAM(this->get_logger(), "At_: " << At_);
 
         // Calculate Q_bar_:
         calculate_Q_bar(q_);
 
         // Calculate Sigma_bar_:
-        caluclate_Sigma_bar();
+        calculate_Sigma_bar();
+        RCLCPP_INFO_STREAM(this->get_logger(), "Sigma_bar_: " << Sigma_bar_);
 
         // Update mu_:
-        mu_ = mu_bar_;
+        // mu_ = mu_bar_;
 
         // Update Sigma_:
-        Sigma_ = Sigma_bar_;
+        // Sigma_ = Sigma_bar_;
 
     }
 
-    void update(){
+    void update(int idx, double x, double y){
 
+        // Calculate z_hat: 
+        arma::vec z_hat = calculate_z_hat({x, y});
+
+        // Calculate z: 
+        arma::vec z = calculate_z(idx);
+    
+        RCLCPP_INFO_STREAM(this->get_logger(), "z: " << z);
+
+        // Calculate the difference between the observed and predicted x and y:
+        double dx = mu_bar_.at(3 + (2*idx)) - mu_bar_.at(1);
+        double dy = mu_bar_.at(4 + (2*idx)) - mu_bar_.at(2);
+        // double dx = x - mu_bar_.at(1);
+        // double dy = y - mu_bar_.at(2);
+        RCLCPP_INFO_STREAM(this->get_logger(), "mu_bar_x: " << mu_bar_.at(1) << " mu_bar_y: " << mu_bar_.at(2));
+
+        RCLCPP_INFO_STREAM(this->get_logger(), "dx: " << dx << " dy: " << dy);
+
+        // Calculate the H matrix:
+        calculate_Hj(idx, dx, dy);
+
+        // Calculate the Kalman Gain:
+        calculate_K();
+
+        RCLCPP_INFO_STREAM(this->get_logger(), "Kt_: " << Kt_);
+
+        // Update mu_:
+        update_mu(z, z_hat);
+        RCLCPP_FATAL_STREAM(this->get_logger(), "mu_: " << mu_);
+
+        // Update Sigma_:
+        update_Sigma();
+        RCLCPP_FATAL_STREAM(this->get_logger(), "Sigma_: " << Sigma_);
     }
 
 
     // Kalman Filter Helper Functions:
+    void update_Sigma(){
+        Sigma_ = (arma::eye(9,9) - (Kt_ * Hj_)) * Sigma_bar_;
+    }
+
+    void update_mu(arma::vec z, arma::vec z_hat){
+
+        // RCLCPP_INFO_STREAM(this->get_logger(), "mu_bar_prime: " << mu_bar_prime);
+
+        mu_ = mu_bar_ + (Kt_ * (z - z_hat));
+    }
+    
+    void calculate_K(){
+
+        // calculate R:
+        calculate_R();
+
+        Kt_ = Sigma_bar_ * Hj_.t() * ((Hj_ * Sigma_bar_ * Hj_.t()) + R_).i();
+    }
+    
+    void calculate_Hj(int idx, double dx, double dy){
+
+        Hj_ = arma::zeros(2,9);
+        double d = pow(dx, 2) + pow(dy, 2);
+        Hj_.at(0, 0) = 0.0;
+        Hj_.at(0, 1) = -dx / sqrt(d);
+        Hj_.at(0, 2) = -dy / sqrt(d);
+
+        Hj_.at(1, 0) = -1.0;
+        Hj_.at(1, 1) = dy / d;
+        Hj_.at(1, 2) = -dx / d;
+
+
+        Hj_.at(0, 3 + (2*idx)) = dx / sqrt(d);
+        Hj_.at(0, 4 + (2*idx)) = dy / sqrt(d);
+
+        Hj_.at(1, 3 + (2*idx)) = -dy / d;
+        Hj_.at(1, 4 + (2*idx)) = dx / d;
+
+        RCLCPP_INFO_STREAM(this->get_logger(), "Hj_: " << Hj_);
+
+    }
+
     void calculate_A(double dx, double dy){
         At_.at(1,0) = -dy;
         At_.at(2,0) = dx;
 
         At_ = arma::eye(9,9) + At_;
     }
+   
     void calculate_Q_bar(double q){
         Q_bar_.at(0, 0) = q;
         Q_bar_.at(1, 1) = q;
@@ -186,7 +270,12 @@ private:
 
     }
 
-    void caluclate_Sigma_bar(){
+    void calculate_R(){
+        R_.at(0, 0) = r_;
+        R_.at(1, 1) = r_;
+    }
+    
+    void calculate_Sigma_bar(){
 
         Sigma_bar_ = (At_ * Sigma_ * At_.t()) + Q_bar_;
     }
@@ -196,6 +285,23 @@ private:
         double yaw = atan2(2.0 * (q.w * q.z + q.x * q.y), 1.0 - 2.0 * (q.y * q.y + q.z * q.z));
         // End Citation [7]
         return yaw;
+    }
+
+    arma::vec calculate_z(int idx){
+
+        double range = sqrt(pow(mu_.at(3 + (2*idx)) - mu_.at(2), 2) + pow(mu_.at(4 + (2*idx)) - mu_.at(2), 2));
+        double bearing = atan2(mu_.at(4 + (2*idx)) - mu_.at(2), mu_.at(3 + (2*idx)) - mu_.at(1));
+
+        arma::vec z = {range, bearing};
+
+        return z;
+    }
+
+    arma::vec calculate_z_hat(arma::vec z){
+        arma::vec z_hat = arma::zeros(2,1);
+        z_hat.at(0) = sqrt(pow(z.at(0), 2) + pow(z.at(1), 2));
+        z_hat.at(1) = atan2(z.at(1), z.at(0));
+        return z_hat;
     }
 
     // ROS Helper Functions:
@@ -241,7 +347,7 @@ private:
         green_odom_path_msg_.poses.push_back(pose);
         green_odom_path_pub_->publish(green_odom_path_msg_);
     }
-    void set_green_odom_msg(){
+    void update_green_odom_msg(){
         green_odom_msg_.header.stamp = this->now();
         green_odom_msg_.header.frame_id = odom_id_;
         green_odom_msg_.child_frame_id = body_id_;
@@ -270,6 +376,27 @@ private:
         map_odom_tf_.transform.rotation.z = q.z();
         map_odom_tf_.transform.rotation.w = q.w();
     }
+    void set_Tmr(){
+
+        turtlelib::Vector2D r;
+        r.x = mu_.at(1);
+        r.y = mu_.at(2);
+        Tmr_ = turtlelib::Transform2D(r, mu_.at(0));
+    }
+    void set_Tor(){
+        turtlelib::Vector2D o;
+        o.x = green_odom_msg_.pose.pose.position.x;
+        o.y = green_odom_msg_.pose.pose.position.y;
+        double theta = return_yaw(green_odom_msg_.pose.pose.orientation);
+        Tor_ = turtlelib::Transform2D(o, theta);
+
+    }
+    void solve_for_Tmo(){
+
+        Tmo_ = Tmr_ * Tor_.inv();
+
+    }
+
 
 
     // Initalize Publishers:
@@ -296,8 +423,12 @@ private:
     arma::mat Sigma_ = arma::eye(9,9);
 
     arma::mat At_ = arma::zeros(9,9);
+    arma::mat Hj_ = arma::zeros(2,9);
+
+    arma::mat Kt_ = arma::zeros(9,2);
 
     arma::mat Q_bar_ = arma::zeros(9,9);
+    arma::mat R_ = arma::zeros(2,2);
 
     // Initalize ROS Variables:
     nav_msgs::msg::Odometry prev_green_odom_;
@@ -315,13 +446,12 @@ private:
     int num_obs_ = 3;
 
     double q_= 1.0;
+    double r_= 1.0;
 
     // Define transforms:
     turtlelib::Transform2D Tmr_;
     turtlelib::Transform2D Tor_;
     turtlelib::Transform2D Tmo_;
-
-    // Define Storage Variable:
 };
 
 
