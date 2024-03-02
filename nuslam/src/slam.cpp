@@ -129,7 +129,7 @@ private:
         for (int i = 0; i < int(num_obs_); i++){
             // Extract the id, x, and y from the message:
             int idx = msg->markers.at(i).id;
-            RCLCPP_INFO_STREAM(this->get_logger(), "idx: " << idx);
+            // RCLCPP_INFO_STREAM(this->get_logger(), "idx: " << idx);
             double x = msg->markers.at(i).pose.position.x;
             double y = msg->markers.at(i).pose.position.y;
 
@@ -159,20 +159,12 @@ private:
 
         // Calculate At_:
         calculate_A(dx, dy);
-        RCLCPP_INFO_STREAM(this->get_logger(), "At_: " << At_);
 
         // Calculate Q_bar_:
         calculate_Q_bar(q_);
 
         // Calculate Sigma_bar_:
         calculate_Sigma_bar();
-        RCLCPP_INFO_STREAM(this->get_logger(), "Sigma_bar_: " << Sigma_bar_);
-
-        // Update mu_:
-        // mu_ = mu_bar_;
-
-        // Update Sigma_:
-        // Sigma_ = Sigma_bar_;
 
     }
 
@@ -184,15 +176,11 @@ private:
         // Calculate z: 
         arma::vec z = calculate_z(idx);
     
-        RCLCPP_INFO_STREAM(this->get_logger(), "z: " << z);
+        // RCLCPP_INFO_STREAM(this->get_logger(), "z: " << z);
 
         // Calculate the difference between the observed and predicted x and y:
         double dx = mu_bar_.at(3 + (2*idx)) - mu_bar_.at(1);
         double dy = mu_bar_.at(4 + (2*idx)) - mu_bar_.at(2);
-
-        // RCLCPP_INFO_STREAM(this->get_logger(), "mu_bar_x: " << mu_bar_.at(1) << " mu_bar_y: " << mu_bar_.at(2));
-
-        // RCLCPP_INFO_STREAM(this->get_logger(), "dx: " << dx << " dy: " << dy);
 
         // Calculate the H matrix:
         calculate_Hj(idx, dx, dy);
@@ -200,16 +188,11 @@ private:
         // Calculate the Kalman Gain:
         calculate_K();
 
-        // RCLCPP_INFO_STREAM(this->get_logger(), "Kt_: " << Kt_);
-
         // Update mu_:
         update_mu(z, z_hat);
-        // RCLCPP_FATAL_STREAM(this->get_logger(), "mu_: " << mu_);
 
         // Update Sigma_:
         update_Sigma();
-        // RCLCPP_FATAL_STREAM(this->get_logger(), "Sigma_: " << Sigma_);
-
         mu_bar_ = mu_;
         Sigma_bar_ = Sigma_;
     }
@@ -223,7 +206,6 @@ private:
     void update_mu(arma::vec z, arma::vec z_hat){
         arma::vec z_diff = z_hat - z;
         z_diff.at(1) = turtlelib::normalize_angle(z_diff.at(1));
-        // z_diff.at(0) = turtlelib::normalize_angle(z_diff.at(0));
         mu_ = mu_bar_ + (Kt_ * (z_diff));
     }
     
@@ -232,8 +214,13 @@ private:
         // calculate R:
         calculate_R();
 
+        // calculate V_:
+        calculate_V();
+
         Kt_ = arma::zeros(9,2);
-        Kt_ = Sigma_bar_ * Hj_.t() * ((Hj_ * Sigma_bar_ * Hj_.t()) + R_).i();
+        Kt_ = Sigma_bar_ * Hj_.t() * ((Hj_ * Sigma_bar_ * Hj_.t()) + (V_ * R_ * V_.t())).i();
+        // Kt_ = Sigma_bar_ * Hj_.t() * ((Hj_ * Sigma_bar_ * Hj_.t()) + R_).i();
+
     }
     
     void calculate_Hj(int idx, double dx, double dy){
@@ -255,7 +242,7 @@ private:
         Hj_.at(1, 3 + (2*idx)) = -dy / d;
         Hj_.at(1, 4 + (2*idx)) = dx / d;
 
-        RCLCPP_INFO_STREAM(this->get_logger(), "Hj_: " << Hj_);
+        // RCLCPP_INFO_STREAM(this->get_logger(), "Hj_: " << Hj_);
 
     }
 
@@ -279,9 +266,29 @@ private:
         R_.at(1, 1) = r_;
     }
     
-    void calculate_Sigma_bar(){
+    void calculate_W(){
+        std::normal_distribution<double> noise_distribution_(0.0, w_);
+        double noise = noise_distribution_(generator_);
+        for (int i = 0; i < 9; i++){
+            W_.at(i,i) = noise;
+        }
+    }
 
-        Sigma_bar_ = (At_ * Sigma_bar_ * At_.t()) + Q_bar_;
+    void calculate_V(){
+        std::normal_distribution<double> noise_distribution_(0.0, v_);
+        double noise = noise_distribution_(generator_);
+        for (int i = 0; i < 2; i++){
+            V_.at(i,i) = noise;
+        }
+    }
+    void calculate_Sigma_bar(){
+        
+        // Calculate W:
+        calculate_W();
+
+        Sigma_bar_ = (At_ * Sigma_bar_ * At_.t()) + (W_ * Q_bar_ * W_.t());
+        // Sigma_bar_ = (At_ * Sigma_bar_ * At_.t()) + Q_bar_;
+
     }
 
     double return_yaw(geometry_msgs::msg::Quaternion q){
@@ -423,6 +430,9 @@ private:
     // Initalize Timers:
     rclcpp::TimerBase::SharedPtr timer_;
 
+    // Initalize the Random Number Generator:
+    std::default_random_engine generator_;
+
     // Initalize Kalman Variables:
     arma::vec mu_bar_ = {0.0, 0.0, 0.0, -0.5, -0.7, 0.8, -0.8, 0.4, 0.8};
     arma::vec mu_ = {0.0, 0.0, 0.0, -0.5, -0.7, 0.8, -0.8, 0.4, 0.8};
@@ -437,6 +447,9 @@ private:
 
     arma::mat Q_bar_ = arma::zeros(9,9);
     arma::mat R_ = arma::zeros(2,2);
+
+    arma::mat W_ = arma::zeros(9,9);
+    arma::mat V_ = arma::zeros(2,2);
 
     // Initalize ROS Variables:
     nav_msgs::msg::Odometry prev_green_odom_;
@@ -455,6 +468,8 @@ private:
 
     double q_= 0.01;
     double r_= 0.01;
+    double w_ = 0.01;
+    double v_ = 0.01;
 
     // Define transforms:
     turtlelib::Transform2D Tmr_;

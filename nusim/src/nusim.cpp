@@ -38,7 +38,7 @@ public:
     rate_ = this->get_parameter("rate").as_double();
 
     //Declare the lidar parameters
-    this->declare_parameter("basic_sensor_variance", 0.00);
+    this->declare_parameter("basic_sensor_variance", 0.01);
     basic_sensor_variance_ = this->get_parameter("basic_sensor_variance").as_double();
 
     this->declare_parameter("max_range", 3.5);
