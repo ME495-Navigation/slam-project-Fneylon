@@ -15,4 +15,4 @@ This package contains the following nodes:
 ![](images/EFK_screenshot.png)
 
 ## Nuslam Screenshot of EKF SLAM Implementation with Noise:
-![](images/EFK_screenshot_with_noise.png)
+![](images/EKF_screenshot_with_noise.png)
