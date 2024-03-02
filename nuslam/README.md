@@ -1,5 +1,5 @@
 ## IMPORTANT NOTES FOR MATT:
-* This is a work in progress and does not meet all the requirements for Homework 3. 
+* This is a work in progress and does not meet all the requirements for Homework 3 UPDATED 03/02. 
 * ~~Noise was not implemented in the EKF SLAM implementation.~~
 * The initial locations of the landmarks is hardcoded to be the location from the basic_world.yaml file. This will be changed. 
 * None of colcon tests have been fixed. 
