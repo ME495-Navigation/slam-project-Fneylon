@@ -333,8 +333,8 @@ private:
             green_marker.pose.orientation.y = 0.0;
             green_marker.pose.orientation.z = 0.0;
             green_marker.pose.orientation.w = 1.0;
-            green_marker.scale.x = 0.1;
-            green_marker.scale.y = 0.1;
+            green_marker.scale.x = 0.038 * 2.0;
+            green_marker.scale.y = 0.038 * 2.0;
             green_marker.scale.z = 0.25;
             green_marker.color.a = 1.0;
             green_marker.color.r = 0.0;
@@ -468,8 +468,8 @@ private:
 
     double q_= 0.01;
     double r_= 0.01;
-    double w_ = 0.01;
-    double v_ = 0.01;
+    double w_ = 0.1;
+    double v_ = 0.1;
 
     // Define transforms:
     turtlelib::Transform2D Tmr_;

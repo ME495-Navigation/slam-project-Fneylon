@@ -1,5 +1,6 @@
 ## IMPORTANT NOTES FOR MATT:
 * This is a work in progress and does not meet all the requirements for Homework 3. 
+* ~~Noise was not implemented in the EKF SLAM implementation.~~
 * The initial locations of the landmarks is hardcoded to be the location from the basic_world.yaml file. This will be changed. 
 * None of colcon tests have been fixed. 
 * None of the documentation is completed for this package.
@@ -14,5 +15,8 @@ This package contains the following nodes:
 ## Nuslam Screenshot of EKF SLAM Implementation without Noise:
 ![](images/EFK_screenshot.png)
 
-## Nuslam Screenshot of EKF SLAM Implementation with Noise:
+## Nuslam Screenshot of EKF SLAM Implementation with noise = 0.01:
 ![](images/EKF_screenshot_with_noise.png)
+
+## Nuslam Screenshot of EKF SLAM Implementation with noise = 0.1:
+![](images/EKF_with_higher_noise.png)
