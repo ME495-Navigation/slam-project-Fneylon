@@ -124,18 +124,31 @@ private:
     }
 
     void fake_obstacles_callback(const visualization_msgs::msg::MarkerArray::SharedPtr msg){
+
+        auto marker_array = *msg;
         
         // Define the for loop to call the update over: 
-        for (int i = 0; i < int(num_obs_); i++){
+        for (int i = 0; i < int(marker_array.markers.size()); i++){
+
             // Extract the id, x, and y from the message:
             int idx = msg->markers.at(i).id;
-            // RCLCPP_INFO_STREAM(this->get_logger(), "idx: " << idx);
             double x = msg->markers.at(i).pose.position.x;
             double y = msg->markers.at(i).pose.position.y;
 
             // Call the update function:
             if (msg->markers.at(i).action == visualization_msgs::msg::Marker::ADD){
-                update(idx, x, y);
+                if (is_observed(idx) == true){
+                    update(idx, x, y);
+                } else {
+
+                    seen_obs_.push_back(idx);
+                    mu_.at(3 + (2*idx)) = x;
+                    mu_.at(4 + (2*idx)) = y;
+
+                    mu_bar_.at(3 + (2*idx)) = x;
+                    mu_bar_.at(4 + (2*idx)) = y;
+
+                }
             }
 
         }
@@ -318,12 +331,12 @@ private:
     void update_green_marker_msg(){
 
         green_marker_array_msg_.markers.clear();
-        for (int i = 0; i < int(num_obs_); i++){
+        for (int i = 0; i < int(seen_obs_.size()); i++){
             visualization_msgs::msg::Marker green_marker;
             green_marker.header.frame_id = "map";
             green_marker.header.stamp = this->now();
             green_marker.ns = "green";
-            green_marker.id = i;
+            green_marker.id = seen_obs_.at(i);
             green_marker.type = visualization_msgs::msg::Marker::CYLINDER;
             green_marker.action = visualization_msgs::msg::Marker::ADD;
             green_marker.pose.position.x = mu_.at(3 + (2*i));
@@ -412,6 +425,15 @@ private:
 
     }
 
+    bool is_observed(int idx){
+        for (int i = 0; i < int(seen_obs_.size()); i++){
+            if (seen_obs_.at(i) == idx){
+                return true;
+            }
+        }
+        return false;
+    }
+
 
 
     // Initalize Publishers:
@@ -434,8 +456,8 @@ private:
     std::default_random_engine generator_;
 
     // Initalize Kalman Variables:
-    arma::vec mu_bar_ = {0.0, 0.0, 0.0, -0.5, -0.7, 0.8, -0.8, 0.4, 0.8};
-    arma::vec mu_ = {0.0, 0.0, 0.0, -0.5, -0.7, 0.8, -0.8, 0.4, 0.8};
+    arma::vec mu_bar_ = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+    arma::vec mu_ = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
     arma::mat Sigma_bar_ = arma::eye(9,9);
     arma::mat Sigma_ = arma::eye(9,9);
@@ -460,6 +482,9 @@ private:
     visualization_msgs::msg::MarkerArray green_marker_array_msg_;
     geometry_msgs::msg::TransformStamped green_odom_tf_;
     geometry_msgs::msg::TransformStamped map_odom_tf_;
+
+    // Seen Obstacles: 
+    std::vector<int> seen_obs_;
 
     // Initalize Parameters:
     std::string body_id_;
