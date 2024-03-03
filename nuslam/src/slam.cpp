@@ -126,6 +126,7 @@ private:
     void fake_obstacles_callback(const visualization_msgs::msg::MarkerArray::SharedPtr msg){
 
         auto marker_array = *msg;
+        int num_updates = 0;
         
         // Define the for loop to call the update over: 
         for (int i = 0; i < int(marker_array.markers.size()); i++){
@@ -139,21 +140,23 @@ private:
             if (msg->markers.at(i).action == visualization_msgs::msg::Marker::ADD){
                 if (is_observed(idx) == true){
                     update(idx, x, y);
+                    num_updates++;
                 } else {
 
                     seen_obs_.push_back(idx);
-                    mu_.at(3 + (2*idx)) = x;
-                    mu_.at(4 + (2*idx)) = y;
 
-                    mu_bar_.at(3 + (2*idx)) = x;
-                    mu_bar_.at(4 + (2*idx)) = y;
-
+                    mu_bar_.at(3 + (2*idx)) = x + mu_bar_.at(1);
+                    mu_bar_.at(4 + (2*idx)) = y + mu_bar_.at(2);
+                    mu_.at(3 + (2*idx)) = mu_bar_.at(3 + (2*idx));
+                    mu_.at(4 + (2*idx)) = mu_bar_.at(4 + (2*idx));
                 }
             }
-
         }
 
-
+        if (num_updates == 0){
+            mu_ = mu_bar_;
+            Sigma_ = Sigma_bar_;
+        }
     }
 
     // Kalman filter functions:
@@ -188,8 +191,6 @@ private:
 
         // Calculate z: 
         arma::vec z = calculate_z(idx);
-    
-        // RCLCPP_INFO_STREAM(this->get_logger(), "z: " << z);
 
         // Calculate the difference between the observed and predicted x and y:
         double dx = mu_bar_.at(3 + (2*idx)) - mu_bar_.at(1);
@@ -294,6 +295,7 @@ private:
             V_.at(i,i) = noise;
         }
     }
+    
     void calculate_Sigma_bar(){
         
         // Calculate W:
@@ -424,7 +426,6 @@ private:
         Tmo_ = Tmr_ * Tor_.inv();
 
     }
-
     bool is_observed(int idx){
         for (int i = 0; i < int(seen_obs_.size()); i++){
             if (seen_obs_.at(i) == idx){

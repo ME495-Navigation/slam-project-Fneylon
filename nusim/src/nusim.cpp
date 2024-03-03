@@ -41,7 +41,7 @@ public:
     this->declare_parameter("basic_sensor_variance", 0.01);
     basic_sensor_variance_ = this->get_parameter("basic_sensor_variance").as_double();
 
-    this->declare_parameter("max_range", 3.5);
+    this->declare_parameter("max_range", 1.0);
     max_range_ = this->get_parameter("max_range").as_double();
 
 
