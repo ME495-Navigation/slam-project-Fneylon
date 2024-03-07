@@ -82,8 +82,7 @@
     </node>
 
     <!-- If the cmd_src is set to teleop -->
-    <node pkg="turtlebot3_teleop" exec="teleop_twist_keyboard" if="$(eval '\'$(var cmd_src)\' == \'teleop\'')">
-    </node>
+    <node pkg="turtlebot3_teleop" exec="teleop_keyboard" if="$(eval '\'$(var cmd_src)\' == \'teleop\'')" launch-prefix="xterm -e"/>
 </group>
 
 <group if="$(eval '\'$(var robot)\' == \'none\'')">
@@ -92,7 +91,6 @@
         <param from="$(var config_file)"/>
         <param name="draw_only" value="true"/>
     </node> 
-    <node pkg="tf2_ros" exec="static_transform_publisher" name="nusim_world_to_odom" args="--frame-id nusim/world --child-frame-id odom"/>
 </group>
 
 <group if="$(eval '\'$(var robot)\' != \'localhost\'')">

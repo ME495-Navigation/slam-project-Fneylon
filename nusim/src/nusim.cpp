@@ -152,7 +152,6 @@ public:
       tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
     }
     
-
     // Declare the arena parameters
     this->declare_parameter("arena_x_length", 10.0);
     arena_x_length_ = this->get_parameter("arena_x_length").as_double();
@@ -169,7 +168,6 @@ public:
 
     this->declare_parameter("obstacles/r", 0.1);
     radius_ = this->get_parameter("obstacles/r").as_double();
-
 
     // Define Timers:
     timer_ = this->create_wall_timer(

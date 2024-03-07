@@ -210,7 +210,6 @@ private:
         Sigma_bar_ = Sigma_;
     }
 
-
     // Kalman Filter Helper Functions:
     void update_Sigma(){
         Sigma_ = (arma::eye(9,9) - (Kt_ * Hj_)) * Sigma_bar_;
@@ -433,8 +432,6 @@ private:
         }
         return false;
     }
-
-
 
     // Initalize Publishers:
     rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr green_odom_pub_;
