@@ -144,7 +144,6 @@ private:
                 } else {
 
                     seen_obs_.push_back(idx);
-
                     mu_bar_.at(3 + (2*idx)) = x + mu_bar_.at(1);
                     mu_bar_.at(4 + (2*idx)) = y + mu_bar_.at(2);
                     mu_.at(3 + (2*idx)) = mu_bar_.at(3 + (2*idx));
@@ -341,8 +340,8 @@ private:
             green_marker.id = seen_obs_.at(i);
             green_marker.type = visualization_msgs::msg::Marker::CYLINDER;
             green_marker.action = visualization_msgs::msg::Marker::ADD;
-            green_marker.pose.position.x = mu_.at(3 + (2*i));
-            green_marker.pose.position.y = mu_.at(4 + (2*i));
+            green_marker.pose.position.x = mu_.at(3 + (2*seen_obs_.at(i)));
+            green_marker.pose.position.y = mu_.at(4 + (2*seen_obs_.at(i)));
             green_marker.pose.position.z = 0.0;
             green_marker.pose.orientation.x = 0.0;
             green_marker.pose.orientation.y = 0.0;

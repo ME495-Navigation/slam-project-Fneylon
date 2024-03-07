@@ -33,55 +33,125 @@ public:
     RCLCPP_INFO(this->get_logger(), "Starting Nusim!");
 
     // Declare parameters
+    // Draw Only Parameter:  
+    this->declare_parameter("draw_only", false);
+    draw_only_ = this->get_parameter("draw_only").as_bool();
+    if (draw_only_){
+      RCLCPP_INFO(this->get_logger(), "Draw Only Mode");
+    }
+
     // Declare the the timer rate parameter
     this->declare_parameter("rate", 200.0);
     rate_ = this->get_parameter("rate").as_double();
 
-    //Declare the lidar parameters
-    this->declare_parameter("basic_sensor_variance", 0.01);
-    basic_sensor_variance_ = this->get_parameter("basic_sensor_variance").as_double();
+    // Define the QoS
+    rclcpp::QoS marker_qos(10);
+    marker_qos.transient_local();
 
-    this->declare_parameter("max_range", 1.0);
-    max_range_ = this->get_parameter("max_range").as_double();
+    // Declare the lidar parameters
+    if (draw_only_ == false) {
+      this->declare_parameter("basic_sensor_variance", 0.01);
+      basic_sensor_variance_ = this->get_parameter("basic_sensor_variance").as_double();
+
+      this->declare_parameter("max_range", 1.0);
+      max_range_ = this->get_parameter("max_range").as_double();
+
+      this->declare_parameter("min_lidar_range", 0.110);
+      min_lidar_range_ = this->get_parameter("min_lidar_range").as_double();
+
+      this->declare_parameter("lidar_angle_increment", 0.0174533);
+      lidar_angle_increment_ = this->get_parameter("lidar_angle_increment").as_double();
+
+      this->declare_parameter("lidar_num_samps", 360);
+      lidar_num_samps_ = this->get_parameter("lidar_num_samps").as_int();
+
+      this->declare_parameter("lidar_resolution", 0.0174533);
+      lidar_resolution_ = this->get_parameter("lidar_resolution").as_double();
+
+      this->declare_parameter("lidar_noise", 0.01);
+      lidar_noise_ = this->get_parameter("lidar_noise").as_double();
+
+       // Declare the slip parameters
+      this->declare_parameter("slip_fraction", 0.5);
+      slip_fraction_ = this->get_parameter("slip_fraction").as_double();
+      
+      this->declare_parameter("input_noise", 5.0);
+      input_noise_ = this->get_parameter("input_noise").as_double();
+
+      // Declare the initial position parameters
+      this->declare_parameter("x0", 0.0);
+      x0_ = this->get_parameter("x0").as_double();
+
+      this->declare_parameter("y0", 0.0);
+      y0_ = this->get_parameter("y0").as_double();
+
+      this->declare_parameter("theta0", 0.0);
+      theta0_ = this->get_parameter("theta0").as_double();
+
+      // Declare the wheel parameters
+      this->declare_parameter("wheel_radius", -1.0);
+      wheel_radius_ = this->get_parameter("wheel_radius").as_double();
+      if (wheel_radius_ <= 0.0) {
+        RCLCPP_ERROR(this->get_logger(), "wheel_radius must be greater than 0.0");
+        rclcpp::shutdown();
+      }
+      this->declare_parameter("track_width", -1.0);
+      track_width_ = this->get_parameter("track_width").as_double();
+      if (track_width_ <= 0.0) {
+        RCLCPP_ERROR(this->get_logger(), "track_width must be greater than 0.0");
+        rclcpp::shutdown();
+      }
+      this->declare_parameter("motor_cmd_per_rad_sec", -1.0);
+      motor_cmd_per_rad_sec_ = this->get_parameter("motor_cmd_per_rad_sec").as_double();
+      if (motor_cmd_per_rad_sec_ <= 0.0) {
+        RCLCPP_ERROR(this->get_logger(), "motor_cmd_per_rad_sec must be greater than 0.0");
+        rclcpp::shutdown();
+      }
+      this->declare_parameter("encorder_ticks_per_rad", -1.0);
+      encorder_ticks_per_rad_ = this->get_parameter("encorder_ticks_per_rad").as_double();
+      if (encorder_ticks_per_rad_ <= 0.0) {
+        RCLCPP_ERROR(this->get_logger(), "encorder_ticks_per_rad must be greater than 0.0");
+        rclcpp::shutdown();
+      }
+
+      this->declare_parameter("collision_radius", -1.0);
+      coll_radius_ = this->get_parameter("collision_radius").as_double();
+      if (coll_radius_ <= 0.0) {
+        RCLCPP_ERROR(this->get_logger(), "collision_radius must be greater than 0.0");
+        rclcpp::shutdown();
+      }
 
 
+      diff_drive_ = turtlelib::DiffDrive(wheel_radius_, track_width_);
+      wheel_config_.theta_l = 0.0;
+      wheel_config_.theta_r = 0.0;
 
-    this->declare_parameter("min_lidar_range", 0.110);
-    min_lidar_range_ = this->get_parameter("min_lidar_range").as_double();
-
-    // this->declare_parameter("max_lidar_range", 3.5);
-    // max_lidar_range_ = this->get_parameter("max_lidar_range").as_double();
-
-    this->declare_parameter("lidar_angle_increment", 0.0174533);
-    lidar_angle_increment_ = this->get_parameter("lidar_angle_increment").as_double();
-
-    this->declare_parameter("lidar_num_samps", 360);
-    lidar_num_samps_ = this->get_parameter("lidar_num_samps").as_int();
-
-    this->declare_parameter("lidar_resolution", 0.0174533);
-    lidar_resolution_ = this->get_parameter("lidar_resolution").as_double();
-
-    this->declare_parameter("lidar_noise", 0.01);
-    lidar_noise_ = this->get_parameter("lidar_noise").as_double();
+      red_sensor_pub_ = this->create_publisher<nuturtlebot_msgs::msg::SensorData>("sensor_data", 10);
+      red_joint_state_pub_ = this->create_publisher<sensor_msgs::msg::JointState>("joint_states", 10);
+      red_path_pub_ = this->create_publisher<nav_msgs::msg::Path>("path", 10);
 
 
-    // Declare the slip parameters
-    this->declare_parameter("slip_fraction", 0.5);
-    slip_fraction_ = this->get_parameter("slip_fraction").as_double();
+      fake_obs_pub_ = this->create_publisher<visualization_msgs::msg::MarkerArray>("/fake_obstacles", 10);
+      laser_scan_pub_ = this->create_publisher<sensor_msgs::msg::LaserScan>("/laser_scan", 10);
+
+
+      // Define the Subscribers:
+      red_wheel_cmd_sub_ = this->create_subscription<nuturtlebot_msgs::msg::WheelCommands>(
+        "wheel_cmd", 10,
+        std::bind(&Nusim::red_wheel_cmd_callback, this, std::placeholders::_1));
+
+      // Define Services:
+      reset_srv_ = this->create_service<std_srvs::srv::Empty>(
+        "~/reset",
+        std::bind(&Nusim::reset_callback, this, std::placeholders::_1, std::placeholders::_2));
+      teleport_srv_ = this->create_service<nusim::srv::Teleport>(
+        "~/teleport",
+        std::bind(&Nusim::teleport_callback, this, std::placeholders::_1, std::placeholders::_2));
+
+      // Define Broadcasters:
+      tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
+    }
     
-    this->declare_parameter("input_noise", 5.0);
-    input_noise_ = this->get_parameter("input_noise").as_double();
-
-    // Declare the initial position parameters
-    this->declare_parameter("x0", 0.0);
-    x0_ = this->get_parameter("x0").as_double();
-
-    this->declare_parameter("y0", 0.0);
-    y0_ = this->get_parameter("y0").as_double();
-
-    this->declare_parameter("theta0", 0.0);
-    theta0_ = this->get_parameter("theta0").as_double();
-
 
     // Declare the arena parameters
     this->declare_parameter("arena_x_length", 10.0);
@@ -101,46 +171,6 @@ public:
     radius_ = this->get_parameter("obstacles/r").as_double();
 
 
-    // Declare the wheel parameters
-    this->declare_parameter("wheel_radius", -1.0);
-    wheel_radius_ = this->get_parameter("wheel_radius").as_double();
-    if (wheel_radius_ <= 0.0) {
-      RCLCPP_ERROR(this->get_logger(), "wheel_radius must be greater than 0.0");
-      rclcpp::shutdown();
-    }
-    this->declare_parameter("track_width", -1.0);
-    track_width_ = this->get_parameter("track_width").as_double();
-    if (track_width_ <= 0.0) {
-      RCLCPP_ERROR(this->get_logger(), "track_width must be greater than 0.0");
-      rclcpp::shutdown();
-    }
-    this->declare_parameter("motor_cmd_per_rad_sec", -1.0);
-    motor_cmd_per_rad_sec_ = this->get_parameter("motor_cmd_per_rad_sec").as_double();
-    if (motor_cmd_per_rad_sec_ <= 0.0) {
-      RCLCPP_ERROR(this->get_logger(), "motor_cmd_per_rad_sec must be greater than 0.0");
-      rclcpp::shutdown();
-    }
-    this->declare_parameter("encorder_ticks_per_rad", -1.0);
-    encorder_ticks_per_rad_ = this->get_parameter("encorder_ticks_per_rad").as_double();
-    if (encorder_ticks_per_rad_ <= 0.0) {
-      RCLCPP_ERROR(this->get_logger(), "encorder_ticks_per_rad must be greater than 0.0");
-      rclcpp::shutdown();
-    }
-
-    this->declare_parameter("collision_radius", -1.0);
-    coll_radius_ = this->get_parameter("collision_radius").as_double();
-    if (coll_radius_ <= 0.0) {
-      RCLCPP_ERROR(this->get_logger(), "collision_radius must be greater than 0.0");
-      rclcpp::shutdown();
-    }
-
-    diff_drive_ = turtlelib::DiffDrive(wheel_radius_, track_width_);
-    wheel_config_.theta_l = 0.0;
-    wheel_config_.theta_r = 0.0;
-
-    rclcpp::QoS marker_qos(10);
-    marker_qos.transient_local();
-
     // Define Timers:
     timer_ = this->create_wall_timer(
       std::chrono::duration<double>(1.0 / rate_), std::bind(&Nusim::timer_callback, this));
@@ -152,28 +182,7 @@ public:
     marker_obs_pub_ = this->create_publisher<visualization_msgs::msg::MarkerArray>(
       "~/obstacles",
       marker_qos);
-    red_sensor_pub_ = this->create_publisher<nuturtlebot_msgs::msg::SensorData>("sensor_data", 10);
-    red_joint_state_pub_ = this->create_publisher<sensor_msgs::msg::JointState>("joint_states", 10);
-    red_path_pub_ = this->create_publisher<nav_msgs::msg::Path>("path", 10);
-
-    fake_obs_pub_ = this->create_publisher<visualization_msgs::msg::MarkerArray>("/fake_obstacles", 10);
-    laser_scan_pub_ = this->create_publisher<sensor_msgs::msg::LaserScan>("/laser_scan", 10);
-
-    // Define the Subscribers:
-    red_wheel_cmd_sub_ = this->create_subscription<nuturtlebot_msgs::msg::WheelCommands>(
-      "wheel_cmd", 10,
-      std::bind(&Nusim::red_wheel_cmd_callback, this, std::placeholders::_1));
-
-    // Define Services:
-    reset_srv_ = this->create_service<std_srvs::srv::Empty>(
-      "~/reset",
-      std::bind(&Nusim::reset_callback, this, std::placeholders::_1, std::placeholders::_2));
-    teleport_srv_ = this->create_service<nusim::srv::Teleport>(
-      "~/teleport",
-      std::bind(&Nusim::teleport_callback, this, std::placeholders::_1, std::placeholders::_2));
-
-    // Define Broadcasters:
-    tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
+    
   }
 
 private:
@@ -189,71 +198,76 @@ private:
     if (turtlelib::almost_equal((time_ - time0_), 0.2, 1e-6)) {
       // Updating the measured obstacles and publishing them
       time0_ = time_;
+
       // Publish and update the fake markers 
-      visualization_msgs::msg::MarkerArray fake_obs_array_;
-      for (int i = 0; i < int(x_obstacles_.size()); ++i) {
-        double diff_x = x_obstacles_.at(i) - diff_drive_.get_configuration().x;
-        double diff_y = y_obstacles_.at(i) - diff_drive_.get_configuration().y;
-        double theta_current = diff_drive_.get_configuration().theta;
-        visualization_msgs::msg::Marker marker;
-        marker.header.frame_id = "red/base_footprint";
-        marker.ns = "fake_obstacle";
-        marker.id = i;
-        marker.type = visualization_msgs::msg::Marker::CYLINDER;
-        marker.pose.orientation.x = 1.0;
-        marker.pose.orientation.y = 0.0;
-        marker.pose.orientation.z = 0.0;
-        marker.pose.orientation.w = 0.0;
-        marker.pose.position.x = diff_x * cos(theta_current) + diff_y * sin(theta_current) + obs_norm_distribution_(generator_);
-        marker.pose.position.y = diff_y * cos(theta_current) - diff_x * sin(theta_current)  + obs_norm_distribution_(generator_);
-        marker.pose.position.z = 0.0;
-        marker.color.r = 1;
-        marker.color.g = 1;
-        marker.color.b = 0;
-        marker.color.a = 1.0;
-        marker.scale.x = radius_*2.0;
-        marker.scale.y = radius_*2.0;
-        marker.scale.z = 0.25;
-        // dist_ = calc_distance(marker.pose.position.x, marker.pose.position.y);
-        double dx = fabs(diff_drive_.get_configuration().x - x_obstacles_.at(i) + obs_norm_distribution_(generator_));
-        double dy = fabs(diff_drive_.get_configuration().y -  y_obstacles_.at(i) + obs_norm_distribution_(generator_));
-        dist_ = sqrt(pow(dx, 2) + pow(dy, 2));
+      if (draw_only_ == false) {
+        // Publish the fake obstacles (for visualization only)
+        visualization_msgs::msg::MarkerArray fake_obs_array_;
+        for (int i = 0; i < int(x_obstacles_.size()); ++i) {
+          double diff_x = x_obstacles_.at(i) - diff_drive_.get_configuration().x;
+          double diff_y = y_obstacles_.at(i) - diff_drive_.get_configuration().y;
+          double theta_current = diff_drive_.get_configuration().theta;
+          visualization_msgs::msg::Marker marker;
+          marker.header.frame_id = "red/base_footprint";
+          marker.ns = "fake_obstacle";
+          marker.id = i;
+          marker.type = visualization_msgs::msg::Marker::CYLINDER;
+          marker.pose.orientation.x = 1.0;
+          marker.pose.orientation.y = 0.0;
+          marker.pose.orientation.z = 0.0;
+          marker.pose.orientation.w = 0.0;
+          marker.pose.position.x = diff_x * cos(theta_current) + diff_y * sin(theta_current) + obs_norm_distribution_(generator_);
+          marker.pose.position.y = diff_y * cos(theta_current) - diff_x * sin(theta_current)  + obs_norm_distribution_(generator_);
+          marker.pose.position.z = 0.0;
+          marker.color.r = 1;
+          marker.color.g = 1;
+          marker.color.b = 0;
+          marker.color.a = 1.0;
+          marker.scale.x = radius_*2.0;
+          marker.scale.y = radius_*2.0;
+          marker.scale.z = 0.25;
+          // dist_ = calc_distance(marker.pose.position.x, marker.pose.position.y);
+          double dx = fabs(diff_drive_.get_configuration().x - x_obstacles_.at(i) + obs_norm_distribution_(generator_));
+          double dy = fabs(diff_drive_.get_configuration().y -  y_obstacles_.at(i) + obs_norm_distribution_(generator_));
+          dist_ = sqrt(pow(dx, 2) + pow(dy, 2));
 
-        if (dist_ < max_range_){
-          marker.action = visualization_msgs::msg::Marker::ADD;
-          // fake_obs_array_.markers.push_back(marker);
-        } else {
-          marker.action = visualization_msgs::msg::Marker::DELETE;
-          // fake_obs_array_.markers.push_back(marker);
+          if (dist_ < max_range_){
+            marker.action = visualization_msgs::msg::Marker::ADD;
+            // fake_obs_array_.markers.push_back(marker);
+          } else {
+            marker.action = visualization_msgs::msg::Marker::DELETE;
+            // fake_obs_array_.markers.push_back(marker);
+          }
+          fake_obs_array_.markers.push_back(marker);
         }
-        fake_obs_array_.markers.push_back(marker);
-      }
-      fake_obs_pub_->publish(fake_obs_array_);
+        fake_obs_pub_->publish(fake_obs_array_);
 
-      // Set a publish the lidar data
-      set_laser_msg();
-      laser_scan_pub_->publish(laser_scan_msg_);
+        // Set a publish the lidar data
+        set_laser_msg();
+        laser_scan_pub_->publish(laser_scan_msg_);
+      }
 
     }
 
-    // Update Transform with the new time and broadcast it
-    // RCLCPP_INFO(this->get_logger(), "Updating Transform");
-    update_transform();
-    tf_broadcaster_->sendTransform(transformStamped_);
+    if (draw_only_ == false) {
+      update_transform();
+      tf_broadcaster_->sendTransform(transformStamped_);
 
-    // Update Sensor Data
-    // RCLCPP_INFO(this->get_logger(), "Updating Sensor Data");
-    red_sensor_pub_->publish(sensor_msg_);
+      // Update Sensor Data
+      // RCLCPP_INFO(this->get_logger(), "Updating Sensor Data");
+      red_sensor_pub_->publish(sensor_msg_);
 
-    // Update Joint States
-    // RCLCPP_INFO(this->get_logger(), "Updating Joint States");
-    update_js();
-    red_joint_state_pub_->publish(joint_state_msg_);
+      // Update Joint States
+      // RCLCPP_INFO(this->get_logger(), "Updating Joint States");
+      update_js();
+      red_joint_state_pub_->publish(joint_state_msg_);
 
-    // Update Path
-    // RCLCPP_INFO(this->get_logger(), "Updating Path");
-    update_red_path();
-    red_path_pub_->publish(path_msg_);
+      // Update Path
+      // RCLCPP_INFO(this->get_logger(), "Updating Path");
+      update_red_path();
+      red_path_pub_->publish(path_msg_);
+
+    }
 
     visualization_msgs::msg::MarkerArray marker_walls_array_;
 
@@ -801,6 +815,7 @@ private:
   double lidar_resolution_;
   double lidar_noise_;
   double laser_hz_ = 1800.0;
+  bool draw_only_;
 
 
   turtlelib::WheelConfiguration wheel_config_; // wheel positions that are used to update the pose of the robot
