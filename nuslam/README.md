@@ -2,7 +2,8 @@
 * This is a work in progress and does not meet all the requirements for Homework 3 UPDATED 03/02. 
 * ~~Noise was not implemented in the EKF SLAM implementation.~~
 * ~~The initial locations of the landmarks is hardcoded to be the location from the basic_world.yaml file. This will be changed.~~
-* Currently the robot can see everything in the arena. This will be changed to only see the landmarks within a certain range.
+* ~~Currently the robot can see everything in the arena. This will be changed to only see the landmarks within a certain range~~.
+* ~~Fix the noise issue with W and V~~.
 * None of colcon tests have been fixed. 
 * None of the documentation is completed for this package.
 

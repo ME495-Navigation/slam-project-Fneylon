@@ -67,7 +67,7 @@
  - [ ] L.2 SLAM in Controlled Environment
 
  #### Task V: Visualization
- - [ ] V.1 Simulation Standalone
- - [ ] V.2 Simulation with Odometry
- - [ ] V.3 Real Robot with Odometry
- - [ ] V.4 Simulated Robot with SLAM
+ - [x] V.1 Simulation Standalone
+ - [x] V.2 Simulation with Odometry
+ - [x] V.3 Real Robot with Odometry
+ - [x] V.4 Simulated Robot with SLAM
