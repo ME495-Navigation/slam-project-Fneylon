@@ -467,8 +467,8 @@ private:
     arma::mat Q_bar_ = arma::zeros(9,9);
     arma::mat R_ = arma::zeros(2,2);
 
-    arma::mat W_ = arma::zeros(9,9);
-    arma::mat V_ = arma::zeros(2,2);
+    arma::mat W_ = arma::eye(9,9);
+    arma::mat V_ = arma::eye(2,2);
 
     // Initalize ROS Variables:
     nav_msgs::msg::Odometry prev_green_odom_;
@@ -489,9 +489,9 @@ private:
     int num_obs_ = 3;
 
     double q_= 0.01;
-    double r_= 0.01;
-    double w_ = 0.1;
-    double v_ = 0.1;
+    double r_= 1.0;
+    double w_ = 1.0;
+    double v_ = 1.0;
 
     // Define transforms:
     turtlelib::Transform2D Tmr_;
