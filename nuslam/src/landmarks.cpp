@@ -108,7 +108,7 @@ private:
       marker.action = visualization_msgs::msg::Marker::ADD;
       marker.pose.position.x = centroids.at(i).x;
       marker.pose.position.y = centroids.at(i).y;
-      marker.pose.position.z = 1.0;
+      marker.pose.position.z = 0.25;
       marker.pose.orientation.x = 0.0;
       marker.pose.orientation.y = 0.0;
       marker.pose.orientation.z = 0.0;
@@ -151,6 +151,31 @@ private:
         clusters_.push_back(cluster);
         cluster.clear();
         cluster.push_back(point2);
+      }
+
+
+      // If at the end of the laser scan msg, compare the last point to the first point: 
+      if (i == int(laser_scan_msg_->ranges.size()) - 1)
+      {
+        // Take point and previous point and calculate distance:
+        double distance = calc_distance(point2, cluster.at(0));
+
+        // If distance is less than threshold combine the first and last clusters into one:
+        if (distance < cluster_distance_threshold_)
+        {
+          // Create a combine std::vec of the first cluster and the last cluster from clusters_:
+          std::vector<turtlelib::Point2D> combined_cluster;
+          std::vector<turtlelib::Point2D> first_cluster = clusters_.at(0);
+          std::vector<turtlelib::Point2D> last_cluster = cluster;
+          combined_cluster.insert(combined_cluster.end(), first_cluster.begin(), first_cluster.end());
+          combined_cluster.insert(combined_cluster.end(), last_cluster.begin(), last_cluster.end());
+          clusters_.erase(clusters_.begin());
+          clusters_.pop_back();
+          clusters_.push_back(combined_cluster);
+
+
+
+        }
       }
     }
   }
