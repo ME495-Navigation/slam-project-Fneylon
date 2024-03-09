@@ -83,6 +83,27 @@ private:
 
     // Publish Marker at centroid of each cluster:  
     cluster_centroid_pub_->publish(marker_array_);
+    double curr_num_clusters = centroids.size();
+
+    // Print out the number of clusters:
+    if (num_clusters_ != curr_num_clusters)
+    {
+      RCLCPP_INFO(this->get_logger(), "Number of Clusters: %d", int(curr_num_clusters));
+      RCLCPP_INFO_STREAM(this->get_logger(), "Cluster Centroids: " << centroids.at(0).x << ", " << centroids.at(0).y);
+      RCLCPP_INFO_STREAM(this->get_logger(), "Cluster Centroids: " << centroids.at(1).x << ", " << centroids.at(1).y);
+      RCLCPP_INFO_STREAM(this->get_logger(), "Cluster Centroids: " << centroids.at(2).x << ", " << centroids.at(2).y);
+      num_clusters_ = curr_num_clusters;
+    }
+
+    // Solve the supervised learning problem of circle regression: 
+    for (int i = 0; i < int(clusters_.size()); i++)
+    {
+      double RMSE = circle_regression(clusters_.at(i));
+      // if (RMSE < RMSE_threshold_)
+      {
+        // RCLCPP_INFO(this->get_logger(), "Circle Regression RMSE: %f", RMSE);
+      }
+    }
 
   }
 
@@ -126,6 +147,10 @@ private:
   
   void define_cluster_points()
   {
+
+    // Clear clusters:
+    clusters_.clear();
+
     // Initalize the first cluster of points: 
     std::vector<turtlelib::Point2D> cluster;
     cluster.push_back(polar_to_cartesian(laser_scan_msg_->ranges.at(0), 0));
@@ -213,6 +238,110 @@ private:
     centroid.y = y_sum / cluster.size();
     return centroid;
   }
+
+
+  double circle_regression(std::vector<turtlelib::Point2D> cluster)
+  {
+    // Solve the supervised learning problem of circle regression:
+
+    // 1. Compute the (x,y) coordinates of the centroid of the n data points.
+    turtlelib::Point2D centroid = calc_centroid(cluster);
+
+    // 2. Shift the coordinate system so that the centroid is at the origin.
+    for (int i = 0; i < int(cluster.size()); i++) {
+      cluster.at(i).x -= centroid.x;
+      cluster.at(i).y -= centroid.y;
+    }
+
+    // 3. Compute zi = xi^2 + yi^2 for each data point.
+    std::vector<double> z;
+    for (int i = 0; i < int(cluster.size()); i++) {
+      z.push_back(pow(cluster.at(i).x, 2) + pow(cluster.at(i).y, 2));
+    }
+
+    // 4. Compute the mean value of z.
+    double z_bar = 0.0;
+    for (int i = 0; i < int(z.size()); i++){
+      z_bar += z.at(i);
+    }
+    z_bar = z_bar / z.size();
+
+    // 5. Form the matriz Z 
+    arma::mat Z;
+    for (int i = 0; i < int(cluster.size()); i++) {
+      arma::rowvec row;
+      row<< cluster.at(i).x + cluster.at(i).y << cluster.at(i).x << cluster.at(i).y << 1;
+      Z.insert_rows(i, row); 
+    }
+
+    // 6. Form the matrix M 1/n Z.t * Z
+    arma::mat M = (1.0 / cluster.size()) * Z.t() * Z;
+
+    // 7. Form the Constraint Matrix H
+    arma::mat H = arma::eye(4,4);
+    H.at(0,0) = 8*z_bar;
+    H.at(3,3) = 2.0;
+    H.at(3,0) = 2.0;
+
+    // 8. Compute the inverse of H
+    arma::mat H_inv = H.i();
+
+    // 9. Compute the SVD of Z 
+    arma::mat U;
+    arma::vec s;
+    arma::mat V;
+    svd(U, s, V, Z);
+
+    // 10. If the smallest singular value is less than 10e-12, then let A be the 4th column of the V matrix 
+    arma::mat A;
+
+    if (s.at(3) < 10e-12) {
+      A = V.col(3);
+
+    // 11. If sigma_4 > 10-12 then let Y = V * Sigma * V.t; Compute the matrix A = Y * A
+    } else {
+      arma::mat Y = V * s * V.t();
+      arma::mat Q = Y * H_inv * Y;
+
+      // Find the eignevalues and eigenvectors of Q
+      arma::vec eigval;
+      arma::mat eigvec;
+      eig_sym(eigval, eigvec, Q);
+
+      // Find the Eigenvector corresponding to the smallest positive eigenvalue of Q: 
+      int min_eigval_index = 0;
+      double min_eigval = 100000.0;
+
+      for (int i = 0; i < int(eigval.size()); i++) {
+        if (eigval.at(i) < min_eigval && eigval.at(i) > 0) {
+          min_eigval = eigval.at(i);
+          min_eigval_index = i;
+        }
+      }
+
+      arma::vec A_star = eigvec.col(min_eigval_index);
+
+      // solve Y*A = A_star for A
+      A = A_star * Y.i();
+    }
+
+    // 12. From equation of a circle compute the center and radius of the circle
+    double a = -(A.at(1)) / (2.0 * A.at(0));
+    double b = -(A.at(2)) / (2.0 * A.at(0));
+    double R_sqr = (pow(A.at(1), 2) + pow(A.at(2), 2) - (4 * A.at(0) * A.at(3))) / (4 * pow(A.at(0), 2));
+
+    RCLCPP_INFO(this->get_logger(), "Circle Regression: a: %f, b: %f, R_sqr: %f", (a + centroid.x) , (b + centroid.y), sqrt(R_sqr));
+
+    // 13.  compute the RMSE of the fit and threshold.
+    double RMSE = 0.0;
+    for (int i = 0; i < int(cluster.size()); i++) {
+      RMSE += pow(pow(cluster.at(i).x - a, 2) + pow(cluster.at(i).y - b, 2) - R_sqr, 2);
+    }
+    RMSE = sqrt(RMSE / cluster.size());
+    return RMSE;
+  }
+
+
   // Initalize Publishers:
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr cluster_centroid_pub_;
 
@@ -232,6 +361,8 @@ private:
   double angle_increment_ = 0.0174533;
   double cluster_size_min_ = 3;
   double cluster_size_max_ = 25;
+  double num_clusters_ = 0;
+  double RMSE_threshold_ = 0.1;
 
   // Initalize Cluster tracker:
   std::vector<std::vector<turtlelib::Point2D>> clusters_;
