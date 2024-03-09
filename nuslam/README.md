@@ -14,11 +14,6 @@ This package contains the following nodes:
 ## Launch File Details
 * `ros2 launch nuslam nuslam.launch.xml` to see the robot in rviz along with the arena.
 
-## Nuslam Screenshot of EKF SLAM Implementation without Noise:
-![](images/EFK_screenshot.png)
-
-## Nuslam Screenshot of EKF SLAM Implementation with noise = 0.01:
-![](images/EKF_screenshot_with_noise.png)
-
-## Nuslam Screenshot of EKF SLAM Implementation with noise = 0.1:
-![](images/EKF_with_higher_noise.png)
+## Nuslam Screenshot of EKF SLAM Implementation:
+![](images/EKF_hw3_submission.png)
+![](images/EKF_hw3_submission_1.png)

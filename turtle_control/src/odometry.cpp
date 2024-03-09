@@ -1,3 +1,25 @@
+/// \file odometry.cpp
+/// \brief This is a ROS2 node that publishes the odometry of the turtlebot3.
+///
+/// PARAMETERS:
+///   body_id (string): The name of the body frame.
+///   odom_id (string): The name of the odometry frame.
+///   wheel_left (string): The name of the left wheel joint.
+///   wheel_right (string): The name of the right wheel joint.
+///   wheel_radius (double): The radius of the wheels.
+///   track_width (double): The distance between the wheels.
+///
+/// PUBLISHES:
+///   odom (nav_msgs::msg::Odometry): The odometry of the turtlebot3.
+///   odom_path (nav_msgs::msg::Path): The path of the turtlebot3.
+/// SUBSCRIBES:
+///   joint_states (sensor_msgs::msg::JointState): The joint states of the turtlebot3.
+/// SERVICES:
+///   initial_pose (turtle_control::srv::InitialPose): The service to set the initial pose of the turtlebot3.
+/// BROADCASTS:
+///   odom_broadcaster (tf2_ros::TransformBroadcaster): The transform broadcaster for the odometry.
+
+
 #include <chrono>
 #include <functional>
 #include <memory>
@@ -101,6 +123,7 @@ public:
   }
 
 private:
+  /// @brief This function updates the odometry of the turtlebot3.
   void time_callback()
   {
     config_ = diff_drive_.get_configuration();
@@ -115,6 +138,8 @@ private:
     odom_broadcaster_->sendTransform(transformStamped_);
 
   }
+
+  /// @brief This function sets the initial pose of the turtlebot3.
   void initial_pose_callback(
     const std::shared_ptr<turtle_control::srv::InitialPose::Request> request,
     std::shared_ptr<turtle_control::srv::InitialPose::Response>)
@@ -131,6 +156,7 @@ private:
     // odom_broadcaster_->sendTransform(transformStamped_);
   }
 
+  /// @brief This function updates the odometry path of the turtlebot3.
   void update_odom_path()
   {
     // nav_msgs::msg::Path odom_path;
@@ -150,6 +176,8 @@ private:
     odom_path_pub_->publish(odom_path_);
   }
 
+  /// @brief Updates the odometry based on the joint state.
+  /// @param msg 
   void joint_state_callback(const sensor_msgs::msg::JointState::SharedPtr msg)
   {
     // RCLCPP_INFO(this->get_logger(), "joint_state_callback!");
@@ -175,6 +203,10 @@ private:
 
   }
 
+  /// @brief Sets the transform base on the configuration.
+  /// @param x 
+  /// @param y 
+  /// @param theta 
   void set_transform(double x, double y, double theta)
   {
     // geometry_msgs::msg::TransformStamped transformStamped;
@@ -192,6 +224,10 @@ private:
     transformStamped_.transform.rotation.w = q.w();
   }
 
+  /// @brief Sets the odometry message based on the configuration.
+  /// @param x
+  /// @param y
+  /// @param theta
   void set_odom_msg(double x, double y, double theta)
   {
     // nav_msgs::msg::Odometry odom_msg;

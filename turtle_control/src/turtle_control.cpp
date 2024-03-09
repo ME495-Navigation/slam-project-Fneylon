@@ -1,3 +1,28 @@
+/// \file turtle_control.cpp
+/// \brief This is a ROS2 node that publishes velocity commands to the turtlebot3 to make it move in a circle.
+///
+/// PARAMETERS:
+///   wheel_radius (double): The radius of the wheels.
+///   track_width (double): The distance between the wheels.
+///   motor_cmd_max (double): The maximum motor command.
+///   motor_cmd_per_rad_sec (double): The motor command per radian per second.
+///   encorder_ticks_per_rad (double): The encoder ticks per radian.
+///   collision_radius (double): The radius of the collision circle.
+///  frequency (double): The frequency at which to publish the velocity commands.
+///
+/// PUBLISHES:
+///   wheel_cmd (nuturtlebot_msgs::msg::WheelCommands): The wheel commands to move the turtlebot3 in a circle.
+///   joint_states (sensor_msgs::msg::JointState): The joint states of the wheels.
+///
+/// SUBSCRIBES:
+///   cmd_vel (geometry_msgs::msg::Twist): The velocity commands to move the turtlebot3 in a circle.
+///   sensor_data (nuturtlebot_msgs::msg::SensorData): The sensor data from the turtlebot3.
+///
+/// SERVICES:
+///   None
+///
+/// This node uses the diff_drive library to compute the wheel commands from the velocity commands and publishes them to the turtlebot3.
+
 #include <chrono>
 #include <functional>
 #include <memory>
@@ -86,6 +111,7 @@ public:
   }
 
 private:
+  /// @brief Sets the joint states based on the sensor data.
   void sensor_callback(const nuturtlebot_msgs::msg::SensorData::SharedPtr msg)
   {
     turtlelib::WheelConfiguration wc;
@@ -100,6 +126,7 @@ private:
     joint_state_pub_->publish(joint_state_msg);
   }
 
+  /// @brief Publishes the wheel commands based on the velocity commands.
   void cmd_vel_callback(const geometry_msgs::msg::Twist::SharedPtr msg)
   {
     // Assign the variables from the message to the Twist2D object
@@ -158,6 +185,7 @@ private:
   double collision_radius_;
   double rate_ = 250;
 
+  // Initialize Objects:
   turtlelib::DiffDrive diff_drive_;
 };
 

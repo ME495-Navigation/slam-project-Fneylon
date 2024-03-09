@@ -1,3 +1,17 @@
+/// \file circle.cpp
+/// \brief This is a ROS2 node that publishes velocity commands to the turtlebot3 to make it move in a circle.
+/// 
+/// PARAMETERS:
+///   frequency (double): The frequency at which to publish the velocity commands.
+///
+/// PUBLISHES:
+///   cmd_vel (geometry_msgs::msg::Twist): The velocity commands to move the turtlebot3 in a circle.
+///
+/// SERVICES:
+///   control (turtle_control::srv::Control): The service to set the velocity and radius of the circle.
+///   reverse (std_srvs::srv::Empty): The service to reverse the direction of the circle.
+///   stop (std_srvs::srv::Empty): The service to stop the turtlebot3.
+
 #include <chrono>
 #include <functional>
 #include <memory>
@@ -38,8 +52,6 @@ public:
     cmd_vel_pub_ = this->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10);
 
     // Define Services:
-    // initial_pose_srv_ = this->create_service<turtle_control::srv::InitialPose>(
-    //   "~/initial_pose", std::bind(&Odometry::initial_pose_callback, this, std::placeholders::_1, std::placeholders::_2));
     control_srv_ = this->create_service<turtle_control::srv::Control>(
       "control",
       std::bind(&Circle::control_callback, this, std::placeholders::_1, std::placeholders::_2));
@@ -60,6 +72,8 @@ public:
   }
 
 private:
+
+  /// @brief  This function stops the turtlebot3.
   void stop_callback(
     const std::shared_ptr<std_srvs::srv::Empty::Request>,
     const std::shared_ptr<std_srvs::srv::Empty::Response>)
@@ -72,6 +86,7 @@ private:
     cmd_vel_pub_->publish(msg);
   }
 
+  /// @brief This function reverses the direction of the turtlebot3.
   void reverse_callback(
     const std::shared_ptr<std_srvs::srv::Empty::Request>,
     const std::shared_ptr<std_srvs::srv::Empty::Response>)
@@ -79,6 +94,7 @@ private:
     velocity_ = -velocity_;
   }
 
+  /// @brief This function sets the velocity and radius of the circle.
   void control_callback(
     const std::shared_ptr<turtle_control::srv::Control::Request> request,
     const std::shared_ptr<turtle_control::srv::Control::Response>)
@@ -89,6 +105,8 @@ private:
 
   }
 
+
+  /// @brief This function publishes the velocity commands to move the turtlebot3 in a circle.
   void time_callback()
   {
     if (turtlelib::almost_equal(velocity_, 0.0, 1e-12)) {

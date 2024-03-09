@@ -20,14 +20,29 @@ find_package(nuturtlebot_msgs REQUIRED)
 find_package(sensor_msgs)
 find_package(nav_msgs)
 find_package(turtlelib REQUIRED)
-find_package(Armadillo REQUIRED) 
+find_package(Armadillo REQUIRED)
 find_package(nusim REQUIRED)
 include_directories(${ARMADILLO_INCLUDE_DIRS})
 
 add_executable(nuslam_node src/slam.cpp)
-
+add_executable(landmark_node src/landmarks.cpp)
 
 ament_target_dependencies(nuslam_node
+turtlelib
+nusim
+nuturtlebot_msgs
+nav_msgs
+sensor_msgs
+rclcpp
+std_msgs
+std_srvs
+nuturtle_description
+geometry_msgs
+tf2
+tf2_ros
+visualization_msgs)
+
+ament_target_dependencies(landmark_node
 turtlelib
 nusim
 nuturtlebot_msgs
@@ -48,6 +63,14 @@ target_link_libraries(nuslam_node turtlelib::turtlelib "${cpp_typesupport_target
 target_link_libraries(nuslam_node ${ARMADILLO_LIBRARIES})
 install(TARGETS
         nuslam_node
+        DESTINATION lib/${PROJECT_NAME}
+)
+
+
+target_link_libraries(landmark_node turtlelib::turtlelib "${cpp_typesupport_target}")
+target_link_libraries(landmark_node ${ARMADILLO_LIBRARIES})
+install(TARGETS
+        landmark_node
         DESTINATION lib/${PROJECT_NAME}
 )
 
