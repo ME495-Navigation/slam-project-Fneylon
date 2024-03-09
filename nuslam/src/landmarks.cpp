@@ -61,21 +61,32 @@ private:
 
     // Define cluster points:
     define_cluster_points();
+    RCLCPP_INFO(this->get_logger(), "Number of Clusters: %d", int(clusters_.size()));
 
     // Filter clusters based on size:
-    for (int i = 0; i < int(clusters_.size()); i++)
-    {
-      if (clusters_.at(i).size() < cluster_size_min_ || clusters_.at(i).size() > cluster_size_max_)
+    for (int i = 0; i < int(clusters_.size()); i++) {
+      if (clusters_.at(i).size() >= cluster_size_min_ && clusters_.at(i).size() < cluster_size_max_)
       {
-        clusters_.erase(clusters_.begin() + i);
+        clusters_filtered_.push_back(clusters_.at(i));
       }
     }
+    // for (int i = 0; i < int(clusters_.size()); i++) {
+    //   RCLCPP_INFO(this->get_logger(), "Iteration: %d", i);
+    //   RCLCPP_INFO(this->get_logger(), "Cluster Size: %d", int(clusters_.at(i).size()));
+    //   if (clusters_.at(i).size() < cluster_size_min_ || clusters_.at(i).size() > cluster_size_max_)
+    //   {
+    //     RCLCPP_INFO(this->get_logger(), "Erasing Cluster: %d", i);
+    //     clusters_.erase(clusters_.begin() + i);
+    //   }
+    // }
+
+    // RCLCPP_INFO(this->get_logger(), "Number of Clusters: %d", int(clusters_.size()));
 
     // Define cluster centroids:
     std::vector<turtlelib::Point2D> centroids;
-    for (int i = 0; i < int(clusters_.size()); i++)
+    for (int i = 0; i < int(clusters_filtered_.size()); i++)
     {
-      centroids.push_back(calc_centroid(clusters_.at(i)));
+      centroids.push_back(calc_centroid(clusters_filtered_.at(i)));
     }
 
     // Set up marker array:
@@ -89,16 +100,16 @@ private:
     if (num_clusters_ != curr_num_clusters)
     {
       RCLCPP_INFO(this->get_logger(), "Number of Clusters: %d", int(curr_num_clusters));
-      RCLCPP_INFO_STREAM(this->get_logger(), "Cluster Centroids: " << centroids.at(0).x << ", " << centroids.at(0).y);
-      RCLCPP_INFO_STREAM(this->get_logger(), "Cluster Centroids: " << centroids.at(1).x << ", " << centroids.at(1).y);
-      RCLCPP_INFO_STREAM(this->get_logger(), "Cluster Centroids: " << centroids.at(2).x << ", " << centroids.at(2).y);
+      // RCLCPP_INFO_STREAM(this->get_logger(), "Cluster Centroids: " << centroids.at(0).x << ", " << centroids.at(0).y);
+      // RCLCPP_INFO_STREAM(this->get_logger(), "Cluster Centroids: " << centroids.at(1).x << ", " << centroids.at(1).y);
+      // RCLCPP_INFO_STREAM(this->get_logger(), "Cluster Centroids: " << centroids.at(2).x << ", " << centroids.at(2).y);
       num_clusters_ = curr_num_clusters;
     }
 
     // Solve the supervised learning problem of circle regression: 
-    for (int i = 0; i < int(clusters_.size()); i++)
+    for (int i = 0; i < int(clusters_filtered_.size()); i++)
     {
-      double RMSE = circle_regression(clusters_.at(i));
+      double RMSE = circle_regression(clusters_filtered_.at(i));
       // if (RMSE < RMSE_threshold_)
       {
         // RCLCPP_INFO(this->get_logger(), "Circle Regression RMSE: %f", RMSE);
@@ -243,20 +254,25 @@ private:
   double circle_regression(std::vector<turtlelib::Point2D> cluster)
   {
     // Solve the supervised learning problem of circle regression:
+    // 0. Print number of points in cluster:
+    RCLCPP_INFO(this->get_logger(), "Number of Points in Cluster: %d", int(cluster.size()));
 
     // 1. Compute the (x,y) coordinates of the centroid of the n data points.
     turtlelib::Point2D centroid = calc_centroid(cluster);
 
     // 2. Shift the coordinate system so that the centroid is at the origin.
+    std::vector<turtlelib::Point2D> shifted_cluster;
     for (int i = 0; i < int(cluster.size()); i++) {
-      cluster.at(i).x -= centroid.x;
-      cluster.at(i).y -= centroid.y;
+      turtlelib::Point2D shifted_pt;
+      shifted_pt.x = cluster.at(i).x - centroid.x;
+      shifted_pt.y = cluster.at(i).y - centroid.y;
+      shifted_cluster.push_back(shifted_pt);
     }
 
     // 3. Compute zi = xi^2 + yi^2 for each data point.
     std::vector<double> z;
-    for (int i = 0; i < int(cluster.size()); i++) {
-      z.push_back(pow(cluster.at(i).x, 2) + pow(cluster.at(i).y, 2));
+    for (int i = 0; i < int(shifted_cluster.size()); i++) {
+      z.push_back(pow(shifted_cluster.at(i).x, 2) + pow(shifted_cluster.at(i).y, 2));
     }
 
     // 4. Compute the mean value of z.
@@ -268,29 +284,45 @@ private:
 
     // 5. Form the matriz Z 
     arma::mat Z;
-    for (int i = 0; i < int(cluster.size()); i++) {
+    for (int i = 0; i < int(shifted_cluster.size()); i++) {
       arma::rowvec row;
-      row<< cluster.at(i).x + cluster.at(i).y << cluster.at(i).x << cluster.at(i).y << 1;
+      row<< pow(shifted_cluster.at(i).x, 2) + pow(shifted_cluster.at(i).y, 2) << shifted_cluster.at(i).x << shifted_cluster.at(i).y << 1;
       Z.insert_rows(i, row); 
     }
 
+    // RCLCPP_INFO_STREAM(this->get_logger(), "Matrix Z: " << Z);
+
     // 6. Form the matrix M 1/n Z.t * Z
-    arma::mat M = (1.0 / cluster.size()) * Z.t() * Z;
+    arma::mat M = (1.0 / shifted_cluster.size()) * Z.t() * Z;
+    // RCLCPP_INFO_STREAM(this->get_logger(), "Matrix M: " << M);
 
     // 7. Form the Constraint Matrix H
     arma::mat H = arma::eye(4,4);
-    H.at(0,0) = 8*z_bar;
-    H.at(3,3) = 2.0;
-    H.at(3,0) = 2.0;
+    H.at(0, 0) = 8*z_bar;
+    H.at(0, 3) = 2.0;
+    H.at(3, 0) = 2.0;
+    H.at(3, 3) = 0.0;
+    // RCLCPP_INFO(this->get_logger(), "Matrix H: %f", H);
+    // RCLCPP_INFO_STREAM(this->get_logger(), "Matrix H: " << H);
 
     // 8. Compute the inverse of H
-    arma::mat H_inv = H.i();
+    arma::mat H_inv = arma::eye(4,4);
+    H_inv.at(3, 0) = 1.0 / 2.0;
+    H_inv.at(0, 3) = 1.0 / 2.0;
+    H_inv.at(0, 0) = 0.0;
+    H_inv.at(3, 3) = -2 * z_bar;
+    // arma::mat H_inv = H.i();
+    // RCLCPP_INFO(this->get_logger(), "Matrix H_inv: %f", H_inv);
+    // RCLCPP_INFO_STREAM(this->get_logger(), "Matrix H_inv: " << H_inv);
 
     // 9. Compute the SVD of Z 
     arma::mat U;
     arma::vec s;
     arma::mat V;
     svd(U, s, V, Z);
+
+    // Convert the singular values to a diagonal matrix:
+    arma::mat Sigma = arma::diagmat(s);
 
     // 10. If the smallest singular value is less than 10e-12, then let A be the 4th column of the V matrix 
     arma::mat A;
@@ -300,8 +332,14 @@ private:
 
     // 11. If sigma_4 > 10-12 then let Y = V * Sigma * V.t; Compute the matrix A = Y * A
     } else {
-      arma::mat Y = V * s * V.t();
+      // RCLCPP_INFO_STREAM(this->get_logger(), "Matrix U: " << U);
+      // RCLCPP_INFO_STREAM(this->get_logger(), "Matrix s: " << s);
+      // RCLCPP_INFO_STREAM(this->get_logger(), "Matrix V: " << V);
+      arma::mat Y = V * Sigma * V.t();
       arma::mat Q = Y * H_inv * Y;
+
+      // RCLCPP_INFO_STREAM(this->get_logger(), "Matrix Q: " << Q);
+      // RCLCPP_INFO_STREAM(this->get_logger(), "Matrix Y: " << Y);
 
       // Find the eignevalues and eigenvectors of Q
       arma::vec eigval;
@@ -318,12 +356,13 @@ private:
           min_eigval_index = i;
         }
       }
-
       arma::vec A_star = eigvec.col(min_eigval_index);
 
       // solve Y*A = A_star for A
-      A = A_star * Y.i();
+      A = Y.i() * A_star;
     }
+
+    // RCLCPP_INFO_STREAM(this->get_logger(), "Matrix A: " << A);
 
     // 12. From equation of a circle compute the center and radius of the circle
     double a = -(A.at(1)) / (2.0 * A.at(0));
@@ -334,10 +373,10 @@ private:
 
     // 13.  compute the RMSE of the fit and threshold.
     double RMSE = 0.0;
-    for (int i = 0; i < int(cluster.size()); i++) {
-      RMSE += pow(pow(cluster.at(i).x - a, 2) + pow(cluster.at(i).y - b, 2) - R_sqr, 2);
+    for (int i = 0; i < int(shifted_cluster.size()); i++) {
+      RMSE += pow(pow(shifted_cluster.at(i).x - a, 2) + pow(shifted_cluster.at(i).y - b, 2) - R_sqr, 2);
     }
-    RMSE = sqrt(RMSE / cluster.size());
+    RMSE = sqrt(RMSE / shifted_cluster.size());
     return RMSE;
   }
 
@@ -359,13 +398,14 @@ private:
   sensor_msgs::msg::LaserScan::SharedPtr laser_scan_msg_;
   double cluster_distance_threshold_ = 0.1;
   double angle_increment_ = 0.0174533;
-  double cluster_size_min_ = 3;
+  double cluster_size_min_ = 4;
   double cluster_size_max_ = 25;
   double num_clusters_ = 0;
   double RMSE_threshold_ = 0.1;
 
   // Initalize Cluster tracker:
   std::vector<std::vector<turtlelib::Point2D>> clusters_;
+  std::vector<std::vector<turtlelib::Point2D>> clusters_filtered_;
 };
 
 int main(int argc, char ** argv)
