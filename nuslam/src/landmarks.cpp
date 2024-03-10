@@ -100,20 +100,15 @@ private:
     if (num_clusters_ != curr_num_clusters)
     {
       RCLCPP_INFO(this->get_logger(), "Number of Clusters: %d", int(curr_num_clusters));
-      // RCLCPP_INFO_STREAM(this->get_logger(), "Cluster Centroids: " << centroids.at(0).x << ", " << centroids.at(0).y);
-      // RCLCPP_INFO_STREAM(this->get_logger(), "Cluster Centroids: " << centroids.at(1).x << ", " << centroids.at(1).y);
-      // RCLCPP_INFO_STREAM(this->get_logger(), "Cluster Centroids: " << centroids.at(2).x << ", " << centroids.at(2).y);
+  
       num_clusters_ = curr_num_clusters;
     }
 
     // Solve the supervised learning problem of circle regression: 
     for (int i = 0; i < int(clusters_filtered_.size()); i++)
     {
-      double RMSE = circle_regression(clusters_filtered_.at(i));
-      // if (RMSE < RMSE_threshold_)
-      {
-        // RCLCPP_INFO(this->get_logger(), "Circle Regression RMSE: %f", RMSE);
-      }
+      bool circle_status = circle_regression(clusters_filtered_.at(i));
+      RCLCPP_INFO(this->get_logger(), "Circle Status: %d", circle_status);
     }
 
   }
@@ -208,9 +203,6 @@ private:
           clusters_.erase(clusters_.begin());
           clusters_.pop_back();
           clusters_.push_back(combined_cluster);
-
-
-
         }
       }
     }
@@ -251,7 +243,9 @@ private:
   }
 
 
-  double circle_regression(std::vector<turtlelib::Point2D> cluster)
+
+
+  bool circle_regression(std::vector<turtlelib::Point2D> cluster)
   {
     // Solve the supervised learning problem of circle regression:
     // 0. Print number of points in cluster:
@@ -290,8 +284,6 @@ private:
       Z.insert_rows(i, row); 
     }
 
-    // RCLCPP_INFO_STREAM(this->get_logger(), "Matrix Z: " << Z);
-
     // 6. Form the matrix M 1/n Z.t * Z
     arma::mat M = (1.0 / shifted_cluster.size()) * Z.t() * Z;
     // RCLCPP_INFO_STREAM(this->get_logger(), "Matrix M: " << M);
@@ -302,18 +294,15 @@ private:
     H.at(0, 3) = 2.0;
     H.at(3, 0) = 2.0;
     H.at(3, 3) = 0.0;
-    // RCLCPP_INFO(this->get_logger(), "Matrix H: %f", H);
-    // RCLCPP_INFO_STREAM(this->get_logger(), "Matrix H: " << H);
+
 
     // 8. Compute the inverse of H
     arma::mat H_inv = arma::eye(4,4);
     H_inv.at(3, 0) = 1.0 / 2.0;
     H_inv.at(0, 3) = 1.0 / 2.0;
     H_inv.at(0, 0) = 0.0;
-    H_inv.at(3, 3) = -2 * z_bar;
-    // arma::mat H_inv = H.i();
-    // RCLCPP_INFO(this->get_logger(), "Matrix H_inv: %f", H_inv);
-    // RCLCPP_INFO_STREAM(this->get_logger(), "Matrix H_inv: " << H_inv);
+    H_inv.at(3, 3) = -2.0 * z_bar;
+
 
     // 9. Compute the SVD of Z 
     arma::mat U;
@@ -332,14 +321,9 @@ private:
 
     // 11. If sigma_4 > 10-12 then let Y = V * Sigma * V.t; Compute the matrix A = Y * A
     } else {
-      // RCLCPP_INFO_STREAM(this->get_logger(), "Matrix U: " << U);
-      // RCLCPP_INFO_STREAM(this->get_logger(), "Matrix s: " << s);
-      // RCLCPP_INFO_STREAM(this->get_logger(), "Matrix V: " << V);
+
       arma::mat Y = V * Sigma * V.t();
       arma::mat Q = Y * H_inv * Y;
-
-      // RCLCPP_INFO_STREAM(this->get_logger(), "Matrix Q: " << Q);
-      // RCLCPP_INFO_STREAM(this->get_logger(), "Matrix Y: " << Y);
 
       // Find the eignevalues and eigenvectors of Q
       arma::vec eigval;
@@ -357,8 +341,6 @@ private:
         }
       }
       arma::vec A_star = eigvec.col(min_eigval_index);
-
-      // solve Y*A = A_star for A
       A = Y.i() * A_star;
     }
 
@@ -377,7 +359,59 @@ private:
       RMSE += pow(pow(shifted_cluster.at(i).x - a, 2) + pow(shifted_cluster.at(i).y - b, 2) - R_sqr, 2);
     }
     RMSE = sqrt(RMSE / shifted_cluster.size());
-    return RMSE;
+
+    // Call Inscribed Angle Theorem to determine if landmark is a circle and avoiding false positives:
+    if (RMSE < RMSE_threshold_) {
+      RCLCPP_INFO(this->get_logger(), "Circle Detected: RMSE: %f", RMSE);
+      return true;
+    
+    } else {
+      RCLCPP_INFO(this->get_logger(), "Not a Circle: RMSE: %f", RMSE);
+      return false;
+    }
+  }
+
+  double calculate_angle(turtlelib::Point2D start, turtlelib::Point2D end, turtlelib::Point2D point)
+  {
+    // Calculate the angle between the start and end points:
+    double angle = atan2(point.y - start.y, point.x - start.x) - atan2(end.y - start.y, end.x - start.x);
+    return angle;
+  }
+
+  bool inscribed_angle_theorem(std::vector<turtlelib::Point2D> cluster)
+  {
+    // inscribed_angle_theorem
+    // 1. Set the Start and End Points of the Cluster: 
+    turtlelib::Point2D start = cluster.at(0);
+    turtlelib::Point2D end = cluster.at(cluster.size() - 1);
+
+    // 2. For all the points in the cluster, calculate the angle between the start and end points:
+    arma::vec inscribed_angles = arma::zeros(cluster.size()-2);
+    for (int i = 1; i < int(cluster.size()-1); i++) {
+      double angle = calculate_angle(start, end, cluster.at(i));
+      RCLCPP_INFO(this->get_logger(), "Inscribed Angle: %f", angle);
+      if (turtlelib::almost_equal(angle, 0.0, 1e-6)) { 
+        RCLCPP_INFO(this->get_logger(), "Inscribed Angle: 0.0");
+        inscribed_angles.at(i) = 1;
+        RCLCPP_INFO_STREAM(this->get_logger(), "Inscribed Angles: " << inscribed_angles);
+      } else {
+        inscribed_angles.at(i) = 0;
+      }
+    }
+
+    RCLCPP_INFO_STREAM(this->get_logger(), "Inscribed Angles: " << inscribed_angles);
+
+    // 3. If the sum of the inscribed angles is equal to the number of points in the cluster - 2, then the cluster is a circle:
+    int sum = 0;
+    for (int i = 0; i < int(inscribed_angles.size()); i++) {
+      sum += inscribed_angles.at(i);
+    }
+
+    if (sum == int(cluster.size()) - 2) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
 
