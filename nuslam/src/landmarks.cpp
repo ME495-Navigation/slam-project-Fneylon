@@ -38,18 +38,11 @@ public:
 
     // Define Publishers:
     cluster_centroid_pub_ = this->create_publisher<visualization_msgs::msg::MarkerArray>(
-      "/cluster_centroids", 10);
+      "/landmarks", 10);
 
     // Define Subscribers:
     laser_sub_ = this->create_subscription<sensor_msgs::msg::LaserScan>(
       "/laser_scan", 10, std::bind(&Landmarks::laser_scan_callback, this, std::placeholders::_1));
-
-    // Define Services:
-
-
-    // Define the timer:
-    // timer_ = this->create_wall_timer(
-    //   std::chrono::duration<double>(1.0 / 200.0), std::bind(&Landmarks::time_callback, this));
   }
 
 private:
@@ -61,26 +54,16 @@ private:
 
     // Define cluster points:
     define_cluster_points();
-    RCLCPP_INFO(this->get_logger(), "Number of Clusters: %d", int(clusters_.size()));
+    // RCLCPP_INFO(this->get_logger(), "Number of Clusters: %d", int(clusters_.size()));
 
     // Filter clusters based on size:
+    clusters_filtered_.clear();
     for (int i = 0; i < int(clusters_.size()); i++) {
       if (clusters_.at(i).size() >= cluster_size_min_ && clusters_.at(i).size() < cluster_size_max_)
       {
         clusters_filtered_.push_back(clusters_.at(i));
       }
     }
-    // for (int i = 0; i < int(clusters_.size()); i++) {
-    //   RCLCPP_INFO(this->get_logger(), "Iteration: %d", i);
-    //   RCLCPP_INFO(this->get_logger(), "Cluster Size: %d", int(clusters_.at(i).size()));
-    //   if (clusters_.at(i).size() < cluster_size_min_ || clusters_.at(i).size() > cluster_size_max_)
-    //   {
-    //     RCLCPP_INFO(this->get_logger(), "Erasing Cluster: %d", i);
-    //     clusters_.erase(clusters_.begin() + i);
-    //   }
-    // }
-
-    // RCLCPP_INFO(this->get_logger(), "Number of Clusters: %d", int(clusters_.size()));
 
     // Define cluster centroids:
     std::vector<turtlelib::Point2D> centroids;
@@ -90,26 +73,99 @@ private:
     }
 
     // Set up marker array:
-    set_centroid_marker(centroids);
+    // set_centroid_marker(centroids);
 
     // Publish Marker at centroid of each cluster:  
-    cluster_centroid_pub_->publish(marker_array_);
-    double curr_num_clusters = centroids.size();
+    // cluster_centroid_pub_->publish(marker_array_);
+    int curr_num_clusters = int(centroids.size());
 
     // Print out the number of clusters:
     if (num_clusters_ != curr_num_clusters)
     {
-      RCLCPP_INFO(this->get_logger(), "Number of Clusters: %d", int(curr_num_clusters));
+      // RCLCPP_INFO(this->get_logger(), "Number of Clusters: %d", int(curr_num_clusters));
   
       num_clusters_ = curr_num_clusters;
     }
 
     // Solve the supervised learning problem of circle regression: 
+    std::vector<turtlelib::Point2D> locs;
+    std::vector<double> radi;
+
+    // create fake data
+    // std::vector<std::vector<turtlelib::Point2D>> temp_clusters;
+    // std::vector<turtlelib::Point2D> temp_cluster;
+    // arma::vec temp_pt = {0.0, 0.0};
+    // turtlelib::Point2D temp_pt;
+    // temp_pt.x = 0.0;
+    // temp_pt.y = 0.0;
+
+
+    // // temp_pt = {1.0, 7.0};
+    // // turtlelib::Point2D temp_pt;
+    // temp_pt.x = 1.0;
+    // temp_pt.y = 7.0;
+    // temp_cluster.push_back(temp_pt);
+    // // temp_pt = {2.0, 6.0};
+    // temp_pt.x = 2.0;
+    // temp_pt.y = 6.0;
+    // temp_cluster.push_back(temp_pt);
+    // // temp_pt = {5.0, 8.0};
+    // temp_pt.x = 5.0;
+    // temp_pt.y = 8.0;
+    // temp_cluster.push_back(temp_pt);
+    // // temp_pt = {7.0, 7.0};
+    // temp_pt.x = 7.0;
+    // temp_pt.y = 7.0;
+    // temp_cluster.push_back(temp_pt);
+    // // temp_pt = {9.0, 5.0};
+    // temp_pt.x = 9.0;
+    // temp_pt.y = 5.0;
+    // temp_cluster.push_back(temp_pt);
+    // // temp_pt = {3.0, 7.0};
+    // temp_pt.x = 3.0;
+    // temp_pt.y = 7.0;
+    // temp_cluster.push_back(temp_pt);
+
+    // temp_clusters.push_back(temp_cluster);
+
+    // temp_cluster.clear();
+
+    // // temp_pt = {-1.0, 0.0};
+    // temp_pt.x = -1.0;
+    // temp_pt.y = 0.0;
+    // temp_cluster.push_back(temp_pt);
+    // // temp_pt = {-0.3, -0.06};
+    // temp_pt.x = -0.3;
+    // temp_pt.y = -0.06;
+    // temp_cluster.push_back(temp_pt);
+    // // temp_pt = {0.3, 0.1};
+    // temp_pt.x = 0.3;
+    // temp_pt.y = 0.1;
+    // temp_cluster.push_back(temp_pt);
+    // // temp_pt = {1.0, 0.0};
+    // temp_pt.x = 1.0;
+    // temp_pt.y = 0.0;
+    // temp_cluster.push_back(temp_pt);
+
+    // temp_clusters.push_back(temp_cluster);
+
+    // clusters_filtered_ = temp_clusters;
+
     for (int i = 0; i < int(clusters_filtered_.size()); i++)
     {
       bool circle_status = circle_regression(clusters_filtered_.at(i));
-      RCLCPP_INFO(this->get_logger(), "Circle Status: %d", circle_status);
+      if (circle_status) {
+        locs.push_back(curr_center_);
+        radi.push_back(curr_radius_);
+      }
+      // RCLCPP_INFO(this->get_logger(), "Circle Status: %d", circle_status);
     }
+
+    // Set up marker array:
+    set_obstacle_marker(locs, radi);
+
+    // Publish the Predicted Marker:
+    cluster_centroid_pub_->publish(marker_array_);
 
   }
 
@@ -136,10 +192,6 @@ private:
       marker.pose.position.x = centroids.at(i).x;
       marker.pose.position.y = centroids.at(i).y;
       marker.pose.position.z = 0.25;
-      marker.pose.orientation.x = 0.0;
-      marker.pose.orientation.y = 0.0;
-      marker.pose.orientation.z = 0.0;
-      marker.pose.orientation.w = 1.0;
       marker.scale.x = 0.1;
       marker.scale.y = 0.1;
       marker.scale.z = 0.1;
@@ -147,6 +199,34 @@ private:
       marker.color.r = 0.0;
       marker.color.g = 1.0;
       marker.color.b = 0.0;
+      marker_array_.markers.push_back(marker);
+    }
+  }
+  
+  void set_obstacle_marker(std::vector<turtlelib::Point2D> locs, std::vector<double> radi){
+
+    // Clear Marker Array msg:
+    marker_array_.markers.clear();
+    for (int i = 0; i < int(locs.size()); i++)
+    {
+      // Set up marker:
+      visualization_msgs::msg::Marker marker;
+      marker.header.frame_id = "red/base_footprint";
+      marker.header.stamp = this->get_clock()->now();
+      marker.ns = "regression_obstacles";
+      marker.id = i;
+      marker.type = visualization_msgs::msg::Marker::CYLINDER;
+      marker.action = visualization_msgs::msg::Marker::ADD;
+      marker.pose.position.x = locs.at(i).x;
+      marker.pose.position.y = locs.at(i).y;
+      marker.pose.position.z = 0.0;
+      marker.scale.x = radi.at(i) * 2.0;
+      marker.scale.y = radi.at(i) * 2.0;
+      marker.scale.z = 0.25;
+      marker.color.a = 1.0;
+      marker.color.r = 0.0;
+      marker.color.g = 0.0;
+      marker.color.b = 1.0;
       marker_array_.markers.push_back(marker);
     }
   }
@@ -242,14 +322,11 @@ private:
     return centroid;
   }
 
-
-
-
   bool circle_regression(std::vector<turtlelib::Point2D> cluster)
   {
     // Solve the supervised learning problem of circle regression:
     // 0. Print number of points in cluster:
-    RCLCPP_INFO(this->get_logger(), "Number of Points in Cluster: %d", int(cluster.size()));
+    // RCLCPP_INFO(this->get_logger(), "Number of Points in Cluster: %d", int(cluster.size()));
 
     // 1. Compute the (x,y) coordinates of the centroid of the n data points.
     turtlelib::Point2D centroid = calc_centroid(cluster);
@@ -351,7 +428,12 @@ private:
     double b = -(A.at(2)) / (2.0 * A.at(0));
     double R_sqr = (pow(A.at(1), 2) + pow(A.at(2), 2) - (4 * A.at(0) * A.at(3))) / (4 * pow(A.at(0), 2));
 
-    RCLCPP_INFO(this->get_logger(), "Circle Regression: a: %f, b: %f, R_sqr: %f", (a + centroid.x) , (b + centroid.y), sqrt(R_sqr));
+    // RCLCPP_INFO(this->get_logger(), "Circle Regression: a: %f, b: %f, R_sqr: %f", (a + centroid.x) , (b + centroid.y), sqrt(R_sqr));
+    
+    // Set the radius variable:
+    curr_radius_ = sqrt(R_sqr);
+    curr_center_.x = a + centroid.x;
+    curr_center_.y = b + centroid.y;
 
     // 13.  compute the RMSE of the fit and threshold.
     double RMSE = 0.0;
@@ -362,52 +444,72 @@ private:
 
     // Call Inscribed Angle Theorem to determine if landmark is a circle and avoiding false positives:
     if (RMSE < RMSE_threshold_) {
-      RCLCPP_INFO(this->get_logger(), "Circle Detected: RMSE: %f", RMSE);
-      return true;
+      // RCLCPP_INFO(this->get_logger(), "Circle Suspected: RMSE: %f", RMSE);
+      // if (inscribed_angle_theorem(cluster)) {
+      //   RCLCPP_INFO(this->get_logger(), "Circle Confirmed:");
+      //   return true;
+      // } else {
+      //   RCLCPP_INFO(this->get_logger(), "Not a Circle:");
+      //   return false;
+      // }
     
     } else {
-      RCLCPP_INFO(this->get_logger(), "Not a Circle: RMSE: %f", RMSE);
+      // RCLCPP_INFO(this->get_logger(), "Not a Circle: RMSE: %f", RMSE);
       return false;
     }
   }
 
   double calculate_angle(turtlelib::Point2D start, turtlelib::Point2D end, turtlelib::Point2D point)
   {
-    // Calculate the angle between the start and end points:
-    double angle = atan2(point.y - start.y, point.x - start.x) - atan2(end.y - start.y, end.x - start.x);
+    // Begin Citation [9]
+    // Start = Point A
+    // Point = Point B
+    // End = Point C
+    // Calculate the angle between the start and end points via the inscribed angle theorem:
+    // Use the Law of Cosines to calculate the angle:   double a = calc_distance(start, end);
+    
+    // Calculate the vector between the start and point:
+    turtlelib::Vector2D AB;
+    AB.x = point.x - start.x;
+    AB.y = point.y - start.y;
+
+    // Calculate the vector between the point and end:
+    turtlelib::Vector2D BC;
+    BC.x = end.x - point.x;
+    BC.y = end.y - point.y;
+
+    // Calculate the angle between the two vectors:
+    double dot_product = AB.x * BC.x + AB.y * BC.y;
+    double magnitude_AB = sqrt(pow(AB.x, 2) + pow(AB.y, 2));
+    double magnitude_BC = sqrt(pow(BC.x, 2) + pow(BC.y, 2));
+    double angle = acos(dot_product / (magnitude_AB * magnitude_BC));
+    // End Citation [9]
     return angle;
   }
 
   bool inscribed_angle_theorem(std::vector<turtlelib::Point2D> cluster)
   {
-    // inscribed_angle_theorem
     // 1. Set the Start and End Points of the Cluster: 
-    turtlelib::Point2D start = cluster.at(0);
-    turtlelib::Point2D end = cluster.at(cluster.size() - 1);
+    turtlelib::Point2D P1 = cluster.at(0);
+    turtlelib::Point2D P2 = cluster.at(cluster.size() - 1);
 
     // 2. For all the points in the cluster, calculate the angle between the start and end points:
     arma::vec inscribed_angles = arma::zeros(cluster.size()-2);
     for (int i = 1; i < int(cluster.size()-1); i++) {
-      double angle = calculate_angle(start, end, cluster.at(i));
-      RCLCPP_INFO(this->get_logger(), "Inscribed Angle: %f", angle);
-      if (turtlelib::almost_equal(angle, 0.0, 1e-6)) { 
-        RCLCPP_INFO(this->get_logger(), "Inscribed Angle: 0.0");
-        inscribed_angles.at(i) = 1;
-        RCLCPP_INFO_STREAM(this->get_logger(), "Inscribed Angles: " << inscribed_angles);
-      } else {
-        inscribed_angles.at(i) = 0;
-      }
+      double angle = calculate_angle(P1, P2, cluster.at(i));
+      angle = turtlelib::normalize_angle(angle);
+      inscribed_angles.at(i-1) = angle;
     }
 
-    RCLCPP_INFO_STREAM(this->get_logger(), "Inscribed Angles: " << inscribed_angles);
+    // 3. Calculate the mean of the inscribed angles:
+    double mean_angle = arma::mean(inscribed_angles);
 
-    // 3. If the sum of the inscribed angles is equal to the number of points in the cluster - 2, then the cluster is a circle:
-    int sum = 0;
-    for (int i = 0; i < int(inscribed_angles.size()); i++) {
-      sum += inscribed_angles.at(i);
-    }
+    // 4. Calculate the STD of the inscribed angles:
+    double std_angle = arma::stddev(inscribed_angles);
 
-    if (sum == int(cluster.size()) - 2) {
+    // Determine if the cluster is a circle:
+    // If the STD is below 0.15, and the mean between 90 and 135 degrees, then it is circle
+    if (std_angle < 0.15 && mean_angle > 1.5708 && mean_angle < 2.35619) {
       return true;
     } else {
       return false;
@@ -436,6 +538,8 @@ private:
   double cluster_size_max_ = 25;
   double num_clusters_ = 0;
   double RMSE_threshold_ = 0.1;
+  turtlelib::Point2D curr_center_;
+  double curr_radius_;
 
   // Initalize Cluster tracker:
   std::vector<std::vector<turtlelib::Point2D>> clusters_;

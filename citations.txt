@@ -15,3 +15,5 @@ People worked with: Demiana Barsoum, Megan Black
 [7] https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles 
 
 [8] Probalistic Robotics Textbook from Brenna's ML/AI Class
+
+[9] https://math.stackexchange.com/questions/361412/finding-the-angle-between-three-points

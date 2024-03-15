@@ -72,10 +72,14 @@ public:
       "/odom", 10, std::bind(&Slam::odom_callback, this, std::placeholders::_1));
 
     // Subscribe to fake_obstacles topic:
-    fake_obstacles_sub_ = this->create_subscription<visualization_msgs::msg::MarkerArray>(
-      "/fake_obstacles", 10,
-      std::bind(&Slam::fake_obstacles_callback, this, std::placeholders::_1));
+    // fake_obstacles_sub_ = this->create_subscription<visualization_msgs::msg::MarkerArray>(
+    //   "/fake_obstacles", 10,
+    //   std::bind(&Slam::fake_obstacles_callback, this, std::placeholders::_1));
 
+    // Subscribe to reg_obstacles topic:
+    reg_obstacles_sub_ = this->create_subscription<visualization_msgs::msg::MarkerArray>(
+      "/landmarks", 10,
+      std::bind(&Slam::reg_obstacles_callback, this, std::placeholders::_1));
 
     // Define Broadcaster:
     broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(this);
@@ -150,6 +154,102 @@ private:
   }
 
   /// \brief A callback function to update the robot's observed obstacles
+  void reg_obstacles_callback(const visualization_msgs::msg::MarkerArray::SharedPtr msg)
+  {
+    auto marker_array = *msg;
+    int num_updates = 0;
+
+    // Define the for loop to call the update over:
+    for (int i = 0; i < int(marker_array.markers.size()); i++) {
+    RCLCPP_INFO_STREAM(this->get_logger(), "BEFORE seen_obs_: " << size(seen_obs_));
+      // Extract the id, x, and y from the message:
+      // int idx = msg->markers.at(i).id;
+      std::vector<int> temp_seen_obs = seen_obs_;
+      temp_seen_obs.push_back(seen_obs_.size());
+
+      int idx = temp_seen_obs.size() - 1;
+      double min_dist = dist_threshold_;
+
+      arma::vec loc = {msg->markers.at(i).pose.position.x, msg->markers.at(i).pose.position.y};
+
+      arma::vec zi = cart_to_polar(loc);
+      zi.at(1) = turtlelib::normalize_angle(zi.at(1));
+
+      double x = msg->markers.at(i).pose.position.x;
+      double y = msg->markers.at(i).pose.position.y;
+
+      for (int k = 0; k < int(seen_obs_.size()); k++) {
+        // Calculate Hk: 
+        double dx = mu_bar_.at(3 + (2 * seen_obs_.at(k))) - mu_bar_.at(1);
+        double dy = mu_bar_.at(4 + (2 * seen_obs_.at(k))) - mu_bar_.at(2);
+      
+        arma::mat Hj = arma::zeros(2,9);
+        double d = pow(dx, 2) + pow(dy, 2);
+        Hj.at(0, 0) = 0.0;
+        Hj.at(0, 1) = -dx / sqrt(d);
+        Hj.at(0, 2) = -dy / sqrt(d);
+
+        Hj.at(1, 0) = -1.0;
+        Hj.at(1, 1) = dy / d;
+        Hj.at(1, 2) = -dx / d;
+
+
+        Hj.at(0, 3 + (2 * k)) = dx / sqrt(d);
+        Hj.at(0, 4 + (2 * k)) = dy / sqrt(d);
+
+        Hj.at(1, 3 + (2 * k)) = -dy / d;
+        Hj.at(1, 4 + (2 * k)) = dx / d;
+
+        // Calculate the Covariance: 
+        // RCLCPP_INFO_STREAM(this->get_logger(), "BEFORE Sigma_bar_: " << size(Sigma_bar_));
+        arma::mat Psi = Hj * Sigma_bar_ * Hj.t() + R_;
+        // RCLCPP_INFO_STREAM(this->get_logger(), "AFTER Sigma_bar_: " << size(Sigma_bar_));
+      
+
+        // Calculate zk_hat:
+        arma::vec zk = cart_to_polar({dx, dy});
+        zk.at(1) = turtlelib::normalize_angle(turtlelib::normalize_angle(zk.at(1)) - turtlelib::normalize_angle(mu_bar_.at(0)));
+
+        // Calculate the Mahalanobis distance:
+        arma::vec diff = (zi - zk);
+        diff.at(1) = turtlelib::normalize_angle(diff.at(1));
+        // RCLCPP_INFO_STREAM(this->get_logger(), "diff: " << diff);
+        // RCLCPP_INFO_STREAM(this->get_logger(), "Sigma: " << Sigma);
+        // RCLCPP_INFO_STREAM(this->get_logger(), "dist:" << diff.t() * Sigma.i() * diff);
+
+        arma:: vec dist = diff.t() * Psi.i() * diff;
+        // auto dist = diff.t() * Sigma.i() * diff;
+        // double dist = 0.0;
+        // Update the minimum distance and index:
+        if (dist.at(0) < min_dist) {
+          min_dist = dist.at(0);
+          idx = seen_obs_.at(k);
+        }
+      }
+
+      // Call the update function:
+      if (is_observed(idx) == true) {
+        update(idx, x, y);
+        num_updates++;
+      
+      } else {
+        seen_obs_.push_back(idx);
+        mu_bar_.at(3 + (2*idx)) = x + mu_bar_.at(1);
+        mu_bar_.at(4 + (2*idx)) = y + mu_bar_.at(2);
+        mu_.at(3 + (2*idx)) = mu_bar_.at(3 + (2*idx));
+        mu_.at(4 + (2*idx)) = mu_bar_.at(4 + (2*idx));
+      }
+    }
+
+    if (num_updates == 0) {
+      mu_ = mu_bar_;
+      Sigma_ = Sigma_bar_;
+    }
+
+    
+  }
+
+  /// \brief A callback function to update the robot's observed obstacles
   void fake_obstacles_callback(const visualization_msgs::msg::MarkerArray::SharedPtr msg)
   {
 
@@ -186,6 +286,8 @@ private:
     }
   }
 
+
+
   // Kalman filter functions:
   /// \brief A function to predict the next state of the robot
   /// \param dx - the change in x
@@ -214,6 +316,22 @@ private:
     // Calculate Sigma_bar_:
     calculate_Sigma_bar();
 
+  }
+
+
+  /// \brief A function to convert polar to cartesian coordinates
+  /// \param range
+  /// \param angle
+  /// \return turtlelib::Point2D
+  turtlelib::Point2D polar_to_cartesian(double range, double angle)
+  {
+    // Convert polar to cartesian coordinates in the robot frame:
+    double x = range * cos(angle);
+    double y = range * sin(angle);
+    turtlelib::Point2D point;
+    point.x = x;
+    point.y = y;
+    return point;
   }
 
   /// @brief A function that updates the prediction based on the observed obstacles
@@ -384,6 +502,7 @@ private:
   /// @brief calculate the z vector
   /// @param idx obstacle index 
   /// @return vector z
+ 
   arma::vec calculate_z(int idx)
   {
 
@@ -391,6 +510,16 @@ private:
     double bearing = turtlelib::normalize_angle(atan2(mu_bar_.at(4 + (2 * idx)) - mu_bar_.at(2), mu_bar_.at(3 + (2 * idx)) - mu_bar_.at(1)) - mu_bar_.at(0));
     arma::vec z = {range, bearing};
 
+    return z;
+  }
+
+  arma::vec cart_to_polar(arma::vec loc)
+  {
+    double x = loc.at(0);
+    double y = loc.at(1);
+    double range = sqrt(pow(x, 2) + pow(y, 2));
+    double bearing = atan2(y, x);
+    arma::vec z = {range, bearing};
     return z;
   }
 
@@ -545,8 +674,8 @@ private:
 
     // Initalize Subscribers:
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
-    rclcpp::Subscription<visualization_msgs::msg::MarkerArray>::SharedPtr fake_obstacles_sub_;
-
+    // rclcpp::Subscription<visualization_msgs::msg::MarkerArray>::SharedPtr fake_obstacles_sub_;
+    rclcpp::Subscription<visualization_msgs::msg::MarkerArray>::SharedPtr reg_obstacles_sub_;
     // Initalize Broadcasters:
     std::unique_ptr<tf2_ros::TransformBroadcaster> broadcaster_;
 
@@ -591,6 +720,7 @@ private:
     std::string body_id_;
     std::string odom_id_;
     int num_obs_ = 3;
+    double dist_threshold_ = 0.5;
 
     // Tuning and noise parameters:
     double q_= 0.01;
