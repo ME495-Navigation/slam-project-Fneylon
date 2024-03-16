@@ -408,7 +408,6 @@ private:
   /// @brief sets the laser message for publishing
   void set_laser_msg()
   {
-
     // RCLCPP_INFO(this->get_logger(), "Setting Laser Message");
     laser_scan_msg_.ranges.clear();
 
@@ -419,131 +418,144 @@ private:
     laser_scan_msg_.angle_min = 0.0;
     laser_scan_msg_.angle_max = 2 * turtlelib::PI;
     laser_scan_msg_.angle_increment = lidar_angle_increment_;
-    laser_scan_msg_.time_increment = 0.000559;
+    // laser_scan_msg_.time_increment = 0.000559;
     laser_scan_msg_.scan_time = 0.2;
 
-    // Generate LIDAR Beam
-    auto x_curr = diff_drive_.get_configuration().x;
-    auto y_curr = diff_drive_.get_configuration().y;
-
-    // Define the Transform between the world frame and the robot frame (rotation and translation)
-    turtlelib::Transform2D T_w_r;
-    turtlelib::Vector2D v_w_r;
-    v_w_r.x = x_curr;
-    v_w_r.y = y_curr;
-    T_w_r = turtlelib::Transform2D(v_w_r, diff_drive_.get_configuration().theta);
-
-
     for (int i = 0; i < lidar_num_samps_; i++) {
+
+      // Generate LIDAR Beam
+      double x_curr = diff_drive_.get_configuration().x;
+      double y_curr = diff_drive_.get_configuration().y;
+      double theta_curr = diff_drive_.get_configuration().theta;
+
+      // Define the Transform between the world frame and the robot frame (rotation and translation)
+      turtlelib::Transform2D T_w_r;
+      turtlelib::Vector2D v_w_r;
+      v_w_r.x = x_curr;
+      v_w_r.y = y_curr;
+      T_w_r = turtlelib::Transform2D(v_w_r, theta_curr);
+
       double curr_reading = 2.0 * max_range_;
-      auto gamma = i * lidar_resolution_;
+      double gamma = i * lidar_resolution_;
 
       // Define the Transform between the robot frame and the lidar frame (just rotation)
       turtlelib::Transform2D T_r_l;
       T_r_l = turtlelib::Transform2D(gamma);
 
-      // // Define the Transform between the lidar frame and the frame at the end of the beam (translation only in x)
-      // // turtlelib::Transform2D T_l_b;
-      // // turtlelib::Vector2D v_l_b;
-      // // v_l_b.x = max_range_;
-      // // v_l_b.y = 0.0;
-      // // T_l_b = turtlelib::Transform2D(v_l_b);
+      // Define the Transform between the lidar frame and the frame at the end of the beam (translation only in x)
+      turtlelib::Transform2D T_l_b;
+      turtlelib::Vector2D v_l_b;
+      v_l_b.x = max_range_;
+      v_l_b.y = 0.0;
+      T_l_b = turtlelib::Transform2D(v_l_b);
 
-      // // Define the Transform between the world frame and the frame at the end of the beam
-      // // turtlelib::Transform2D T_w_b;
-      // // T_w_b = T_w_r * T_r_l * T_l_b;
-
-      // // auto x_max = T_w_b.translation().x;
-      // // auto y_max = T_w_b.translation().y;
-      // // auto beam = calc_line_eq(x_curr, y_curr, x_max, y_max);
-
-      // // Check for intersection with right wall at (x_length/2, y)
-      // auto x_int = arena_x_length_ / 2.0;
-      // auto y_int = calc_y_pt(beam, x_int);
-
-      // // Transform between the robot and the intersection point
-      // // turtlelib::Transform2D T_w_i;
-      // // turtlelib::Vector2D v_w_i;
-      // // v_w_i.x = x_int;
-      // // v_w_i.y = y_int;
-      // // T_w_i = turtlelib::Transform2D(v_w_i);
-
-      // // Transform the intersection point to the lidar frame
-      // turtlelib::Transform2D T_l_i;
+      // Find the World in the Lidar Frame: 
       turtlelib::Transform2D T_w_l = T_w_r * T_r_l;
-      // T_l_i = (T_w_l.inv() * T_w_i);
-      // auto dist = T_l_i.translation().x; // only concerned with x component
+      turtlelib::Transform2D T_l_w = T_w_l.inv();
 
-      // if (dist > 0.0) {
-      //   if (dist < curr_reading) {
-      //     curr_reading = dist;
-      //   }
-      // }
+      // Define the right wall bounds:
+      turtlelib::Point2D p1;
+      p1.x = arena_x_length_ / 2.0;
+      p1.y = arena_y_length_ / 2.0;
 
-      // // Check for intersection with left wall at (-x_length/2, y)
-      // x_int = -arena_x_length_ / 2.0;
-      // y_int = calc_y_pt(beam, x_int);
+      turtlelib::Point2D p2;
+      p2.x = arena_x_length_ / 2.0;
+      p2.y = -arena_y_length_ / 2.0;
 
-      // // Transform between the robot and the intersection point
-      // v_w_i.x = x_int;
-      // v_w_i.y = y_int;
-      // T_w_i = turtlelib::Transform2D(v_w_i);
+      // Transform wall points to the lidar frame: 
+      turtlelib::Point2D p1_l = T_l_w(p1);
+      turtlelib::Point2D p2_l = T_l_w(p2);
 
-      // // Transform the intersection point to the lidar frame
-      // T_w_l = T_w_r * T_r_l;
-      // T_l_i = (T_w_l.inv() * T_w_i);
-      // dist = T_l_i.translation().x; // only concerned with x component
+      // Calculate the line equation of the wall
+      turtlelib::LineEquation2D wall_eq = calc_line_eq(p1_l.x, p1_l.y, p2_l.x, p2_l.y);
+
+      // Check for intersection: 
+      double x = calc_x_pt(wall_eq, 0.0);
+
+      if (x > 0.0) {
+        if (x < curr_reading) {
+          curr_reading = x;
+        }
+      }
+
+      // Define the left wall bounds:
+      turtlelib::Point2D p3;
+      p3.x = -arena_x_length_ / 2.0;
+      p3.y = arena_y_length_ / 2.0;
+
+      turtlelib::Point2D p4;
+      p4.x = -arena_x_length_ / 2.0;
+      p4.y = -arena_y_length_ / 2.0;
+
+      // Transform wall points to the lidar frame:
+      turtlelib::Point2D p3_l = T_l_w(p3);
+      turtlelib::Point2D p4_l = T_l_w(p4);
+
+      // Calculate the line equation of the wall
+      turtlelib::LineEquation2D wall_eq2 = calc_line_eq(p3_l.x, p3_l.y, p4_l.x, p4_l.y);
+
+      // Check for intersection:
+      double x2 = calc_x_pt(wall_eq2, 0.0);
+
+      if (x2 > 0.0) {
+        if (x2 < curr_reading) {
+          curr_reading = x2;
+        }
+      }
 
 
-      // if (dist > 0.0) {
-      //   if (dist < curr_reading) {
-      //     curr_reading = dist;
-      //   }
-      // }
+      // Redefine the top wall using the left and right wall points
+      turtlelib::Point2D p5;
+      p5.x = -arena_x_length_ / 2.0;
+      p5.y = arena_y_length_ / 2.0;
 
-      // // Check for intersection with top wall at (x, y_length/2)
-      // auto y_int_top = arena_y_length_ / 2.0;
-      // auto x_int_top = calc_x_pt(beam, y_int_top);
+      turtlelib::Point2D p6;
+      p6.x = arena_x_length_ / 2.0;
+      p6.y = arena_y_length_ / 2.0;
 
-      // // Transform between the robot and the intersection point
-      // v_w_i.x = x_int_top;
-      // v_w_i.y = y_int_top;
-      // T_w_i = turtlelib::Transform2D(v_w_i);
+      // Transform wall points to the lidar frame:
+      turtlelib::Point2D p5_l = T_l_w(p5);
+      turtlelib::Point2D p6_l = T_l_w(p6);
 
-      // // Transform the intersection point to the lidar frame
-      // T_w_l = T_w_r * T_r_l;
-      // T_l_i = (T_w_l.inv() * T_w_i);
-      // dist = T_l_i.translation().x; // only concerned with x component
+      // Calculate the line equation of the wall
+      turtlelib::LineEquation2D wall_eq3 = calc_line_eq(p5_l.x, p5_l.y, p6_l.x, p6_l.y);
 
-      // if (dist > 0.0) {
-      //   if (dist < curr_reading) {
-      //     curr_reading = dist;
-      //   }
-      // }
+      // Check for intersection:
+      double x3 = calc_x_pt(wall_eq3, 0.0);
 
+      if (x3 > 0.0) {
+        if (x3 < curr_reading) {
+          curr_reading = x3;
+        }
+      }
 
-      // // Check for intersection with bottom wall at (x, -y_length/2)
-      // auto y_int_bom = -arena_y_length_ / 2.0;
-      // auto x_int_bom = calc_x_pt(beam, y_int_bom);
+      // Redefine the bottom wall using the left and right wall points
+      turtlelib::Point2D p7;
+      p7.x = -arena_x_length_ / 2.0;
+      p7.y = -arena_y_length_ / 2.0;
 
-      // // Transform between the robot and the intersection point
-      // v_w_i.x = x_int_bom;
-      // v_w_i.y = y_int_bom;
-      // T_w_i = turtlelib::Transform2D(v_w_i);
+      turtlelib::Point2D p8;
+      p8.x = arena_x_length_ / 2.0;
+      p8.y = -arena_y_length_ / 2.0;
 
-      // // Transform the intersection point to the lidar frame
-      // T_w_l = T_w_r * T_r_l;
-      // T_l_i = (T_w_l.inv() * T_w_i);
-      // dist = T_l_i.translation().x; // only concerned with x component
+      // Transform wall points to the lidar frame:
+      turtlelib::Point2D p7_l = T_l_w(p7);
+      turtlelib::Point2D p8_l = T_l_w(p8);
 
-      // if (dist > 0.0) {
-      //   if (dist < curr_reading) {
-      //     curr_reading = dist;
-      //   }
-      // }
+      // Calculate the line equation of the wall
+      turtlelib::LineEquation2D wall_eq4 = calc_line_eq(p7_l.x, p7_l.y, p8_l.x, p8_l.y);
+
+      // Check for intersection:
+      double x4 = calc_x_pt(wall_eq4, 0.0);
+
+      if (x4 > 0.0) {
+        if (x4 < curr_reading) {
+          curr_reading = x4;
+        }
+      }
       // Detecting the Obstacles:
       // Detecting the first obstacle
-      turtlelib::Transform2D T_l_w = T_w_l.inv();
+      // turtlelib::Transform2D T_l_w = T_w_l.inv();
       turtlelib::Point2D obs_center;
 
       for (int j = 0; j < int(x_obstacles_.size()); j++) {
