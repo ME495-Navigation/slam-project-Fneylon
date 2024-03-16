@@ -161,7 +161,7 @@ private:
 
     // Define the for loop to call the update over:
     for (int i = 0; i < int(marker_array.markers.size()); i++) {
-    RCLCPP_INFO_STREAM(this->get_logger(), "BEFORE seen_obs_: " << size(seen_obs_));
+    // RCLCPP_INFO_STREAM(this->get_logger(), "BEFORE seen_obs_: " << size(seen_obs_));
       // Extract the id, x, and y from the message:
       // int idx = msg->markers.at(i).id;
       std::vector<int> temp_seen_obs = seen_obs_;

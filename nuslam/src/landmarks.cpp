@@ -35,6 +35,9 @@ public:
     RCLCPP_INFO(this->get_logger(), "Initializing Landmarks Node...");
 
     // Declare parameters:
+    // Define the QoS
+    rclcpp::QoS marker_qos(10);
+    marker_qos.transient_local();
 
     // Define Publishers:
     cluster_centroid_pub_ = this->create_publisher<visualization_msgs::msg::MarkerArray>(
@@ -155,8 +158,11 @@ private:
     {
       bool circle_status = circle_regression(clusters_filtered_.at(i));
       if (circle_status) {
-        locs.push_back(curr_center_);
-        radi.push_back(curr_radius_);
+        if (turtlelib::almost_equal(curr_radius_, 0.038, 0.001)) {
+          locs.push_back(curr_center_);
+          radi.push_back(curr_radius_);
+        }
+        
       }
       // RCLCPP_INFO(this->get_logger(), "Circle Status: %d", circle_status);
     }
@@ -212,7 +218,7 @@ private:
       // Set up marker:
       visualization_msgs::msg::Marker marker;
       marker.header.frame_id = "red/base_footprint";
-      marker.header.stamp = this->get_clock()->now();
+      // marker.header.stamp = this->get_clock()->now();
       marker.ns = "regression_obstacles";
       marker.id = i;
       marker.type = visualization_msgs::msg::Marker::CYLINDER;
@@ -537,7 +543,7 @@ private:
   double cluster_size_min_ = 4;
   double cluster_size_max_ = 25;
   double num_clusters_ = 0;
-  double RMSE_threshold_ = 0.1;
+  double RMSE_threshold_ = 0.25;
   turtlelib::Point2D curr_center_;
   double curr_radius_;
 

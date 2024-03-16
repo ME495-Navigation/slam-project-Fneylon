@@ -93,7 +93,7 @@ public:
 
     // Declare the lidar parameters
     if (draw_only_ == false) {
-      this->declare_parameter("basic_sensor_variance", 0.00);
+      this->declare_parameter("basic_sensor_variance", 0.001);
       basic_sensor_variance_ = this->get_parameter("basic_sensor_variance").as_double();
 
       this->declare_parameter("max_range", 3.5);
@@ -111,7 +111,7 @@ public:
       this->declare_parameter("lidar_resolution", 0.0174533);
       lidar_resolution_ = this->get_parameter("lidar_resolution").as_double();
 
-      this->declare_parameter("lidar_noise", 0.00);
+      this->declare_parameter("lidar_noise", 0.001);
       lidar_noise_ = this->get_parameter("lidar_noise").as_double();
 
       // Declare the slip parameters
