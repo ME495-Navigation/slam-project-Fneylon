@@ -15,7 +15,7 @@ This package contains the following nodes:
 ![](images/final_slam_result.png)
 
 ## Video of the EKF SLAM Implementation using detected obstacles (blue) (Homework 4):
-[final_slam_video.webm]()
+[final_slam_video.webm](https://github.com/ME495-Navigation/slam-project-Fneylon/assets/117234679/99e1746a-6ef7-4e11-8069-4cc67f7c942e)
 
 
 ## Nuslam Screenshot of EKF SLAM Implementation using fake obstacles (yellow) data (Homework 3):
