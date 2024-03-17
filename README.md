@@ -10,7 +10,7 @@ This repository consists of several ROS packages
 - **nuslam** - package that contains the main EKF SLAM implementation and the landmark detection and association nodes.
 
 # Final EKF SLAM Implementation Demo (Simulation):
-[final_slam_video.webm]()
+[final_slam_video.webm](https://github.com/ME495-Navigation/slam-project-Fneylon/assets/117234679/99e1746a-6ef7-4e11-8069-4cc67f7c942e)
 
 
 
