@@ -449,7 +449,7 @@ private:
       v_l_b.y = 0.0;
       T_l_b = turtlelib::Transform2D(v_l_b);
 
-      // Find the World in the Lidar Frame: 
+      // Find the World in the Lidar Frame:
       turtlelib::Transform2D T_w_l = T_w_r * T_r_l;
       turtlelib::Transform2D T_l_w = T_w_l.inv();
 
@@ -462,14 +462,14 @@ private:
       p2.x = arena_x_length_ / 2.0;
       p2.y = -arena_y_length_ / 2.0;
 
-      // Transform wall points to the lidar frame: 
+      // Transform wall points to the lidar frame:
       turtlelib::Point2D p1_l = T_l_w(p1);
       turtlelib::Point2D p2_l = T_l_w(p2);
 
       // Calculate the line equation of the wall
       turtlelib::LineEquation2D wall_eq = calc_line_eq(p1_l.x, p1_l.y, p2_l.x, p2_l.y);
 
-      // Check for intersection: 
+      // Check for intersection:
       double x = calc_x_pt(wall_eq, 0.0);
 
       if (x > 0.0) {

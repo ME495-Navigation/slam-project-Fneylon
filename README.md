@@ -7,10 +7,16 @@ This repository consists of several ROS packages
 - **turtlelib** - C++ library that contains the geometry and SE(2) geometry classes and svg classes for vizualization of transformations. 
 - **nusim** - package that simulates the turtlebot3 burgers in a 2D environment with walls and cylindrical obstacles.
 - **turtle_control** - package that contains the odometry and controller nodes for the nusim simulation and for the real turtlebot3 burgers.
+- **nuslam** - package that contains the main EKF SLAM implementation and the landmark detection and association nodes.
 
-  # Turtle Circle Demo
-  [fiona_hw2_video.webm](https://github.com/ME495-Navigation/slam-project-Fneylon/assets/116540591/7742d568-0c1d-4e96-8c2f-67c4b1c6248b)
-  
-  [irl_video.webm](https://github.com/ME495-Navigation/slam-project-Fneylon/assets/117234679/fc96272c-cef4-4756-96dc-5a1cae63c692)
+# Final EKF SLAM Implementation Demo (Simulation):
+[final_slam_video.webm]()
 
-  **Final Location of the Turtlebot:** {position-x: 0.24, y: 0.09, z: 0.0; Orientation-x: 0.0, y: 0.0, z: 0.35, w: 0.94}
+
+
+# Turtle Circle Demo
+[fiona_hw2_video.webm](https://github.com/ME495-Navigation/slam-project-Fneylon/assets/116540591/7742d568-0c1d-4e96-8c2f-67c4b1c6248b)
+
+[irl_video.webm](https://github.com/ME495-Navigation/slam-project-Fneylon/assets/117234679/fc96272c-cef4-4756-96dc-5a1cae63c692)
+
+**Final Location of the Turtlebot:** {position-x: 0.24, y: 0.09, z: 0.0; Orientation-x: 0.0, y: 0.0, z: 0.35, w: 0.94}

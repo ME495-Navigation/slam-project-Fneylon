@@ -63,8 +63,8 @@
  - [x] F.4 Laser Scanner
 
  #### Task L: SLAM
- - [ ] L.1 Main SLAM Results
- - [ ] L.2 SLAM in Controlled Environment
+ - [x] L.1 Main SLAM Results
+ - [x] L.2 SLAM in Controlled Environment
 
  #### Task V: Visualization
  - [x] V.1 Simulation Standalone

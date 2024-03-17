@@ -1,6 +1,6 @@
 /// \file circle.cpp
 /// \brief This is a ROS2 node that publishes velocity commands to the turtlebot3 to make it move in a circle.
-/// 
+///
 /// PARAMETERS:
 ///   frequency (double): The frequency at which to publish the velocity commands.
 ///
@@ -72,7 +72,6 @@ public:
   }
 
 private:
-
   /// @brief  This function stops the turtlebot3.
   void stop_callback(
     const std::shared_ptr<std_srvs::srv::Empty::Request>,

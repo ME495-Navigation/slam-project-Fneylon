@@ -1,4 +1,4 @@
-People worked with: Demiana Barsoum, Megan Black
+People worked with: Demiana Barsoum, Megan Black, Shail, 
 
 [1] https://robotics.stackexchange.com/questions/98540/ros2-launch-file-arguments-subsititutions-xacro-and-node-parameters 
 

@@ -177,7 +177,7 @@ private:
   }
 
   /// @brief Updates the odometry based on the joint state.
-  /// @param msg 
+  /// @param msg
   void joint_state_callback(const sensor_msgs::msg::JointState::SharedPtr msg)
   {
     // RCLCPP_INFO(this->get_logger(), "joint_state_callback!");
@@ -204,9 +204,9 @@ private:
   }
 
   /// @brief Sets the transform base on the configuration.
-  /// @param x 
-  /// @param y 
-  /// @param theta 
+  /// @param x
+  /// @param y
+  /// @param theta
   void set_transform(double x, double y, double theta)
   {
     // geometry_msgs::msg::TransformStamped transformStamped;

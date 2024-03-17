@@ -131,7 +131,7 @@ private:
   /// \brief A callback function to set the current odom position of the robot
   void odom_callback(const nav_msgs::msg::Odometry::SharedPtr msg)
   {
- 
+
     // Set Green Odom Message:
     green_odom_msg_ = *msg;
 
@@ -161,7 +161,7 @@ private:
 
     // Define the for loop to call the update over:
     for (int i = 0; i < int(marker_array.markers.size()); i++) {
-    // RCLCPP_INFO_STREAM(this->get_logger(), "BEFORE seen_obs_: " << size(seen_obs_));
+      // RCLCPP_INFO_STREAM(this->get_logger(), "BEFORE seen_obs_: " << size(seen_obs_));
       // Extract the id, x, and y from the message:
       // int idx = msg->markers.at(i).id;
       std::vector<int> temp_seen_obs = seen_obs_;
@@ -179,11 +179,11 @@ private:
       double y = msg->markers.at(i).pose.position.y;
 
       for (int k = 0; k < int(seen_obs_.size()); k++) {
-        // Calculate Hk: 
+        // Calculate Hk:
         double dx = mu_bar_.at(3 + (2 * seen_obs_.at(k))) - mu_bar_.at(1);
         double dy = mu_bar_.at(4 + (2 * seen_obs_.at(k))) - mu_bar_.at(2);
-      
-        arma::mat Hj = arma::zeros(2,9);
+
+        arma::mat Hj = arma::zeros(2, 9);
         double d = pow(dx, 2) + pow(dy, 2);
         Hj.at(0, 0) = 0.0;
         Hj.at(0, 1) = -dx / sqrt(d);
@@ -200,15 +200,18 @@ private:
         Hj.at(1, 3 + (2 * k)) = -dy / d;
         Hj.at(1, 4 + (2 * k)) = dx / d;
 
-        // Calculate the Covariance: 
+        // Calculate the Covariance:
         // RCLCPP_INFO_STREAM(this->get_logger(), "BEFORE Sigma_bar_: " << size(Sigma_bar_));
         arma::mat Psi = Hj * Sigma_bar_ * Hj.t() + R_;
         // RCLCPP_INFO_STREAM(this->get_logger(), "AFTER Sigma_bar_: " << size(Sigma_bar_));
-      
+
 
         // Calculate zk_hat:
         arma::vec zk = cart_to_polar({dx, dy});
-        zk.at(1) = turtlelib::normalize_angle(turtlelib::normalize_angle(zk.at(1)) - turtlelib::normalize_angle(mu_bar_.at(0)));
+        zk.at(1) = turtlelib::normalize_angle(
+          turtlelib::normalize_angle(
+            zk.at(
+              1)) - turtlelib::normalize_angle(mu_bar_.at(0)));
 
         // Calculate the Mahalanobis distance:
         arma::vec diff = (zi - zk);
@@ -217,7 +220,7 @@ private:
         // RCLCPP_INFO_STREAM(this->get_logger(), "Sigma: " << Sigma);
         // RCLCPP_INFO_STREAM(this->get_logger(), "dist:" << diff.t() * Sigma.i() * diff);
 
-        arma:: vec dist = diff.t() * Psi.i() * diff;
+        arma::vec dist = diff.t() * Psi.i() * diff;
         // auto dist = diff.t() * Sigma.i() * diff;
         // double dist = 0.0;
         // Update the minimum distance and index:
@@ -231,13 +234,13 @@ private:
       if (is_observed(idx) == true) {
         update(idx, x, y);
         num_updates++;
-      
+
       } else {
         seen_obs_.push_back(idx);
-        mu_bar_.at(3 + (2*idx)) = x + mu_bar_.at(1);
-        mu_bar_.at(4 + (2*idx)) = y + mu_bar_.at(2);
-        mu_.at(3 + (2*idx)) = mu_bar_.at(3 + (2*idx));
-        mu_.at(4 + (2*idx)) = mu_bar_.at(4 + (2*idx));
+        mu_bar_.at(3 + (2 * idx)) = x + mu_bar_.at(1);
+        mu_bar_.at(4 + (2 * idx)) = y + mu_bar_.at(2);
+        mu_.at(3 + (2 * idx)) = mu_bar_.at(3 + (2 * idx));
+        mu_.at(4 + (2 * idx)) = mu_bar_.at(4 + (2 * idx));
       }
     }
 
@@ -246,7 +249,7 @@ private:
       Sigma_ = Sigma_bar_;
     }
 
-    
+
   }
 
   /// \brief A callback function to update the robot's observed obstacles
@@ -272,10 +275,10 @@ private:
         } else {
 
           seen_obs_.push_back(idx);
-          mu_bar_.at(3 + (2*idx)) = x + mu_bar_.at(1);
-          mu_bar_.at(4 + (2*idx)) = y + mu_bar_.at(2);
-          mu_.at(3 + (2*idx)) = mu_bar_.at(3 + (2*idx));
-          mu_.at(4 + (2*idx)) = mu_bar_.at(4 + (2*idx));
+          mu_bar_.at(3 + (2 * idx)) = x + mu_bar_.at(1);
+          mu_bar_.at(4 + (2 * idx)) = y + mu_bar_.at(2);
+          mu_.at(3 + (2 * idx)) = mu_bar_.at(3 + (2 * idx));
+          mu_.at(4 + (2 * idx)) = mu_bar_.at(4 + (2 * idx));
         }
       }
     }
@@ -285,7 +288,6 @@ private:
       Sigma_ = Sigma_bar_;
     }
   }
-
 
 
   // Kalman filter functions:
@@ -370,7 +372,7 @@ private:
   /// \brief A function to update the Sigma matrix
   void update_Sigma()
   {
-    Sigma_ = (arma::eye(9,9) - (Kt_ * Hj_)) * Sigma_bar_;
+    Sigma_ = (arma::eye(9, 9) - (Kt_ * Hj_)) * Sigma_bar_;
   }
 
   /// \brief A function to update the mu matrix
@@ -395,7 +397,7 @@ private:
     Kt_ = Sigma_bar_ * Hj_.t() * ((Hj_ * Sigma_bar_ * Hj_.t()) + (V_ * R_ * V_.t())).i();
 
   }
-    
+
   /// @brief  A function to calculate the Hj matrix
   /// @param idx Obstacle index
   /// @param dx relative distance in x
@@ -403,7 +405,7 @@ private:
   void calculate_Hj(int idx, double dx, double dy)
   {
 
-    Hj_ = arma::zeros(2,9);
+    Hj_ = arma::zeros(2, 9);
     double d = pow(dx, 2) + pow(dy, 2);
     Hj_.at(0, 0) = 0.0;
     Hj_.at(0, 1) = -dx / sqrt(d);
@@ -429,13 +431,13 @@ private:
   /// @param dy change in y for predict step
   void calculate_A(double dx, double dy)
   {
-      
-    At_ = arma::zeros(9,9);
-    At_.at(1,0) = -dy;
-    At_.at(2,0) = dx;
-    At_ = arma::eye(9,9) + At_;
+
+    At_ = arma::zeros(9, 9);
+    At_.at(1, 0) = -dy;
+    At_.at(2, 0) = dx;
+    At_ = arma::eye(9, 9) + At_;
   }
-  
+
 
   /// @brief Calculate the Q bar matrix
   /// @param q noise value
@@ -454,14 +456,14 @@ private:
     R_.at(0, 0) = r_;
     R_.at(1, 1) = r_;
   }
-  
+
   /// @brief Calculate the W matrix
   void calculate_W()
   {
     std::normal_distribution<double> noise_distribution_(0.0, w_);
     double noise = noise_distribution_(generator_);
-    for (int i = 0; i < 9; i++){
-        W_.at(i,i) = noise;
+    for (int i = 0; i < 9; i++) {
+      W_.at(i, i) = noise;
     }
   }
 
@@ -470,15 +472,15 @@ private:
   {
     std::normal_distribution<double> noise_distribution_(0.0, v_);
     double noise = noise_distribution_(generator_);
-    for (int i = 0; i < 2; i++){
-        V_.at(i,i) = noise;
+    for (int i = 0; i < 2; i++) {
+      V_.at(i, i) = noise;
     }
   }
-  
+
   /// @brief Calculate the Sigma bar matrix
   void calculate_Sigma_bar()
   {
-      
+
     // Calculate W:
     calculate_W();
 
@@ -500,14 +502,22 @@ private:
   }
 
   /// @brief calculate the z vector
-  /// @param idx obstacle index 
+  /// @param idx obstacle index
   /// @return vector z
- 
+
   arma::vec calculate_z(int idx)
   {
 
-    double range = sqrt(pow(mu_bar_.at(3 + (2 * idx)) - mu_bar_.at(1), 2) + pow(mu_bar_.at(4 + (2*idx)) - mu_bar_.at(2), 2));
-    double bearing = turtlelib::normalize_angle(atan2(mu_bar_.at(4 + (2 * idx)) - mu_bar_.at(2), mu_bar_.at(3 + (2 * idx)) - mu_bar_.at(1)) - mu_bar_.at(0));
+    double range =
+      sqrt(
+      pow(
+        mu_bar_.at(3 + (2 * idx)) - mu_bar_.at(1),
+        2) + pow(mu_bar_.at(4 + (2 * idx)) - mu_bar_.at(2), 2));
+    double bearing =
+      turtlelib::normalize_angle(
+      atan2(
+        mu_bar_.at(4 + (2 * idx)) - mu_bar_.at(2),
+        mu_bar_.at(3 + (2 * idx)) - mu_bar_.at(1)) - mu_bar_.at(0));
     arma::vec z = {range, bearing};
 
     return z;
@@ -540,7 +550,7 @@ private:
   {
 
     green_marker_array_msg_.markers.clear();
-    for (int i = 0; i < int(seen_obs_.size()); i++){
+    for (int i = 0; i < int(seen_obs_.size()); i++) {
       visualization_msgs::msg::Marker green_marker;
       green_marker.header.frame_id = "map";
       green_marker.header.stamp = this->now();
@@ -548,8 +558,8 @@ private:
       green_marker.id = seen_obs_.at(i);
       green_marker.type = visualization_msgs::msg::Marker::CYLINDER;
       green_marker.action = visualization_msgs::msg::Marker::ADD;
-      green_marker.pose.position.x = mu_.at(3 + (2*seen_obs_.at(i)));
-      green_marker.pose.position.y = mu_.at(4 + (2*seen_obs_.at(i)));
+      green_marker.pose.position.x = mu_.at(3 + (2 * seen_obs_.at(i)));
+      green_marker.pose.position.y = mu_.at(4 + (2 * seen_obs_.at(i)));
       green_marker.pose.position.z = 0.0;
       green_marker.pose.orientation.x = 0.0;
       green_marker.pose.orientation.y = 0.0;
@@ -566,7 +576,7 @@ private:
     }
 
   }
-  
+
   /// @brief A function to update the green odom path
   void update_green_odom_path()
   {
@@ -587,7 +597,7 @@ private:
     green_odom_path_msg_.poses.push_back(pose);
     green_odom_path_pub_->publish(green_odom_path_msg_);
   }
-  
+
   /// @brief A function to update the green odom message
   void update_green_odom_msg()
   {
@@ -609,7 +619,7 @@ private:
     green_odom_tf_.transform.rotation = prev_green_odom_.pose.pose.orientation;
 
   }
-  
+
   /// @brief A function to set the map odom transform
   void set_Tmo_transform()
   {
@@ -625,7 +635,7 @@ private:
     map_odom_tf_.transform.rotation.z = q.z();
     map_odom_tf_.transform.rotation.w = q.w();
   }
-  
+
   /// @brief A function to set the Tmr transform
   void set_Tmr()
   {
@@ -635,7 +645,7 @@ private:
     r.y = mu_.at(2);
     Tmr_ = turtlelib::Transform2D(r, mu_.at(0));
   }
-  
+
   /// @brief A function to set the odom to robot transform
   void set_Tor()
   {
@@ -664,74 +674,74 @@ private:
       }
     }
     return false;
-}
+  }
 
-    // Initalize Publishers:
-    rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr green_odom_pub_;
-    rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr green_odom_path_pub_;
-    rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr green_marker_array_pub_;
+  // Initalize Publishers:
+  rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr green_odom_pub_;
+  rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr green_odom_path_pub_;
+  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr green_marker_array_pub_;
 
 
-    // Initalize Subscribers:
-    rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
-    // rclcpp::Subscription<visualization_msgs::msg::MarkerArray>::SharedPtr fake_obstacles_sub_;
-    rclcpp::Subscription<visualization_msgs::msg::MarkerArray>::SharedPtr reg_obstacles_sub_;
-    // Initalize Broadcasters:
-    std::unique_ptr<tf2_ros::TransformBroadcaster> broadcaster_;
+  // Initalize Subscribers:
+  rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
+  // rclcpp::Subscription<visualization_msgs::msg::MarkerArray>::SharedPtr fake_obstacles_sub_;
+  rclcpp::Subscription<visualization_msgs::msg::MarkerArray>::SharedPtr reg_obstacles_sub_;
+  // Initalize Broadcasters:
+  std::unique_ptr<tf2_ros::TransformBroadcaster> broadcaster_;
 
-    // Initalize Timers:
-    rclcpp::TimerBase::SharedPtr timer_;
+  // Initalize Timers:
+  rclcpp::TimerBase::SharedPtr timer_;
 
-    // Initalize the Random Number Generator:
-    std::default_random_engine generator_;
+  // Initalize the Random Number Generator:
+  std::default_random_engine generator_;
 
-    // Initalize Kalman Variables:
-    arma::vec mu_bar_ = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-    arma::vec mu_ = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  // Initalize Kalman Variables:
+  arma::vec mu_bar_ = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  arma::vec mu_ = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
-    arma::mat Sigma_bar_ = arma::eye(9,9);
-    arma::mat Sigma_ = arma::eye(9,9);
+  arma::mat Sigma_bar_ = arma::eye(9, 9);
+  arma::mat Sigma_ = arma::eye(9, 9);
 
-    arma::mat At_ = arma::zeros(9,9);
-    arma::mat Hj_ = arma::zeros(2,9);
+  arma::mat At_ = arma::zeros(9, 9);
+  arma::mat Hj_ = arma::zeros(2, 9);
 
-    arma::mat Kt_ = arma::zeros(9,2);
+  arma::mat Kt_ = arma::zeros(9, 2);
 
-    arma::mat Q_bar_ = arma::zeros(9,9);
-    arma::mat R_ = arma::zeros(2,2);
+  arma::mat Q_bar_ = arma::zeros(9, 9);
+  arma::mat R_ = arma::zeros(2, 2);
 
-    arma::mat W_ = arma::eye(9,9);
-    arma::mat V_ = arma::eye(2,2);
+  arma::mat W_ = arma::eye(9, 9);
+  arma::mat V_ = arma::eye(2, 2);
 
-    // Initalize ROS Variables:
-    nav_msgs::msg::Odometry prev_green_odom_;
+  // Initalize ROS Variables:
+  nav_msgs::msg::Odometry prev_green_odom_;
 
-    // Initalize Messages:
-    nav_msgs::msg::Odometry green_odom_msg_;
-    nav_msgs::msg::Path green_odom_path_msg_;
-    visualization_msgs::msg::MarkerArray green_marker_array_msg_;
-    geometry_msgs::msg::TransformStamped green_odom_tf_;
-    geometry_msgs::msg::TransformStamped map_odom_tf_;
+  // Initalize Messages:
+  nav_msgs::msg::Odometry green_odom_msg_;
+  nav_msgs::msg::Path green_odom_path_msg_;
+  visualization_msgs::msg::MarkerArray green_marker_array_msg_;
+  geometry_msgs::msg::TransformStamped green_odom_tf_;
+  geometry_msgs::msg::TransformStamped map_odom_tf_;
 
-    // Seen Obstacles: 
-    std::vector<int> seen_obs_;
+  // Seen Obstacles:
+  std::vector<int> seen_obs_;
 
-    // Initalize Parameters:
-    std::string body_id_;
-    std::string odom_id_;
-    int num_obs_ = 3;
-    double dist_threshold_ = 0.5;
+  // Initalize Parameters:
+  std::string body_id_;
+  std::string odom_id_;
+  int num_obs_ = 3;
+  double dist_threshold_ = 0.5;
 
-    // Tuning and noise parameters:
-    double q_= 0.01;
-    double r_= 1.0;
-    double w_ = 1.0;
-    double v_ = 1.0;
+  // Tuning and noise parameters:
+  double q_ = 0.01;
+  double r_ = 1.0;
+  double w_ = 1.0;
+  double v_ = 1.0;
 
-    // Define transforms:
-    turtlelib::Transform2D Tmr_;
-    turtlelib::Transform2D Tor_;
-    turtlelib::Transform2D Tmo_;
+  // Define transforms:
+  turtlelib::Transform2D Tmr_;
+  turtlelib::Transform2D Tor_;
+  turtlelib::Transform2D Tmo_;
 };
 
 
@@ -742,5 +752,3 @@ int main(int argc, char ** argv)
   rclcpp::shutdown();
   return 0;
 }
-
-
